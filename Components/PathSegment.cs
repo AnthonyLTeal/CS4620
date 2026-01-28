@@ -1,0 +1,87 @@
+using System;
+
+namespace CS4620IS.Components;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+public enum PathDirection
+{
+    Right = 1,
+    Left = -1   
+}
+
+//ALL SEGMENTS SHOULD ALWAYS HAVE A FRONT AND END CONNECTOR
+
+/// <summary>
+/// Field AdjacentPathSegmentEntites = {0,0} by default. 0th Index of entities is global entities so we can use 0 as a condition to see if the adjacent segment exists.
+/// </summary>
+public class PathSegment
+{
+    //public List<int> connectedIndex = new List<int>();
+    private Vector3[] _path;
+
+    public Vector3[] Perpendiculars
+    {
+        get;
+        private set;
+    }
+    public VertexPositionColor[] DebugPoints
+    {
+        get;
+        private set;
+    }
+    public int? EndConnector = null;
+    public int? FrontConnector = null;
+    public int ID;
+    public int EntityID;
+    public int[] AdjacentPathSegmentEntities = new int[2];
+    public PathDirection PathDirection; 
+    public bool IsLaneRuler = true;
+    public int Weight = 1;
+
+    public Vector3[] Path
+    {
+        get => _path;
+        set
+        {
+            _path = value;
+            DebugPoints = PathSegmentSystems.GenerateRoadOutline(value, IsLaneRuler);
+            //TODO uncomment the following 2 lines to build perpendiculars when roadmesh is fixed
+            //if (IsLaneRuler)
+                //Perpendiculars = RoadMesh.GeneratePerpendiculars(_path);
+        }
+    }
+}
+
+public class PathSegmentConnector
+{
+    public int ID;
+    private Vector3 _position;
+    public VertexPositionColor DebugPosition;
+    public List<VertexPositionColor> DebugPoints = new List<VertexPositionColor>();
+    public List<int> PointIDs = new List<int>();
+    //public List<int> SegmentIDs = new List<int>();
+    public List<int> SegmentEntities = new List<int>();
+    //public int Weight = 1;
+
+    public Vector3 Position
+    {
+        get => _position;
+        set
+        {
+            _position = value;
+            DebugPosition = new VertexPositionColor(value, Color.Blue);
+        }
+    }
+}
+
+public class PathSegmentConnection
+{
+    public int PointId;
+    public int SegmentEntityId;
+    public PathSegmentConnection(int pointId, int segmentEntityId)
+    {
+        PointId = pointId;
+        SegmentEntityId = segmentEntityId;
+    }
+}

@@ -1,0 +1,215 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using PlanetaryExpansion.Components;
+
+namespace CS4620IS;
+
+public class DrawSystem
+{
+    public static void DrawShadow()
+    {
+        List<int> entities = ComponentManager.GetComponent<DrawableAsset>();
+        int componentID = ComponentManager.GetComponentID<DrawableAsset>();
+        int lightID = ComponentManager.GetComponentID<KeyLight>();
+        int modelInfoID = ComponentManager.GetComponentID<ModelInfo>();
+    
+        foreach (int entity in entities)
+        {
+            DrawableAsset asset = (DrawableAsset)EntityManager.EntityComponents[entity][componentID];
+            KeyLight light = (KeyLight)EntityManager.EntityComponents[0][lightID];
+            ModelInfo modelInfo = (ModelInfo)EntityManager.EntityComponents[entity][modelInfoID];
+
+            foreach (ModelMesh mesh in Assets.Models[modelInfo.ModelKey].Meshes)
+            {
+                foreach (ModelMeshPart meshPart in mesh.MeshParts)
+                {
+                    meshPart.Effect = Assets.Effects["Shaders/ShadowMapDepth"];
+                    Assets.Effects["Shaders/ShadowMapDepth"].CurrentTechnique = Assets.Effects["Shaders/ShadowMapDepth"].Techniques["ShadowMap"];
+                    Assets.Effects["Shaders/ShadowMapDepth"].Parameters["xLightsWorldViewProjection"].SetValue((Matrix.Identity * Matrix.CreateScale(asset.Scale) * asset.Rotation * asset.Position) * (light.View * light.Projection)) ;
+                    Assets.Effects["Shaders/ShadowMapDepth"].CurrentTechnique.Passes[0].Apply();
+                }
+                    
+                mesh.Draw();
+            }   
+        }
+    }
+
+    public static void Update(GameTime gameTime)
+    {
+        List<int> entities = ComponentManager.GetComponent<DrawableAsset>();
+        int componentID = ComponentManager.GetComponentID<DrawableAsset>();
+        int lightID = ComponentManager.GetComponentID<KeyLight>();
+
+        foreach (int entity in entities)
+        {
+            KeyLight light = (KeyLight)EntityManager.EntityComponents[0][lightID];
+            DrawableAsset asset = (DrawableAsset)EntityManager.EntityComponents[entity][componentID];
+            asset.Position = Matrix.CreateTranslation(-light.Direction * 250);
+        }
+    }
+
+    public static void Draw(GraphicsDevice graphicsDevice)
+    {
+        List<int> entities = ComponentManager.GetComponent<DrawableAsset>();
+        int componentID = ComponentManager.GetComponentID<DrawableAsset>();
+        //int shadowID = ComponentManager.GetComponentID<Shadow>();
+        int lightID = ComponentManager.GetComponentID<KeyLight>();
+        int cameraID = ComponentManager.GetComponentID<ArcBallCamera>();
+        int modelInfoID = ComponentManager.GetComponentID<ModelInfo>();
+        
+        foreach (int entity in entities)
+        {
+            DrawableAsset asset = (DrawableAsset)EntityManager.EntityComponents[entity][componentID];
+            //Shadow shadow = (Shadow)EntityManager.EntityComponents[0][shadowID];
+            KeyLight light = (KeyLight)EntityManager.EntityComponents[0][lightID];
+            ArcBallCamera camera = (ArcBallCamera)EntityManager.EntityComponents[0][cameraID];
+            ModelInfo modelInfo = (ModelInfo)EntityManager.EntityComponents[entity][modelInfoID];
+
+            Effect effect;
+
+            foreach (ModelMesh mesh in Assets.Models[modelInfo.ModelKey].Meshes)
+            {
+                foreach (ModelMeshPart meshPart in mesh.MeshParts)
+                {
+                    effect = Assets.Effects[modelInfo.EffectKey];
+                    meshPart.Effect = effect;
+                    effect.CurrentTechnique = effect.Techniques["TexturedLighting"];
+
+                    effect.Parameters["World"].SetValue(Matrix.Identity * Matrix.CreateScale(asset.Scale) * asset.Rotation * asset.Position);
+                    effect.Parameters["View"].SetValue(camera.ViewMatrix);
+                    effect.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
+                    effect.Parameters["Color"].SetValue(new Vector4(1f, 1f, 1f, 1f));
+                    effect.Parameters["ModelTexture"].SetValue(Assets.GetTexture(modelInfo.TextureKey));
+                    effect.Parameters["DiscardThreshold"].SetValue(0.1f);
+                        
+                    effect.Parameters["SpecularIntensity"].SetValue(1f);
+                    effect.Parameters["SpecularPower"].SetValue(16f);
+                        
+                    //effect.Parameters["ShadowMap"].SetValue(shadow.Map);
+                    effect.Parameters["LightDirection"].SetValue(light.Direction);
+                    effect.Parameters["LightView"].SetValue(light.View);
+                    effect.Parameters["LightProjection"].SetValue(light.Projection);
+                    //effect.Parameters["ShadowMapSize"].SetValue(shadow.Size);
+                    //effect.Parameters["Bias"].SetValue(shadow.Bias);
+
+                    effect.CurrentTechnique.Passes[0].Apply();
+                }
+                mesh.Draw();
+            }
+        }
+    }
+
+    public static void DrawZones()
+    {
+        ZoneFills zoneFills = (ZoneFills)EntityManager.GetGlobalComponent<ZoneFills>();
+        ZoneOutlines zoneOutlines = (ZoneOutlines)EntityManager.GetGlobalComponent<ZoneOutlines>();
+        if (zoneFills.Count <= 0)
+            return;
+        ArcBallCamera camera = (ArcBallCamera)EntityManager.GetGlobalComponent<ArcBallCamera>();
+        GraphicsDevice graphicsDevice = (GraphicsDevice)EntityManager.GetGlobalComponent<GraphicsDevice>();
+
+        BasicEffect effect = (BasicEffect)Assets.Effects["BasicEffect"];
+        effect.View = camera.ViewMatrix;
+        effect.Projection = camera.ProjectionMatrix;
+        //effect.DiffuseColor = new Vector3(1, 0, 0);
+        effect.VertexColorEnabled = true;
+        effect.Alpha = 0.2f;
+            
+        effect.CurrentTechnique.Passes[0].Apply();
+        graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, zoneFills.Vertices, 0, zoneFills.Count * 4, zoneFills.Indices, 0, zoneFills.Count * 2, zoneFills.VertexDeclaration);
+
+        effect.Alpha = 1.0f;
+        effect.CurrentTechnique.Passes[0].Apply();
+        graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, zoneOutlines.Vertices, 0, zoneOutlines.Count * 4);
+    }
+
+    // public static void DrawInstancedZones()
+    // {
+    //     InstancedZoneFills instancedZoneFills = (InstancedZoneFills)EntityManager.GetGlobalComponent<InstancedZoneFills>();
+    //     int lightID = ComponentManager.GetComponentID<KeyLight>();
+    //     int cameraID = ComponentManager.GetComponentID<ArcBallCamera>();
+    //
+    //     GraphicsDevice graphicsDevice = (GraphicsDevice)EntityManager.GetGlobalComponent<GraphicsDevice>();
+    //     
+    //     if (instancedZoneFills.Count == 0)
+    //         return;
+    //     KeyLight light = (KeyLight)EntityManager.EntityComponents[0][lightID];
+    //     ArcBallCamera camera = (ArcBallCamera)EntityManager.EntityComponents[0][cameraID];
+    //     
+    //     Effect effect = Assets.Effects["Instancing"];
+    //
+    //     graphicsDevice.SetVertexBuffers(
+    //         new VertexBufferBinding(instancedZoneFills.VertexBuffer, 0, 0),
+    //         new VertexBufferBinding(instancedZoneFills.InstanceVertexBuffer, 0, 1)
+    //     );
+    //     graphicsDevice.Indices = instancedZoneFills.IndexBuffer;
+    //     
+    //     effect.CurrentTechnique = effect.Techniques["Instancing"];
+    //
+    //     effect.Parameters["View"].SetValue(camera.ViewMatrix);
+    //     effect.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
+    //     effect.Parameters["LightDirection"].SetValue(light.Direction);
+    //     effect.Parameters["Ambient"].SetValue(0f);
+    //     effect.Parameters["Color"].SetValue(new Vector4(1f, 1f, 1f, 1f));
+    //     effect.Parameters["DiscardThreshold"].SetValue(0.1f);
+    //     effect.CurrentTechnique.Passes[0].Apply();
+    //     graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, instancedZoneFills.Count);
+    // }
+    
+    public static void DrawInstanced()
+    {
+        List<int> entities = ComponentManager.GetComponent<InstancedAssetParent>();
+        int componentID = ComponentManager.GetComponentID<InstancedAssetParent>();
+        //int shadowID = ComponentManager.GetComponentID<Shadow>();
+        int lightID = ComponentManager.GetComponentID<KeyLight>();
+        int cameraID = ComponentManager.GetComponentID<ArcBallCamera>();
+        int modelInfoID = ComponentManager.GetComponentID<ModelInfo>();
+
+        GraphicsDevice graphicsDevice = (GraphicsDevice)EntityManager.GetGlobalComponent<GraphicsDevice>();
+
+        foreach (int entity in entities)
+        {
+            InstancedAssetParent asset = (InstancedAssetParent)EntityManager.EntityComponents[entity][componentID];
+            if (asset.Count == 0)
+                continue;
+            //Shadow shadow = (Shadow)EntityManager.EntityComponents[0][shadowID];
+            KeyLight light = (KeyLight)EntityManager.EntityComponents[0][lightID];
+            ArcBallCamera camera = (ArcBallCamera)EntityManager.EntityComponents[0][cameraID];
+            ModelInfo modelInfo = (ModelInfo)EntityManager.EntityComponents[entity][modelInfoID];
+            
+            Effect effect = Assets.Effects[modelInfo.EffectKey];
+            
+            foreach (ModelMesh mesh in Assets.Models[modelInfo.ModelKey].Meshes)
+            {
+                foreach (ModelMeshPart meshPart in mesh.MeshParts)
+                {
+                    graphicsDevice.SetVertexBuffers(
+                        new VertexBufferBinding(meshPart.VertexBuffer, meshPart.VertexOffset, 0),
+                        new VertexBufferBinding(asset.InstanceVertexBuffer, 0, 1)
+                    );
+                    
+                    graphicsDevice.Indices = meshPart.IndexBuffer;
+                    
+                    effect.CurrentTechnique = effect.Techniques["Instancing"];
+            
+                    //effect.Parameters["World"].SetValue(Matrix.Identity);
+                    effect.Parameters["View"].SetValue(camera.ViewMatrix);
+                    effect.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
+            
+                    effect.Parameters["LightDirection"].SetValue(light.Direction);
+                    effect.Parameters["Ambient"].SetValue(0f);
+                    effect.Parameters["Color"].SetValue(new Vector4(1f, 1f, 1f, 1f));
+                    effect.Parameters["ModelTexture"].SetValue(Assets.GetTexture(modelInfo.TextureKey));
+                    effect.Parameters["DiscardThreshold"].SetValue(0.1f);
+            
+                    effect.CurrentTechnique.Passes[0].Apply();
+            
+                    graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, meshPart.StartIndex, meshPart.PrimitiveCount, asset.Count);
+                }
+            }
+        }
+    }
+}
