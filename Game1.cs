@@ -54,8 +54,6 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         
-        Console.WriteLine("Just once right?");
-        
         ComponentManager.RegisterComponent<ArcBallCamera>();
         // ComponentManager.RegisterComponent<TerrainCursor>();
         // ComponentManager.RegisterComponent<Desktop>();
