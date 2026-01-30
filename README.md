@@ -1,3 +1,13 @@
+## Build Instructions
+Ensure that .net 8 is installed and ensure that your project and solution settings have .net 8 selected as the target framework.
+
+Open project in supported IDE and run.
+* Jetbrains Rider: Opens without any extra work needed.
+* Visual Studio Community for C#: Opens and builds without any extra work needed.
+* Visual Studio Code: Can open project as a folder, but you will need to install the C# plugin. This is not the recommended way as the debugging tools aren't as well developed as they are with Rider or Visual Studio Community.
+
+*Currently the project will not build on windows due to a bug in the MonoGame.Content.Builder.Task.Compute nuget package. If you are unable to build the project, please first try uninstalling that as it's currently unused.*
+
 ## ECS:
 An ecs is partially implemented right now for loading and processing entities and systems.
 ### Entities:

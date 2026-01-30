@@ -136,7 +136,7 @@ public class Terrain
         basicEffect.TextureEnabled = false;
 
         basicEffect.LightingEnabled = false;
-        basicEffect.DiffuseColor = new Vector3(.25f, 0.25f, 0.25f);
+        basicEffect.DiffuseColor = new Vector3(.9f, 0.9f, 0.9f);
 
         foreach (var pass in basicEffect.CurrentTechnique.Passes)
         {

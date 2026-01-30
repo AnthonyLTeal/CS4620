@@ -30,8 +30,6 @@ namespace CS4620IS
             cursor.TriangleCollided = terrain.GetCursorMappedPoint(out collisionPoint);
             cursor.Location = collisionPoint;
             
-            Console.WriteLine($"Cursor Location: {cursor.Location}");
-
             if (cursor.OnClick != null)
             {
                 int inputStateID = ComponentManager.GetComponentID<InputState>();

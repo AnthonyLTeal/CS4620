@@ -68,6 +68,8 @@ public class RoadMesh
     public OctreeSuper<PathSegmentPointOctreeData> Octree;
     private PathSegmentPointOctreeData ClampedPointOctreeData = null;
     public bool CreateEnabled = true;
+    private const float PATH_WIDTH = 1;
+    private RoadRibbonMesh _ribbonMesh = new RoadRibbonMesh();
     
     public List<PathSegmentConnector> PathSegmentConnectors = new List<PathSegmentConnector>();
 
@@ -78,6 +80,7 @@ public class RoadMesh
 
         Terrain terrain = (Terrain)EntityManager.GetGlobalComponent<Terrain>();        
         Octree = new OctreeSuper<PathSegmentPointOctreeData>(terrain.Scale * 2, 4, terrain.WorldCenter);
+        _ribbonMesh = new RoadRibbonMesh();
         //Octree = new OctreeSuper<PathSegmentOctreeData>(100, 4, terrain.WorldCenter);
         // PathSegmentOctreeData data = new PathSegmentOctreeData();
         // data.Position = new Vector3(2, 30, 2);
@@ -542,9 +545,9 @@ public class RoadMesh
     
     public static Vector3 Calculate3DTangentNormal(Vector3 p1, Vector3 p2)
     {
-        Vector3 worldCenter = EntityManager.GetGlobalComponent<Terrain>().WorldCenter;
+        // Vector3 worldCenter = EntityManager.GetGlobalComponent<Terrain>().WorldCenter;
         Vector3 u = p2 - p1;
-        Vector3 v = worldCenter - p1;
+        Vector3 v = Vector3.Up;
         Vector3 normal = Vector3.Cross(u, v);
         normal.Normalize();
         return normal;
@@ -1398,6 +1401,7 @@ public class RoadMesh
         foreach (PathSegment segment in segments)
         {
             InsertSegmentPathPointsIntoOctree(segment);
+            GenerateRibbonMesh(segment);
         }
         
         //PathSegmentSystems.IntersectAndRemoveZones(segments);
@@ -1504,6 +1508,20 @@ public class RoadMesh
         //TODO need something different here I think to fix this lol
         //GeneratePathSegmentConnectors(newSegments);
         return newSegments;
+    }
+    
+    //TODO consider putting this into the RoadRibbonMesh class, might make more sense there
+    public void GenerateRibbonMesh(PathSegment segment)
+    {
+        Vector3[] perpendiculars = GeneratePerpendiculars(segment.Path);
+        Vector3[] meshVerts = new Vector3[segment.Path.Length * 2];
+        for (int i = 0; i < segment.Path.Length; i++)
+        {
+            meshVerts[2 * i] = segment.Path[i] + perpendiculars[i] * PATH_WIDTH + new Vector3(0, 0.1f, 0);
+            meshVerts[2 * i + 1] = segment.Path[i] - perpendiculars[i] * PATH_WIDTH + new Vector3(0, 0.1f, 0);
+        }
+        
+        _ribbonMesh.Insert(meshVerts);
     }
 
     private void GenerateParallelPaths(List<PathSegment> rulerSegments, int leftPathCount, int rightPathCount)
@@ -1805,6 +1823,8 @@ public class RoadMesh
         {
             spacePressed = false;
         }
+        
+        _ribbonMesh.Update();
 
         // if (previousBrushLocation == cursor.Location && !p3Clamped)
         // {
@@ -1817,6 +1837,8 @@ public class RoadMesh
     BasicEffect basicEffect;
     public void Draw(GraphicsDevice graphicsDevice, Matrix viewMatrix, Matrix projectionMatrix)
     {
+        _ribbonMesh.Draw();
+        
         RasterizerState rs = new RasterizerState();
         rs.CullMode = CullMode.CullCounterClockwiseFace;
         //rs.FillMode = FillMode.WireFrame;
