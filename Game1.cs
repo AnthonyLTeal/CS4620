@@ -3,6 +3,7 @@ using CS4620IS.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended;
 using PlanetaryExpansion;
 
 namespace CS4620IS;
@@ -101,11 +102,19 @@ public class Game1 : Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
+    
         _terrain.Draw(_graphics.GraphicsDevice, _camera);
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
         
         // TODO: Add your drawing code here
+        // _spriteBatch.Begin(); // Start listening (every call is batched together)
+        // Texture2D pixel = new Texture2D(GraphicsDevice, 1, 1);
+        // pixel.SetData(new[] { Color.White });
+        // _spriteBatch.Draw(pixel, new Rectangle(100,50,100,10), Color.Aqua);
+        // _spriteBatch.End(); //stop listening
+
 
         base.Draw(gameTime);
     }
 }
+
