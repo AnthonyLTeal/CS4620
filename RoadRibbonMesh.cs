@@ -126,7 +126,7 @@ public class RoadRibbonMesh
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
 
-        _basicEffect.World = Matrix.Identity; // make it bigger
+        _basicEffect.World = Matrix.Identity;
         _basicEffect.View = camera.ViewMatrix;
         _basicEffect.Projection = camera.ProjectionMatrix;
 

@@ -85,3 +85,15 @@ public class PathSegmentConnection
         SegmentEntityId = segmentEntityId;
     }
 }
+
+public class DPath
+{
+    public int[] Distances { get; private set; }
+    public int[] Prevs { get; private set; }
+
+    public DPath(int[] _distances, int[] _prevs)
+    {
+        Distances = _distances;
+        Prevs = _prevs;
+    }
+}
