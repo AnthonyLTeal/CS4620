@@ -54,6 +54,7 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         
+        ComponentManager.RegisterComponent<CubeMeshBatcher>();
         ComponentManager.RegisterComponent<ArcBallCamera>();
         // ComponentManager.RegisterComponent<TerrainCursor>();
         // ComponentManager.RegisterComponent<Desktop>();
@@ -68,6 +69,7 @@ public class Game1 : Game
         _terrain = new Terrain(_graphics.GraphicsDevice);
         _camera = new ArcBallCamera(GraphicsDevice.Viewport.AspectRatio, MathHelper.PiOver4, new Vector3(0, 0, 0), Vector3.Up, 0.1f, 1000);
         _cameraControls = new CameraControls();
+        CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
         
         //Assets.Effects["BasicEffect"] = new BasicEffect(GraphicsDevice);
         
@@ -76,6 +78,7 @@ public class Game1 : Game
         EntityManager.AddComponentToGlobalEntity<ArcBallCamera>(_camera);
         EntityManager.AddComponentToGlobalEntity<Terrain>(_terrain);
         EntityManager.AddComponentToGlobalEntity<GraphicsDevice>(GraphicsDevice);
+        EntityManager.AddComponentToGlobalEntity<CubeMeshBatcher>(cubeMeshBatcher);
         
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
         EntityManager.AddComponentToGlobalEntity<RoadMesh>(_roadMesh);
