@@ -5,6 +5,7 @@
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -21,7 +22,6 @@
         <EmbeddedResource Include="Icon.bmp"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="MonoGame.Content.Builder.Task.Compute" Version="3.8.3" />
         <PackageReference Include="MonoGame.Framework.Compute.DesktopGL" Version="3.8.3" />
         <PackageReference Include="Nopipeline.Task" Version="2.2.0" />
     </ItemGroup>
