@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CS4620IS.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -16,17 +17,36 @@ public class CubeMeshBatcher
     public int[] Indices;
     public int CubeCount = 0;
     public int Maximum;
+    private VertexBuffer _vertexBuffer;
+    private IndexBuffer _indexBuffer;
+    private BasicEffect _basicEffect;
 
     /// <summary>
     /// Maximum number of cubes is set in the constructor
     /// Vertices: 8 vertices per cube
-    /// Indices: 12 triangles per cube and 3 vertices per triangle and
+    /// Indices: 12 triangles per cube and 3 vertices per triangle
     /// </summary>
     public CubeMeshBatcher(int maximum = 2000)
     {
+        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
+        _basicEffect = new BasicEffect(graphicsDevice);
+        
         Maximum = maximum;
         Vertices = new VertexPositionColor[Maximum * 8];
         Indices = new int[Maximum * 12 * 3];
+        
+        _vertexBuffer = new VertexBuffer(
+            graphicsDevice,
+            typeof(VertexPositionColor),
+            Vertices.Length,
+            BufferUsage.WriteOnly);
+        
+        
+        _indexBuffer = new IndexBuffer(
+            graphicsDevice,
+            IndexElementSize.ThirtyTwoBits,
+            Indices.Length,
+            BufferUsage.WriteOnly);
     }
 
     /// <summary>
@@ -36,6 +56,56 @@ public class CubeMeshBatcher
     public void ClearBuffers()
     {
         CubeCount = 0;
+    }
+
+    public void Update()
+    {
+        ClearBuffers();
+        List<int> carEntities = ComponentManager.GetComponent<Car>();
+        foreach (var carEntity in carEntities)
+        {
+            Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
+            InsertCube(car.Position, car.Rotation, 1, car.Color);
+        }
+        
+        _vertexBuffer.SetData(Vertices);
+        _indexBuffer.SetData(Indices);
+    }
+
+    public void Draw()
+    {
+        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
+        ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
+        int _triangleCount = CubeCount * 12;
+        if (_triangleCount == 0)
+        {
+            return;
+        }
+        
+        graphicsDevice.SetVertexBuffer(_vertexBuffer);
+        graphicsDevice.Indices = _indexBuffer;
+
+        _basicEffect.World = Matrix.Identity;
+        _basicEffect.View = camera.ViewMatrix;
+        _basicEffect.Projection = camera.ProjectionMatrix;
+
+        _basicEffect.EnableDefaultLighting();
+        _basicEffect.TextureEnabled = false;
+        _basicEffect.VertexColorEnabled = true;
+
+        _basicEffect.LightingEnabled = false;
+        //_basicEffect.DiffuseColor = new Vector3(.9f, 0.0f, 0.0f);
+
+        foreach (var pass in _basicEffect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+
+            graphicsDevice.DrawIndexedPrimitives(
+                PrimitiveType.TriangleList,
+                0,
+                0,
+                _triangleCount);
+        }
     }
 
     public void InsertCube(Vector3 position, Matrix rotation, float scale, Color color)

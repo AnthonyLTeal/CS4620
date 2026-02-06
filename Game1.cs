@@ -69,7 +69,6 @@ public class Game1 : Game
         _terrain = new Terrain(_graphics.GraphicsDevice);
         _camera = new ArcBallCamera(GraphicsDevice.Viewport.AspectRatio, MathHelper.PiOver4, new Vector3(0, 0, 0), Vector3.Up, 0.1f, 1000);
         _cameraControls = new CameraControls();
-        CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
         
         //Assets.Effects["BasicEffect"] = new BasicEffect(GraphicsDevice);
         
@@ -78,6 +77,8 @@ public class Game1 : Game
         EntityManager.AddComponentToGlobalEntity<ArcBallCamera>(_camera);
         EntityManager.AddComponentToGlobalEntity<Terrain>(_terrain);
         EntityManager.AddComponentToGlobalEntity<GraphicsDevice>(GraphicsDevice);
+        
+        CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
         EntityManager.AddComponentToGlobalEntity<CubeMeshBatcher>(cubeMeshBatcher);
         
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
@@ -89,6 +90,16 @@ public class Game1 : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
+        
+        
+        //TESTING - just a test for the car generation, should be more systematic
+        if (Keyboard.GetState().IsKeyDown(Keys.P))
+        {
+            CarSystems.GenerateRandomCar();
+        }
+        
+        CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
+        cubeMeshBatcher.Update();
         
         _cameraControls.Update(gameTime, Keyboard.GetState(), Mouse.GetState(), _camera);
         CursorSystem.Update(gameTime);
@@ -104,6 +115,9 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
         _terrain.Draw(_graphics.GraphicsDevice, _camera);
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
+        
+        CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
+        cubeMeshBatcher.Draw();
         
         // TODO: Add your drawing code here
 

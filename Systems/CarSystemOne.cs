@@ -22,18 +22,13 @@ public class CarSystems
         // }
     }
 
-    public void DrawCar()
-    {
-        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
-    }
-
-    public void GenerateRandomCar()
+    public static void GenerateRandomCar()
     {
         int newCarEntity = EntityManager.AddEntity();
 
         List<int> segments = ComponentManager.GetComponent<PathSegment>();
         int randomSegment = AOneMath.random.Next(segments.Count);
-        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(randomSegment);
+        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segments[randomSegment]);
 
         int randomPathPoint = AOneMath.random.Next(segment.Path.Length);
         Vector3 position = segment.Path[randomPathPoint];
@@ -46,6 +41,7 @@ public class CarSystems
             Color = Color.AliceBlue,
             Rotation = Matrix.Identity
         };
+        
 
         // DrawableAsset asset = new DrawableAsset()
         // {
