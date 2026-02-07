@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 namespace CS4620IS.Components;
@@ -11,9 +12,16 @@ public class Car
 {
     public int GroupID;
     public int ConnectedSegment;
+    public int LastPathIndex;
     public Vector3 Position;
     public Color Color;
     public Matrix Rotation;
     public float Scale;
-    public CubeMesh CubeMesh;
+    public List<Destination> Destinations;
+}
+
+public class Destination
+{
+    public int SegmentID;
+    public int SegmentPathIndex;
 }

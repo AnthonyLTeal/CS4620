@@ -22,15 +22,28 @@ public class CarSystems
         // }
     }
 
-    public static void GenerateRandomCar()
+    /// <summary>
+    /// Gets a random path point
+    /// </summary>
+    /// <returns>(int SegmentEntityID, int SegmentPathPointIndex)</returns>
+    public static (int, int) GetRandomPathPoint()
     {
-        int newCarEntity = EntityManager.AddEntity();
-
         List<int> segments = ComponentManager.GetComponent<PathSegment>();
         int randomSegment = AOneMath.random.Next(segments.Count);
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segments[randomSegment]);
 
         int randomPathPoint = AOneMath.random.Next(segment.Path.Length);
+
+        return (randomSegment, randomPathPoint);
+    }
+
+    public static void GenerateRandomCar()
+    {
+        int newCarEntity = EntityManager.AddEntity();
+
+        List<int> segments = ComponentManager.GetComponent<PathSegment>();
+        (int randomSegment, int randomPathPoint) = GetRandomPathPoint();
+        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segments[randomSegment]);
         Vector3 position = segment.Path[randomPathPoint];
 
         Car car = new Car()
