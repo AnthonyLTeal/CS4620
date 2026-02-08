@@ -69,7 +69,7 @@ public class PathSegmentSystems
                  {
                      distances[(int)nextConnectorID] = distances[currentPoint.ID] + edge.Weight;
                      prev[(int)nextConnectorID] = currentPoint.ID;
-                     minHeap.Enqueue(pathSegmentConnectors[(int)nextConnectorID], edge.Weight);
+                     minHeap.Enqueue(pathSegmentConnectors[(int)nextConnectorID], distances[(int)nextConnectorID]);
                 }
             }
         }
