@@ -94,7 +94,7 @@ public class CubeMeshBatcher
         _basicEffect.VertexColorEnabled = true;
 
         _basicEffect.LightingEnabled = false;
-        //_basicEffect.DiffuseColor = new Vector3(.9f, 0.0f, 0.0f);
+        _basicEffect.DiffuseColor = new Vector3(.0f, 0.0f, .7f);
 
         foreach (var pass in _basicEffect.CurrentTechnique.Passes)
         {

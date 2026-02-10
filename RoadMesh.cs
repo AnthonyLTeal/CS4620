@@ -1403,16 +1403,30 @@ public class RoadMesh
             InsertSegmentPathPointsIntoOctree(segment);
             GenerateRibbonMesh(segment);
         }
+
+        foreach (PathSegment segment in Segments)
+        {
+            if (segment.EndConnector == null)
+            {
+                Console.WriteLine($"Segment {segment.ID} missing end connector");
+            }
+            if (segment.FrontConnector== null)
+            {
+                Console.WriteLine($"Segment {segment.ID} missing front connector");
+            }
+        }
         
         //PathSegmentSystems.IntersectAndRemoveZones(segments);
         
         //uncomment to enable path tracing for the segments/connectors
         //PathSegmentConnectorSystems.DebugWriteSegmentPathTrace(PathSegmentConnectors, PathSegmentConnectors[0]);
-        Random rand = new Random();
-        PathSegmentConnector origin = PathSegmentConnectors[rand.Next(PathSegmentConnectors.Count)];
+        //Random rand = new Random();
+        //PathSegmentConnector origin = PathSegmentConnectors[rand.Next(PathSegmentConnectors.Count)];
+        
+        PathSegmentSystems.CalculateAllPaths();
         
         //TODO can probably rewrite this or add it in later
-        //RoadMeshUtilities.CalculatePaths(origin, this);
+        //PathSegmentSystems.CalculatePaths(origin, this);
 
         //uncomment below code for debugging path
         // foreach (PathSegment segment in Segments)

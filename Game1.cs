@@ -104,6 +104,7 @@ public class Game1 : Game
         _cameraControls.Update(gameTime, Keyboard.GetState(), Mouse.GetState(), _camera);
         CursorSystem.Update(gameTime);
         _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
+        CarSystems.BasicBehavior(gameTime);
 
         // TODO: Add your update logic here
 

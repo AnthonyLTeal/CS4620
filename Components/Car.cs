@@ -24,4 +24,5 @@ public class Destination
 {
     public int SegmentID;
     public int SegmentPathIndex;
+    public Stack<int> Path;
 }

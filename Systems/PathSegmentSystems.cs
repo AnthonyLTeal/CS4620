@@ -32,13 +32,22 @@ public class PathSegmentSystems
 
         return vertexPositionColor;
     }
+
+    public static void CalculateAllPaths()
+    {
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+
+        foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
+        {
+            connector.DPath = CalculatePaths(connector, roadMesh);
+        }
+    }
     
-      public static DPath CalculatePaths(PathSegmentConnector origin, RoadMesh roadMesh)
+    public static DPath CalculatePaths(PathSegmentConnector origin, RoadMesh roadMesh)
     {
         List<PathSegmentConnector> pathSegmentConnectors = roadMesh.PathSegmentConnectors; //vertices
         //List<PathSegment> pathSegments = roadMesh.Segments; //edges
 
-        PriorityQueue<PathSegmentConnector, int> minHeap = new PriorityQueue<PathSegmentConnector, int>();
 
         int[] distances = Enumerable.Repeat(-1, pathSegmentConnectors.Count).ToArray();
         int[] prev = Enumerable.Repeat(-1, pathSegmentConnectors.Count).ToArray();
@@ -46,37 +55,41 @@ public class PathSegmentSystems
         distances[origin.ID] = 0;
         prev[origin.ID] = origin.ID;
         //int depth = 0;
-        
-        minHeap.Enqueue(origin, 0);
-
         int pathSegmentCID = ComponentManager.GetComponentID<PathSegment>();
-        
+
+        PriorityQueue<(int node, int dist), int> minHeap = new();
+
+        minHeap.Enqueue((origin.ID, 0), 0);
+
         while (minHeap.Count > 0)
         {
-            var currentPoint = minHeap.Dequeue();
+            var (currentID, queuedDist) = minHeap.Dequeue();
+
+            // THIS is the missing rule
+            if (queuedDist != distances[currentID])
+                continue;
+
+            var currentPoint = roadMesh.PathSegmentConnectors[currentID];
+
             foreach (var edgeID in currentPoint.SegmentEntities)
             {
                 PathSegment edge = (PathSegment)EntityManager.EntityComponents[edgeID][pathSegmentCID];
-                //PathSegment edge = pathSegments[edgeID];
-                
-                // Console.WriteLine($"Path ID: {edgeID}");
-                // Console.WriteLine($"End Connector: {edge.EndConnector}");
-                // Console.WriteLine($"Front Connector: {edge.FrontConnector}");
+                int nextID = PathSegmentConnectorSystems.GetNextConnector(edge, currentPoint)!.Value;
 
-                 int? nextConnectorID = PathSegmentConnectorSystems.GetNextConnector(edge, currentPoint);
-                 int distance = distances[currentPoint.ID] + edge.Weight;
-                 if (distances[(int)nextConnectorID] == -1 || distance < distances[(int)nextConnectorID])
-                 {
-                     distances[(int)nextConnectorID] = distances[currentPoint.ID] + edge.Weight;
-                     prev[(int)nextConnectorID] = currentPoint.ID;
-                     minHeap.Enqueue(pathSegmentConnectors[(int)nextConnectorID], distances[(int)nextConnectorID]);
+                int newDist = queuedDist + edge.Weight;
+
+                if (distances[nextID] == -1 || newDist < distances[nextID])
+                {
+                    distances[nextID] = newDist;
+                    prev[nextID] = currentID;
+                    minHeap.Enqueue((nextID, newDist), newDist);
                 }
             }
         }
         
-        // Console.WriteLine("Origin ID: " + origin.ID);
+        Console.WriteLine();
         // Console.WriteLine("Distances: " + String.Join(", ", distances));
-        // Console.WriteLine("Previous Path: " + String.Join(", ", prev));
+        Console.WriteLine("Origin ID: " + origin.ID + " | Previous Path: " + String.Join(", ", prev));
         
         return new DPath(distances, prev);
     }

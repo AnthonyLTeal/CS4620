@@ -62,6 +62,7 @@ public class PathSegmentConnector
     public List<int> PointIDs = new List<int>();
     //public List<int> SegmentIDs = new List<int>();
     public List<int> SegmentEntities = new List<int>();
+    public DPath DPath;
     //public int Weight = 1;
 
     public Vector3 Position
