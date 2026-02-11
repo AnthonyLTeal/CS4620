@@ -36,8 +36,8 @@ public class RoadRibbonMesh
         int idx = 0;
         for (int i = 0; i < vertices.Length - 2; i += 2)
         {
-            Console.WriteLine($"VERTEX ONE: {vertices[i]}");
-            Console.WriteLine($"VERTEX TWO: {vertices[i + 1]}");
+            //Console.WriteLine($"VERTEX ONE: {vertices[i]}");
+            //Console.WriteLine($"VERTEX TWO: {vertices[i + 1]}");
             int left0 = i;
             int right0 = i + 1;
             int left1 = i + 2;

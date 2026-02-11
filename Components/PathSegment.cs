@@ -38,6 +38,12 @@ public class PathSegment
     public PathDirection PathDirection; 
     public bool IsLaneRuler = true;
     public int Weight = 1;
+    public int Speed = 1;
+
+    public int TotalPathLength
+    {
+        get { return _path.Length + 2; }
+    }
 
     public Vector3[] Path
     {

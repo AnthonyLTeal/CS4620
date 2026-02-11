@@ -18,6 +18,7 @@ public class Car
     public Matrix Rotation;
     public float Scale;
     public List<Destination> Destinations;
+    public SegmentPath SegmentPath;
 }
 
 public class Destination
@@ -25,4 +26,12 @@ public class Destination
     public int SegmentID;
     public int SegmentPathIndex;
     public Stack<int> Path;
+}
+
+public class SegmentPath
+{
+    public int CurrentIndex;
+    public int BottomIndex;
+    public int TopIndex;
+    public int Direction;
 }
