@@ -131,31 +131,42 @@ public class CarSystems
         //throw new InvalidOperationException($"No segment connects connectors {lastConnectorID} -> {nextConnectorID}");
     }
 
+    /// <summary>
+    /// Returns true if the nextConnectorID is an end connector or false if it's a front connector on the given segment
+    /// </summary>
+    private static bool IsDestinationEnd(PathSegment pathSegment, int nextConnectorID)
+    {
+        if (pathSegment.EndConnector == nextConnectorID)
+            return true;
+        return false;
+    }
+
     private static SegmentPath BuildSegmentPath(Car car,  Destination destination, int? lastConnectorID = null)
     {
         SegmentPath segmentPath = new SegmentPath();
         PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         
+        //TODO potential error with this here, we can't determine the i1 or i2 values based on the last connector
+        //TODO for instance, we need to look at the next connector for this, this might fix at least one error
+        
         int i1 = 0;
         int i2 = connectedSegment.TotalPathLength;
+        int traverseDir = 1;
 
         if (lastConnectorID != null)
         {
             if (connectedSegment.FrontConnector == lastConnectorID)
+            {
                 i1 += 1;
+                traverseDir = 1;
+            }
             if (connectedSegment.EndConnector == lastConnectorID)
+            {
                 i2 -= 1;
+                traverseDir = -1;
+            }
         }
-
-        int traverseDir = 1;
-        if (lastConnectorID != null)
-        {
-            PathSegment segment = connectedSegment;
-            if (segment.FrontConnector == lastConnectorID)
-                traverseDir = 1; // go toward end connector
-            else
-                traverseDir = -1; // go toward front connector
-        }
+        
         if (destination.Path.Count > 0 && lastConnectorID == null)
         {
             int nextDest = car.Destinations[0].Path.Peek();
