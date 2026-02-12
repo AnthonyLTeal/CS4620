@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using CS4620IS.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -95,7 +96,10 @@ public class Game1 : Game
         //TESTING - just a test for the car generation, should be more systematic
         if (Keyboard.GetState().IsKeyDown(Keys.P))
         {
-            CarSystems.GenerateRandomCar();
+            List<int> carEntities = ComponentManager.GetComponent<Car>();
+            Console.WriteLine(carEntities.Count);
+            if (carEntities.Count == 0)
+                CarSystems.GenerateRandomCar();
         }
         
         CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();

@@ -12,7 +12,7 @@ public class Car
 {
     public int GroupID;
     public int ConnectedSegment;
-    public int LastPathIndex;
+    public int InitialPathIndex;
     public Vector3 Position;
     public Color Color;
     public Matrix Rotation;

@@ -76,6 +76,7 @@ public class CarSystems
         while (velocity > 0)
         {
             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+            Console.WriteLine("Current Index: " + car.SegmentPath.CurrentIndex);
             Vector3 nextPoint = GetPathVertex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, connectedSegment);
         
             Vector3 direction = Vector3.Normalize(nextPoint - car.Position);
@@ -102,8 +103,8 @@ public class CarSystems
                 
                 //get new segment
                 int lastConnectorID = car.Destinations[0].Path.Pop();
-                Console.WriteLine("POPPING FROM PATH: " + lastConnectorID);
-                Console.WriteLine("REMAINING: " + car.Destinations[0].Path.ToArray());
+                //Console.WriteLine("POPPING FROM PATH: " + lastConnectorID);
+                //Console.WriteLine("REMAINING: " + car.Destinations[0].Path.ToArray());
                 car.ConnectedSegment = GetNextSegment(car, lastConnectorID);
                 car.SegmentPath = BuildSegmentPath(car, car.Destinations[0], lastConnectorID);
             }
@@ -146,52 +147,48 @@ public class CarSystems
         SegmentPath segmentPath = new SegmentPath();
         PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         
-        //TODO potential error with this here, we can't determine the i1 or i2 values based on the last connector
-        //TODO for instance, we need to look at the next connector for this, this might fix at least one error
+        //we should only need to change i1 or i2 (boundaries) when we are going to a location on a segment
         
         int i1 = 0;
-        int i2 = connectedSegment.TotalPathLength;
+        int i2 = connectedSegment.TotalPathLength - 1; //need to treat this like an index for an array
         int traverseDir = 1;
-
-        if (lastConnectorID != null)
+        
+        if (lastConnectorID != null) //from connector to connecter
         {
             if (connectedSegment.FrontConnector == lastConnectorID)
             {
-                i1 += 1;
                 traverseDir = 1;
+                segmentPath.CurrentIndex = 0;
             }
             if (connectedSegment.EndConnector == lastConnectorID)
             {
-                i2 -= 1;
                 traverseDir = -1;
+                segmentPath.CurrentIndex = connectedSegment.TotalPathLength - 1; //need to treat this like an index for an array
             }
         }
         
-        if (destination.Path.Count > 0 && lastConnectorID == null)
+        if (lastConnectorID == null)  //from segment
         {
-            int nextDest = car.Destinations[0].Path.Peek();
-            if (nextDest == connectedSegment.EndConnector)
+            segmentPath.CurrentIndex = car.InitialPathIndex;
+            if (destination.Path.Count > 0) //from segment to connector
             {
-                i1 = car.LastPathIndex;
-                traverseDir = 1;
+                int nextDest = car.Destinations[0].Path.Peek();
+                if (nextDest == connectedSegment.EndConnector)
+                    traverseDir = 1;
+                else
+                    traverseDir = -1;
             }
-            else
+            else //from segment to segment
             {
-                i2 = car.LastPathIndex;
-                traverseDir = -1;
+                if (destination.SegmentPathIndex > segmentPath.CurrentIndex)
+                    traverseDir = 1;
+                else
+                    traverseDir = -1;
             }
         }
-
-        if (destination.Path.Count == 0)
+        
+        if (destination.Path.Count == 0) //from point to segment
         {
-            if (car.LastPathIndex > destination.SegmentPathIndex)
-            {
-                traverseDir = 1;
-            }
-            else
-            {
-                traverseDir = -1;
-            }
             if (traverseDir == 1)
             {
                 i2 = destination.SegmentPathIndex;
@@ -202,23 +199,14 @@ public class CarSystems
             }
         }
 
-        if (traverseDir == 1)
-        {
-            segmentPath.CurrentIndex = i1;
-        }
-        else
-        {
-            segmentPath.CurrentIndex = i2;
-        }
-
         segmentPath.Direction = traverseDir;
         segmentPath.BottomIndex = i1;
         segmentPath.TopIndex = i2;
         
-        // Console.WriteLine("Direction: " + traverseDir);
-        // Console.WriteLine("BottomIndex: " + i1);
-        // Console.WriteLine("TopIndex: " + i2);
-        // Console.WriteLine("CurrentIndex: " + segmentPath.CurrentIndex);
+        Console.WriteLine("Direction: " + traverseDir);
+        Console.WriteLine("BottomIndex: " + i1);
+        Console.WriteLine("TopIndex: " + i2);
+        Console.WriteLine("CurrentIndex: " + segmentPath.CurrentIndex);
         
         return segmentPath;
     }
@@ -323,18 +311,24 @@ public class CarSystems
 
         Destination destination = new Destination()
         {
-            SegmentID = randomSegmentDestination,
-            SegmentPathIndex = randomPathPointDestination
+            SegmentID = randomSegment, //SegmentID = randomSegmentDestination,
+            SegmentPathIndex = randomPathPointDestination + 1
         };
 
         Stack<int> shortestPath = GetShortestPath(segment, destination);
         destination.Path = shortestPath;
 
-        if (randomSegment == randomSegmentDestination)
+        if (destination.SegmentID == randomSegment)
         {
             destination.Path.Pop();
         }
+        
+        //there is a bug where if the cars/destination segment and points are both the same, then it will not 
+        //generate a proper path and will crash
+        //how do we want to handle this? retry or just remove path and destroy car?
 
+        Console.WriteLine("Destination Path Point: " + destination.SegmentPathIndex);
+        
         List<Destination> destinations = new List<Destination>() {destination};
 
         Car car = new Car()
@@ -345,7 +339,7 @@ public class CarSystems
             Color = Color.AliceBlue,
             Rotation = Matrix.Identity,
             Destinations = destinations,
-            LastPathIndex = randomPathPoint + 1
+            InitialPathIndex = randomPathPoint + 1
         };
         car.SegmentPath = BuildSegmentPath(car, destination);
         
