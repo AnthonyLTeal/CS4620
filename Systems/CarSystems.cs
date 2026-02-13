@@ -18,15 +18,7 @@ public class CarSystems
 
     public static void BasicBehavior(GameTime gameTime)
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
          List<int> entities = ComponentManager.GetComponent<Car>();
-
-         // _carTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-         //
-         // if (_carTimer < UPDATE_TIME)
-         //     return;
-         //
-         // _carTimer = 0;
          
          foreach (int entity in entities)
          {
@@ -37,15 +29,6 @@ public class CarSystems
                  EntityManager.RemoveEntity(entity);
                  return;
              }
-
-             // int nextNode = car.Destinations[0].Path.Pop();
-             // PathSegmentConnector connector = roadMesh.PathSegmentConnectors[nextNode];
-             // car.Position = connector.Position;
-             //
-             // if (car.Destinations[0].Path.Count == 0)
-             // {
-             //     car.Destinations.RemoveAt(0);
-             // }
 
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
              MoveCar(car, connectedSegment.Speed * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.01f);
@@ -85,6 +68,8 @@ public class CarSystems
             if (remaining <= 0)
             {
                 car.Position += direction * velocity;
+                car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
+                //TODO need to update rotation here
                 return;
             }
 
