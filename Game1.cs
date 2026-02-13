@@ -98,7 +98,7 @@ public class Game1 : Game
         {
             List<int> carEntities = ComponentManager.GetComponent<Car>();
             Console.WriteLine(carEntities.Count);
-            if (carEntities.Count == 0)
+            //if (carEntities.Count == 0)
                 CarSystems.GenerateRandomCar();
         }
         

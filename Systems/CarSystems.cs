@@ -76,7 +76,7 @@ public class CarSystems
         while (velocity > 0)
         {
             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-            Console.WriteLine("Current Index: " + car.SegmentPath.CurrentIndex);
+            //Console.WriteLine("Current Index: " + car.SegmentPath.CurrentIndex);
             Vector3 nextPoint = GetPathVertex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, connectedSegment);
         
             Vector3 direction = Vector3.Normalize(nextPoint - car.Position);
@@ -203,10 +203,10 @@ public class CarSystems
         segmentPath.BottomIndex = i1;
         segmentPath.TopIndex = i2;
         
-        Console.WriteLine("Direction: " + traverseDir);
-        Console.WriteLine("BottomIndex: " + i1);
-        Console.WriteLine("TopIndex: " + i2);
-        Console.WriteLine("CurrentIndex: " + segmentPath.CurrentIndex);
+        //Console.WriteLine("Direction: " + traverseDir);
+        //Console.WriteLine("BottomIndex: " + i1);
+        //Console.WriteLine("TopIndex: " + i2);
+        //Console.WriteLine("CurrentIndex: " + segmentPath.CurrentIndex);
         
         return segmentPath;
     }
@@ -311,7 +311,7 @@ public class CarSystems
 
         Destination destination = new Destination()
         {
-            SegmentID = randomSegment, //SegmentID = randomSegmentDestination,
+            SegmentID = randomSegmentDestination, //SegmentID = randomSegmentDestination,
             SegmentPathIndex = randomPathPointDestination + 1
         };
 
@@ -326,6 +326,9 @@ public class CarSystems
         //there is a bug where if the cars/destination segment and points are both the same, then it will not 
         //generate a proper path and will crash
         //how do we want to handle this? retry or just remove path and destroy car?
+        //for now we can just discard it I think
+        if (randomPathPoint == randomPathPointDestination && randomSegment == randomSegmentDestination)
+            return;
 
         Console.WriteLine("Destination Path Point: " + destination.SegmentPathIndex);
         
