@@ -19,6 +19,7 @@ public class Car
     public float Scale;
     public List<Destination> Destinations;
     public SegmentPath SegmentPath;
+    public Vector3 Offset;
 }
 
 public class Destination

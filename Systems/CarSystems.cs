@@ -61,7 +61,6 @@ public class CarSystems
             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
             //Console.WriteLine("Current Index: " + car.SegmentPath.CurrentIndex);
             Vector3 nextPoint = GetPathVertex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, connectedSegment);
-        
             Vector3 direction = Vector3.Normalize(nextPoint - car.Position);
             float distanceTo = Vector3.Distance(nextPoint, car.Position);
             float remaining = velocity - distanceTo;
@@ -69,6 +68,7 @@ public class CarSystems
             {
                 car.Position += direction * velocity;
                 car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
+                car.Offset = RoadSideOffset(direction, car);
                 //TODO need to update rotation here
                 return;
             }
@@ -94,6 +94,14 @@ public class CarSystems
                 car.SegmentPath = BuildSegmentPath(car, car.Destinations[0], lastConnectorID);
             }
         }
+    }
+
+    private static Vector3 RoadSideOffset(Vector3 direction, Car car)
+    {
+        PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+        Console.WriteLine("DIRECTION: " + direction);
+        Console.WriteLine("CALCULATED OFFSET: " + Vector3.Cross(Vector3.Up, direction));
+        return Vector3.Cross(Vector3.Up, direction);
     }
 
     private static int GetNextSegment(Car car, int lastConnectorID)

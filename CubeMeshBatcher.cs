@@ -65,7 +65,7 @@ public class CubeMeshBatcher
         foreach (var carEntity in carEntities)
         {
             Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
-            InsertCube(car.Position, car.Rotation, 1, car.Color);
+            InsertCube(car.Position + car.Offset, car.Rotation, 1, car.Color);
         }
         
         _vertexBuffer.SetData(Vertices);

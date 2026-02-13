@@ -207,7 +207,8 @@ public class RoadMesh
             PathSegment newSegment = new PathSegment()
             {
                 Path = segmentPoints,
-                ID = segmentEntities.Count
+                ID = segmentEntities.Count,
+                PathDirection = PathDirection.Right
             };
 
             // if (i == totalSegments - 1)
