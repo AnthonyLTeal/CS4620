@@ -20,6 +20,8 @@ public class Car
     public List<Destination> Destinations;
     public SegmentPath SegmentPath;
     public Vector3 Offset;
+    public Stack<Vector3> OverridePath = new Stack<Vector3>();
+    public float CurrentLane = 1 * 0.2f;
 }
 
 public class Destination

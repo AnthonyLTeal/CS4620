@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Numerics;
 using CS4620IS.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PlanetaryExpansion;
-using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CS4620IS;
 
@@ -31,7 +29,7 @@ public class CarSystems
              }
 
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-             MoveCar(car, connectedSegment.Speed * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.01f);
+             MoveCar(car, connectedSegment.Speed * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.005f);
 
          }
     }
@@ -53,45 +51,131 @@ public class CarSystems
         return pathSegment.Path[index - 1];
     }
 
+    private static void BuildIntersectionPath(Car car, Vector3 p1, Vector3 p2, Vector3 connectorPosition)
+    {
+        //     Vector3 dir = Vector3.Slerp(v1, v2, 0.5f); //can use Slerp to get angles between.
+        Vector3 p2Dir = Vector3.Normalize(p2 - connectorPosition);
+        Vector3 p1Dir = Vector3.Normalize(connectorPosition - p1);
+        Vector3 p2Offset = Vector3.Cross(p2Dir, Vector3.Up);
+        Vector3 p1Offset = Vector3.Cross(p1Dir, Vector3.Up);
+        
+        float turnSign = MathF.Sign(Vector3.Cross(p1Dir, p2Dir).Y);
+        
+        Vector3 tangent = Vector3.Normalize(p1Dir - p2Dir);
+
+        if (turnSign > 0)
+            tangent = -tangent;
+        
+        Vector3 position = connectorPosition + tangent * car.CurrentLane;
+        
+        car.OverridePath.Push(p2 - p2Offset * car.CurrentLane);
+        car.OverridePath.Push(position);
+        car.OverridePath.Push(p1 - p1Offset * car.CurrentLane);
+    }
+
+    // private static Vector3? forwardLookPoint(Car car)
+    // {
+    //     if (car.SegmentPath.CurrentIndex != car.SegmentPath.TopIndex &&
+    //           car.SegmentPath.CurrentIndex != car.SegmentPath.BottomIndex)
+    //         return null;
+    //
+    //     if (car.Destinations.Count == 0)
+    //         return null;
+    //
+    //     if (car.Destinations[0].Path.Count == 0)
+    // }
+
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
     private static void MoveCar(Car car, float velocity)
     {
         while (velocity > 0)
         {
+            
+            // Console.WriteLine("While Running: " + velocity);
+            bool isOverridden = (car.OverridePath.Count > 0);
             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-            //Console.WriteLine("Current Index: " + car.SegmentPath.CurrentIndex);
+            
+            bool finalSegment = (car.SegmentPath.BottomIndex != 0 || car.SegmentPath.TopIndex != connectedSegment.TotalPathLength - 1);
+            if (((car.SegmentPath.CurrentIndex == car.SegmentPath.TopIndex - 1 && car.SegmentPath.Direction == 1) || 
+                 (car.SegmentPath.CurrentIndex == car.SegmentPath.BottomIndex + 1 && car.SegmentPath.Direction == -1)) &&
+                !finalSegment)
+            {
+                int lastConnectorID = car.Destinations[0].Path.Pop();
+                car.ConnectedSegment = GetNextSegment(car, lastConnectorID);
+                car.SegmentPath = BuildSegmentPath(car, car.Destinations[0], lastConnectorID);
+                
+                PathSegment newSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+                Vector3 p2 = GetPathVertex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, newSegment);
+                RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                Vector3 p3 = roadMesh.PathSegmentConnectors[lastConnectorID].Position;
+                BuildIntersectionPath(car, car.Position, p2, p3);
+                car.Offset = Vector3.Zero;
+                car.Position = car.OverridePath.Pop();
+            }
+            
             Vector3 nextPoint = GetPathVertex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, connectedSegment);
+
+            if (isOverridden)
+                nextPoint = car.OverridePath.Peek();
+            
             Vector3 direction = Vector3.Normalize(nextPoint - car.Position);
             float distanceTo = Vector3.Distance(nextPoint, car.Position);
             float remaining = velocity - distanceTo;
+            
             if (remaining <= 0)
             {
                 car.Position += direction * velocity;
                 car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
-                car.Offset = RoadSideOffset(direction, car);
-                //TODO need to update rotation here
+
+                if (isOverridden)
+                    car.Offset = Vector3.Zero;
+                else
+                    car.Offset = RoadSideOffset(direction, car) * car.CurrentLane;
                 return;
             }
 
             velocity = remaining;
-            
-            car.SegmentPath.CurrentIndex += car.SegmentPath.Direction;
-            car.Position = nextPoint;
 
-            if (car.SegmentPath.CurrentIndex == car.SegmentPath.TopIndex || car.SegmentPath.CurrentIndex == car.SegmentPath.BottomIndex)
+            if (isOverridden)
             {
-                if (car.Destinations[0].Path.Count == 0)
-                {
-                    car.Destinations.RemoveAt(0);
-                    return;
-                }
-                
-                //get new segment
+                car.Position = car.OverridePath.Pop();
+                if (car.OverridePath.Count > 0)
+                    continue;
+//                return;
+                car.Position = GetPathVertex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, connectedSegment);
+                //car.Offset = RoadSideOffset(direction, car) * car.CurrentLane;
+                car.SegmentPath.CurrentIndex += car.SegmentPath.Direction; //we will want to skip the first segment point 
+            }
+            else
+            {
+                car.SegmentPath.CurrentIndex += car.SegmentPath.Direction;
+                car.Position = nextPoint;
+            }
+
+            finalSegment = (car.SegmentPath.BottomIndex != 0 || car.SegmentPath.TopIndex != connectedSegment.TotalPathLength - 1);
+            if ((car.SegmentPath.CurrentIndex == car.SegmentPath.TopIndex || 
+                 car.SegmentPath.CurrentIndex == car.SegmentPath.BottomIndex) && 
+                 finalSegment)
+            {
+                car.Destinations.RemoveAt(0);
+                return;
+            }
+            
+            if (((car.SegmentPath.CurrentIndex == car.SegmentPath.TopIndex - 1 && car.SegmentPath.Direction == 1) || 
+                (car.SegmentPath.CurrentIndex == car.SegmentPath.BottomIndex + 1 && car.SegmentPath.Direction == -1)) &&
+                !finalSegment)
+            {
                 int lastConnectorID = car.Destinations[0].Path.Pop();
-                //Console.WriteLine("POPPING FROM PATH: " + lastConnectorID);
-                //Console.WriteLine("REMAINING: " + car.Destinations[0].Path.ToArray());
                 car.ConnectedSegment = GetNextSegment(car, lastConnectorID);
                 car.SegmentPath = BuildSegmentPath(car, car.Destinations[0], lastConnectorID);
+                
+                PathSegment newSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+                Vector3 p2 = GetPathVertex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, newSegment);
+                RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                Vector3 p3 = roadMesh.PathSegmentConnectors[lastConnectorID].Position;
+                BuildIntersectionPath(car, car.Position, p2, p3);
+                car.Offset = Vector3.Zero;
+                car.Position = car.OverridePath.Pop();
             }
         }
     }
@@ -99,8 +183,8 @@ public class CarSystems
     private static Vector3 RoadSideOffset(Vector3 direction, Car car)
     {
         PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-        Console.WriteLine("DIRECTION: " + direction);
-        Console.WriteLine("CALCULATED OFFSET: " + Vector3.Cross(Vector3.Up, direction));
+        //Console.WriteLine("DIRECTION: " + direction);
+        //Console.WriteLine("CALCULATED OFFSET: " + Vector3.Cross(Vector3.Up, direction));
         return Vector3.Cross(Vector3.Up, direction);
     }
 
