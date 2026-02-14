@@ -69,7 +69,7 @@ public class RoadMesh
     public OctreeSuper<PathSegmentPointOctreeData> Octree;
     private PathSegmentPointOctreeData ClampedPointOctreeData = null;
     public bool CreateEnabled = true;
-    private const float PATH_WIDTH = 1;
+    private const float PATH_WIDTH = .5f;
     private RoadRibbonMesh _ribbonMesh = new RoadRibbonMesh();
     
     public List<PathSegmentConnector> PathSegmentConnectors = new List<PathSegmentConnector>();
@@ -111,7 +111,7 @@ public class RoadMesh
         }
         (Vector3 cp1, Vector3 cp2) = CalculateControlPoints(p0, p1, controlPoint);
         Vector3[] segmentPoints = CalculateEvenlySpacedPoints(Spacing, p0, p1, cp1, cp2, 100);
-        ClampVerticesToTerrain(segmentPoints, terrain, camera, graphicsDevice);
+        // segmentPoints = ClampVerticesToTerrain(segmentPoints, terrain, camera, graphicsDevice);
         //int[] indices = new int[0];
 
         return new PathSegment()
@@ -162,7 +162,7 @@ public class RoadMesh
 
         (Vector3 cp1, Vector3 cp2) = CalculateControlPoints(p0, p1, controlPoint);
         Vector3[] bezierPoints = CalculateEvenlySpacedPoints(Spacing, p0, p1, cp1, cp2, Resolution);
-        ClampVerticesToTerrain(bezierPoints, terrain, camera, graphicsDevice);
+        bezierPoints = ClampVerticesToTerrain(bezierPoints, terrain, camera, graphicsDevice);
 
         //if only one segment, it must have at least 4 points, otherwise the segment will be converted to
         //2 segment connectors and cause errors when generating. Segment connectors must be connected to 
@@ -264,20 +264,6 @@ public class RoadMesh
                 PathDirection = PathDirection.Right
             };
 
-            // if (i == totalSegments - 1)
-            // {
-            //     PathSegmentConnector pathSegmentConnector = new PathSegmentConnector();
-            //     PathSegmentConnectors.Add(pathSegmentConnector);
-            //     pathSegmentConnector.ID = PathSegmentConnectors.Count - 1;
-            //     pathSegmentConnector.SegmentIDs.Add(newSegment.ID);
-            // }
-
-            // if (StateOneClampedSegment != null)
-            // {
-            //     newSegment.AddConnectedSegment(Segments[(int)StateOneClampedSegment], 0, (int)StateOneClampedPoint);
-            //     Segments[(int)StateOneClampedSegment].AddConnectedSegment(newSegment, (int)StateOneClampedPoint, 0);
-            // }
-
             segments.Add(newSegment);
             int segmentEntity = EntityManager.AddEntity();
             EntityManager.AddComponentToEntity<PathSegment>(segmentEntity, newSegment);
@@ -334,7 +320,7 @@ public class RoadMesh
     public void AddEndConnectorToNewPath(PathSegment segment)
     {
         PathSegmentConnector connector = new PathSegmentConnector();
-        connector.Position = segment.Path[^1];
+        connector.Position = segment.Path[^1] + new Vector3(0, 0.1f, 0);
         //EntityManager.AddEntity();
         //EntityManager.AddComponentToEntity<PathSegmentConnector>(EntityManager.LastAddedEntity, connector);
         PathSegmentConnectors.Add(connector);
@@ -350,7 +336,7 @@ public class RoadMesh
     public void AddBeginConnectorToNewPath(PathSegment segment)
     {
         PathSegmentConnector connector = new PathSegmentConnector();
-        connector.Position = segment.Path[0];
+        connector.Position = segment.Path[0] + new Vector3(0, 0.1f, 0);
         //EntityManager.AddEntity();
         //EntityManager.AddComponentToEntity<PathSegmentConnector>(EntityManager.LastAddedEntity, connector);
         PathSegmentConnectors.Add(connector);
@@ -1066,56 +1052,6 @@ public class RoadMesh
         return vertices;
     }
 
-    public static Vector3[] GenerateVertices(Vector3[] bezierPoints, Vector3 worldCenter, PathSegment connectingSegment = null, float width = 0.25f)
-    {
-        Vector3[] vertices = new Vector3[bezierPoints.Length * 2];
-        for (int i = 0; i < bezierPoints.Length; i++)
-        {
-            Vector3 u;
-            Vector3 v;
-
-            float directionModifier = 1;
-
-            if (i == bezierPoints.Length - 1)
-            {
-                u = bezierPoints[i - 1] - bezierPoints[i];
-                v = worldCenter - bezierPoints[i];
-            }
-            else if (i == 0 && connectingSegment == null)
-            {
-                u = bezierPoints[i + 1] - bezierPoints[i];
-                v = worldCenter - bezierPoints[i];
-                directionModifier = -1;
-            }
-            else if (i == 0 && connectingSegment != null)
-            {
-                Vector3 dir1 = connectingSegment.Path[connectingSegment.Path.Length - 2] - bezierPoints[i];
-                Vector3 dir2 = bezierPoints[i] - bezierPoints[i];
-                Vector3 p1 = bezierPoints[i];
-                Vector3 p2 = bezierPoints[i] + ((dir1 + dir2) / 2);
-                Vector3 p3 = worldCenter;
-                u = p2 - p1;
-                v = p3 - p1;
-            }
-            else
-            {
-                Vector3 dir1 = bezierPoints[i - 1] - bezierPoints[i];
-                Vector3 dir2 = bezierPoints[i] - bezierPoints[i + 1];
-                Vector3 p1 = bezierPoints[i];
-                Vector3 p2 = bezierPoints[i] + ((dir1 + dir2) / 2);
-                Vector3 p3 = worldCenter;
-                u = p2 - p1;
-                v = p3 - p1;
-            }
-            Vector3 vectorNormal = Vector3.Cross(u, v);
-            vectorNormal.Normalize();
-            vertices[i * 2] = bezierPoints[i] - vectorNormal * width * directionModifier;
-            vertices[i * 2 + 1] = bezierPoints[i] + vectorNormal * width * directionModifier;
-        }
-
-        return vertices;
-    }
-
     //this calculates 2 symmetric control points for a cubic bezier curve based on a single point
     //the constant controls the tightness of the curvature by extending or shortening the distance of the calculated control points to the original single control point
     //we choose 0.55228 because it gives a close approximation of a circle made with 4 cubic bezier curves
@@ -1173,6 +1109,7 @@ public class RoadMesh
                 Vector3 overshootDir = previousPoint - pointOnCurve;
                 overshootDir.Normalize();
                 Vector3 newEvenlySpacedPoint = pointOnCurve + overshootDir * overshootDst;
+                newEvenlySpacedPoint.Y = 0.1f;
                 evenlySpacedPoints.Add(newEvenlySpacedPoint);
                 dstSinceLastEvenPoint = overshootDst;
                 previousPoint = newEvenlySpacedPoint;

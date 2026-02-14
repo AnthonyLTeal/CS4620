@@ -416,7 +416,7 @@ public class CarSystems
             ConnectedSegment = segment.EntityID,
             GroupID = 0,
             Position = position,
-            Color = Color.AliceBlue,
+            Color = Color.LightGreen,
             Rotation = Matrix.Identity,
             Destinations = destinations,
             InitialPathIndex = randomPathPoint + 1

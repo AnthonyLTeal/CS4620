@@ -65,7 +65,7 @@ public class CubeMeshBatcher
         foreach (var carEntity in carEntities)
         {
             Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
-            InsertCube(car.Position + car.Offset, car.Rotation, 1, car.Color);
+            InsertCube(car.Position + car.Offset, car.Rotation, car.Scale, car.Color);
         }
         
         _vertexBuffer.SetData(Vertices);
@@ -94,7 +94,7 @@ public class CubeMeshBatcher
         _basicEffect.VertexColorEnabled = true;
 
         _basicEffect.LightingEnabled = false;
-        _basicEffect.DiffuseColor = new Vector3(.0f, 0.0f, .7f);
+        //_basicEffect.DiffuseColor = new Vector3(.0f, 0.0f, .7f);
 
         foreach (var pass in _basicEffect.CurrentTechnique.Passes)
         {
@@ -123,7 +123,7 @@ public class CubeMeshBatcher
         Matrix world =
             Matrix.CreateScale(scale) *
             rotation *
-            Matrix.CreateTranslation(position);
+            Matrix.CreateTranslation(position + new Vector3(0, 0.5f, 0) * scale + new Vector3(0, 0.1f, 0));
         
         for (int i = 0; i < vertices.Length; i++)
         {

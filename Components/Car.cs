@@ -16,7 +16,7 @@ public class Car
     public Vector3 Position;
     public Color Color;
     public Matrix Rotation;
-    public float Scale;
+    public float Scale = 0.25f;
     public List<Destination> Destinations;
     public SegmentPath SegmentPath;
     public Vector3 Offset;
