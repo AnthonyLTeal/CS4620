@@ -183,7 +183,7 @@ public class RoadMesh
         if (finalSegmentSize > 0)
             totalSegments += 1;
         
-        if (bezierPoints.Length == MaxSegmentLength)
+        if (bezierPoints.Length % MaxSegmentLength == 0)
             finalSegmentSize = MaxSegmentLength;
         
         if (finalSegmentSize < 4 && finalSegmentSize > 0)
