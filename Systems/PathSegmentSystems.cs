@@ -87,9 +87,9 @@ public class PathSegmentSystems
             }
         }
         
-        Console.WriteLine();
+        //Console.WriteLine();
         // Console.WriteLine("Distances: " + String.Join(", ", distances));
-        Console.WriteLine("Origin ID: " + origin.ID + " | Previous Path: " + String.Join(", ", prev));
+        //Console.WriteLine("Origin ID: " + origin.ID + " | Previous Path: " + String.Join(", ", prev));
         
         return new DPath(distances, prev);
     }

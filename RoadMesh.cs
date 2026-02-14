@@ -47,6 +47,7 @@ public class RoadMesh
     public int MaxSegmentLength = 25;
     public float Spacing = 0.75f;
     public float Resolution = 50;
+    public const float MINSPACINGFINALPOINT = 0.75f * 0.8f;
     public Vector3? StartingConnectingCursorPoint = null;
     public Vector3 ClampedPointForAngle;
     public PathSegment ClampedSegment;
@@ -121,10 +122,16 @@ public class RoadMesh
     
     public List<PathSegment> GeneratePath(GraphicsDevice graphicsDevice, Vector3 p0, Vector3 p1, Vector3 controlPoint, Terrain terrain, ArcBallCamera camera)
     {
+        
+        Console.WriteLine("StateOneSegment: " + StateOneSnappedSegmentEntity);
+        Console.WriteLine("StateOneSnappedSegmentConnector: " + StateOneSnappedSegmentConnector);
+        
         int componentID = ComponentManager.GetComponentID<PathSegment>();
-        PathSegment stateOneSegment = StateOneSnappedSegmentEntity == null ? null : (PathSegment)EntityManager.EntityComponents[(int)StateOneSnappedSegmentEntity][componentID];
-        PathSegmentConnector stateOneNewConnector = null;
-        PathSegmentConnector stateThreeNewConnector = null;
+        PathSegment stateOneSegment = StateOneSnappedSegmentEntity == null ? null : (PathSegment)EntityManager.EntityComponents[(int)StateOneSnappedSegmentEntity][componentID];;
+
+        // if (StateOneSnappedSegmentConnector == null)
+        //     stateOneSegment = StateOneSnappedSegmentEntity == null ? null : (PathSegment)EntityManager.EntityComponents[(int)StateOneSnappedSegmentEntity][componentID];
+        
         //slice path for state one snapped point (beginning point for new road segments)
         bool sliceStateOne = (StateOneSnappedSegmentEntity != null && StateOneSnappedPoint != 0 && StateOneSnappedPoint != stateOneSegment.Path.Length - 1);
         if (sliceStateOne)
@@ -166,25 +173,56 @@ public class RoadMesh
             return null;
         }
 
-        int totalSegments = bezierPoints.Length / MaxSegmentLength + Math.Min(bezierPoints.Length % MaxSegmentLength, 1);
-        //Console.WriteLine("Total Segments: " + totalSegments);
-
-        //PathSegment previousSegment = null;
+        Console.WriteLine("TotalBezierPoints: " + bezierPoints.Length);
+        Console.WriteLine("MaxSegmentLength: " + MaxSegmentLength);
+        int totalSegments = bezierPoints.Length / MaxSegmentLength;
+        Console.WriteLine("Initial Total Segments: " + totalSegments);
+        int finalSegmentSize = bezierPoints.Length - MaxSegmentLength * totalSegments;
+        Console.WriteLine(("FINAL SEGMENT SIZE: " + finalSegmentSize));
+        
+        if (finalSegmentSize > 0)
+            totalSegments += 1;
+        
+        if (bezierPoints.Length == MaxSegmentLength)
+            finalSegmentSize = MaxSegmentLength;
+        
+        if (finalSegmentSize < 4 && finalSegmentSize > 0)
+        {
+            finalSegmentSize += MaxSegmentLength;
+            totalSegments -= 1;
+        }
+        
         int pointCounter = 0;
+        
+        Console.WriteLine(("New Final Segment Size: " + finalSegmentSize));
+        Console.WriteLine("Post Total Segments: " + totalSegments);
+        Console.WriteLine();
+
+        if (totalSegments <= 0)
+            return null;
 
         for (int i = 0; i < totalSegments; i ++)
         {
             int segmentLength = MaxSegmentLength;
-            if (i == totalSegments -1 && bezierPoints.Length % MaxSegmentLength > 0)
-            {
-                segmentLength = bezierPoints.Length % MaxSegmentLength;
-            }
 
-            if (i == totalSegments - 2 && bezierPoints.Length % MaxSegmentLength < 4)
+            if (i == totalSegments - 1)
             {
-                segmentLength += bezierPoints.Length % MaxSegmentLength;
-                totalSegments -= 1;
+                segmentLength = finalSegmentSize;
             }
+            
+            // if (i == totalSegments -1 && bezierPoints.Length % MaxSegmentLength > 0)
+            // {
+            //     segmentLength = bezierPoints.Length % MaxSegmentLength;
+            // }
+            
+            // if (i == totalSegments - 2 && bezierPoints.Length % MaxSegmentLength < 4)
+            // {
+            //     Console.WriteLine("index: " + i);
+            //     Console.WriteLine("Is it here? 2");
+            //     segmentLength += bezierPoints.Length % MaxSegmentLength;
+            //     totalSegments -= 1;
+            //     Console.WriteLine(totalSegments);
+            // }
 
             if (i !=0 )
             {
@@ -199,6 +237,21 @@ public class RoadMesh
                 {
                     pointCounter += 1;
                 }
+            }
+
+            Vector3 s1 = segmentPoints[0];
+            Vector3 s2 = segmentPoints[1];
+            Vector3 s3 = segmentPoints[segmentPoints.Length - 1];
+            Vector3 s4 = segmentPoints[segmentPoints.Length - 2];
+
+            if (Vector3.Distance(s1, s2) < MINSPACINGFINALPOINT)
+            {
+                segmentPoints = RemoveElementFromArrayAndResize(1, segmentPoints);
+            }
+            
+            if (Vector3.Distance(s3, s4) < MINSPACINGFINALPOINT)
+            {
+                segmentPoints = RemoveElementFromArrayAndResize(segmentPoints.Length - 2, segmentPoints);
             }
 
             //TODO need to refactor this function to decouple it from the class and use ECS
@@ -226,17 +279,13 @@ public class RoadMesh
             // }
 
             segments.Add(newSegment);
-            EntityManager.AddEntity();
-            int segmentEntity = EntityManager.LastAddedEntity;
+            int segmentEntity = EntityManager.AddEntity();
             EntityManager.AddComponentToEntity<PathSegment>(segmentEntity, newSegment);
             Segments.Add(newSegment);
             newSegment.EntityID = segmentEntity;
+            Console.WriteLine("New Entity: " + segmentEntity);
         }
 
-        //start here
-        //this section causes a miscount of the number of points in each segment with the first and last segments
-        //this causes a bug the path connectors knowing which segment/point they are connected to and make it irremovable
-        //can probably add beginning and ending connectors in the GeneratePathSegmentConnectors function to make this a little easier to keep track of
         GeneratePathSegmentConnectors(segments);
         
         if (StateOneSnappedSegmentEntity == null && StateOneSnappedSegmentConnector == null)
@@ -1181,6 +1230,8 @@ public class RoadMesh
                 else
                 {
                     StateOneSnappedSegmentConnector = ClampedPointOctreeData.EntityID;
+                    StateOneSnappedSegmentEntity = null;
+                    StateOneSnappedPoint = null;
                 }
             }
             PendingP1 = selectedPoint;
@@ -1205,6 +1256,8 @@ public class RoadMesh
                 else
                 {
                     StateThreeSnappedSegmentConnector = ClampedPointOctreeData.EntityID;
+                    StateThreeSnappedPoint = null;
+                    StateThreeSnappedSegmentEntity = null;
                 }
             }
             PendingP3 = selectedPoint;
