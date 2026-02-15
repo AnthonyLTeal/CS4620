@@ -7,8 +7,8 @@ namespace CS4620IS;
 
 public class EntityManager
 {
-    public static List<int[]> Entities = new List<int[]>();
-    public static List<object[]> EntityComponents = new List<object[]>();
+    public static List<int[]> Entities = new List<int[]>(); //stores an indices that tell where the entities components are in the corresponding component list
+    public static List<object[]> EntityComponents = new List<object[]>(); //stores the components themselves
     public static bool Reserved = false;
     public static List<int> DeadEntities = new List<int>();
     private static int lastAddedEntity = 0;

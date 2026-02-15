@@ -1,4 +1,5 @@
 using System;
+using MessagePack;
 
 namespace CS4620IS.Components;
 using System.Collections.Generic;
@@ -15,16 +16,20 @@ public enum PathDirection
 /// <summary>
 /// Field AdjacentPathSegmentEntites = {0,0} by default. 0th Index of entities is global entities so we can use 0 as a condition to see if the adjacent segment exists.
 /// </summary>
+[MessagePackObject(keyAsPropertyName: true)]
 public class PathSegment
 {
     //public List<int> connectedIndex = new List<int>();
     private Vector3[] _path;
 
+    [IgnoreMember]
     public Vector3[] Perpendiculars
     {
         get;
         private set;
     }
+    
+    [IgnoreMember]
     public VertexPositionColor[] DebugPoints
     {
         get;
@@ -59,6 +64,7 @@ public class PathSegment
     }
 }
 
+[MessagePackObject(keyAsPropertyName: true)]
 public class PathSegmentConnector
 {
     public int ID;
@@ -82,22 +88,13 @@ public class PathSegmentConnector
     }
 }
 
-public class PathSegmentConnection
-{
-    public int PointId;
-    public int SegmentEntityId;
-    public PathSegmentConnection(int pointId, int segmentEntityId)
-    {
-        PointId = pointId;
-        SegmentEntityId = segmentEntityId;
-    }
-}
-
+[MessagePackObject]
 public class DPath
 {
-    public int[] Distances { get; private set; }
-    public int[] Prevs { get; private set; }
+    [Key(0)]public int[] Distances { get; private set; }
+    [Key(1)]public int[] Prevs { get; private set; }
 
+    [SerializationConstructor]
     public DPath(int[] _distances, int[] _prevs)
     {
         Distances = _distances;
