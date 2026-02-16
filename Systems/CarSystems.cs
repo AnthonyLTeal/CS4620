@@ -370,7 +370,7 @@ public class CarSystems
             // Console.WriteLine("Next Node: " + shortestDestConnector);
         }
         
-        // Console.WriteLine("Traversal Path: " + String.Join(", ", stackPath.ToArray()));
+        Console.WriteLine("Traversal Path: " + String.Join(", ", stackPath.ToArray()));
 
         return stackPath;
     }

@@ -48,7 +48,6 @@ public class PathSegmentSystems
         List<PathSegmentConnector> pathSegmentConnectors = roadMesh.PathSegmentConnectors; //vertices
         //List<PathSegment> pathSegments = roadMesh.Segments; //edges
 
-
         int[] distances = Enumerable.Repeat(-1, pathSegmentConnectors.Count).ToArray();
         int[] prev = Enumerable.Repeat(-1, pathSegmentConnectors.Count).ToArray();
 
@@ -88,8 +87,8 @@ public class PathSegmentSystems
         }
         
         //Console.WriteLine();
-        // Console.WriteLine("Distances: " + String.Join(", ", distances));
-        //Console.WriteLine("Origin ID: " + origin.ID + " | Previous Path: " + String.Join(", ", prev));
+        Console.WriteLine("Distances: " + String.Join(", ", distances));
+        Console.WriteLine("Origin ID: " + origin.ID + " | Previous Path: " + String.Join(", ", prev));
         
         return new DPath(distances, prev);
     }

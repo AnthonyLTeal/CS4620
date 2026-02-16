@@ -19,7 +19,9 @@ public class SaveSystem
           var resolver = CompositeResolver.Create(
                new IMessagePackFormatter[]
                {
-                    new Vector3Formatter()
+                    new Vector3Formatter(),
+                    new ColorFormatter(),
+                    new VertexPositionColorFormatter()
                },
                new IFormatterResolver[]
                {
@@ -28,10 +30,6 @@ public class SaveSystem
           );
 
           Options = MessagePackSerializerOptions.Standard.WithResolver(resolver);
-          
-          //byte[] msgpackBytes = MessagePackSerializer.Serialize(myObject, options);
-          //Vector3 myObject2 = MessagePackSerializer.Deserialize<Vector3>(msgpackBytes, options);
-          
      }
 
      public static void Save()
@@ -42,6 +40,7 @@ public class SaveSystem
           worldState.Reserved = EntityManager.Reserved;
           worldState.DeadEntities = EntityManager.DeadEntities;
           worldState.LastAddedEntity = EntityManager.LastAddedEntity;
+          worldState.EntityGen = EntityManager.EntityGen;
           
           //This probably doesn't need to be saved and should be rebuilt correctly just by using AddComponentToEntity 
           //worldState.ComponentRegistery = ComponentManager.ComponentRegistry; 
@@ -65,18 +64,20 @@ public class SaveSystem
 
           for (int i = 1; i < entityComponents.Count; i ++)
           {
-               foreach (var comp in entityComponents[i])
+               for (int j = 0; j < entityComponents[i].Length; j++)
                {
-                    if (comp == null)
+                    object component = entityComponents[i][j];
+                    
+                    if (component == null)
                          continue;
                     
-                    SavedComponent component = new SavedComponent()
+                    SavedComponent savedComponent = new SavedComponent()
                     {
                          EntityID = i,
-                         ComponentsData = MessagePackSerializer.Serialize(comp, Options),
-                         TypeName = comp.GetType().AssemblyQualifiedName
+                         ComponentsData = MessagePackSerializer.Serialize(component, Options),
+                         TypeName = component.GetType().AssemblyQualifiedName
                     };
-                    savedComponents.Add(component);
+                    savedComponents.Add(savedComponent);
                }
           }
 

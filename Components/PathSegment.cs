@@ -33,7 +33,7 @@ public class PathSegment
     public VertexPositionColor[] DebugPoints
     {
         get;
-        private set;
+        set;
     }
     public int? EndConnector = null;
     public int? FrontConnector = null;
@@ -69,6 +69,8 @@ public class PathSegmentConnector
 {
     public int ID;
     private Vector3 _position;
+    
+    [IgnoreMember]
     public VertexPositionColor DebugPosition;
     public List<VertexPositionColor> DebugPoints = new List<VertexPositionColor>();
     public List<int> PointIDs = new List<int>();

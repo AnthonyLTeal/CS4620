@@ -13,9 +13,11 @@ public class WorldState
     public bool Reserved { get; set; }
     public List<int> DeadEntities { get; set; }
     public int LastAddedEntity { get; set; }
-    public Dictionary<Type, List<int>> ComponentRegistery { get; set; }
-    public Dictionary<Type, int> ComponentIDs { get; set; }
-    public int TotalComponents;
+    public List<int> EntityGen { get; set; }
+
+    //public Dictionary<Type, List<int>> ComponentRegistery { get; set; }
+    //public Dictionary<Type, int> ComponentIDs { get; set; }
+    //public int TotalComponents;
     public List<PathSegmentConnector> PathSegmentConnectors { get; set; }
     //public List<SomeOtherComponent> OtherComponents { get; set; }
     //public int TickCount { get; set; } // Example singleton

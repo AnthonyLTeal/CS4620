@@ -1361,11 +1361,11 @@ public class RoadMesh
             octreeData.PointIndex = i;
             octreeData.Position = segment.Path[i];
             Octree.InsertElementToOctreeFromPoint(octreeData.Position, octreeData); 
-            //Console.WriteLine("Inserted: " + i);
+            Console.WriteLine("Inserted: " + i);
         }
     }
 
-    private void InsertSegmentConnectorIntoOctree(PathSegmentConnector connector)
+    public void InsertSegmentConnectorIntoOctree(PathSegmentConnector connector)
     {
         PathSegmentPointOctreeData octreeData = new PathSegmentPointOctreeData();
         octreeData.EntityID = connector.ID;

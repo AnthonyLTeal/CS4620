@@ -49,6 +49,7 @@ public class Game1 : Game
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
         base.Initialize();
+        SaveSystem.RegisterFormatters();
     }
 
     protected override void LoadContent()
@@ -86,6 +87,7 @@ public class Game1 : Game
         EntityManager.AddComponentToGlobalEntity<RoadMesh>(_roadMesh);
     }
 
+    private KeyboardState oldKeyState;
     protected override void Update(GameTime gameTime)
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
@@ -101,6 +103,18 @@ public class Game1 : Game
             //if (carEntities.Count == 0)
                 CarSystems.GenerateRandomCar();
         }
+        
+        if (Keyboard.GetState().IsKeyUp(Keys.L) && oldKeyState.IsKeyDown(Keys.L))
+        {
+            LoadSystem.Load();
+        }
+        
+        if (Keyboard.GetState().IsKeyUp(Keys.S) && oldKeyState.IsKeyDown(Keys.S))
+        {
+            SaveSystem.Save();
+        }
+
+        oldKeyState = Keyboard.GetState();
         
         CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
         cubeMeshBatcher.Update();

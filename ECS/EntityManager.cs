@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using CS4620IS.Components;
 
 namespace CS4620IS;
@@ -117,6 +118,11 @@ public class EntityManager
         get { return lastAddedEntity; }
     }
 
+    public static List<int> EntityGen
+    {
+        get { return entityGen; }
+    }
+
     public static bool IsAlive(EntityRef entityRef)
     {
         return entityGen[entityRef.ID] == entityRef.Gen;
@@ -125,5 +131,10 @@ public class EntityManager
     public static void SetLastEntityFromLoad(int entity)
     {
         lastAddedEntity = entity;
+    }
+    
+    public static void SetLastEntityGenFromLoad(List<int> entityGen)
+    {
+        EntityManager.entityGen = entityGen;
     }
 }
