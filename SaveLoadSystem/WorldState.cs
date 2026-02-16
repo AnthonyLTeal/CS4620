@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CS4620IS.Components;
 using MessagePack;
@@ -12,10 +13,10 @@ public class WorldState
     public bool Reserved { get; set; }
     public List<int> DeadEntities { get; set; }
     public int LastAddedEntity { get; set; }
-    public List<PathSegment> PathSegments { get; set; }
+    public Dictionary<Type, List<int>> ComponentRegistery { get; set; }
+    public Dictionary<Type, int> ComponentIDs { get; set; }
+    public int TotalComponents;
     public List<PathSegmentConnector> PathSegmentConnectors { get; set; }
     //public List<SomeOtherComponent> OtherComponents { get; set; }
-    public int TickCount { get; set; } // Example singleton
-    
-    public static void SaveEntityComponents(){}
+    //public int TickCount { get; set; } // Example singleton
 }

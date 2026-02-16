@@ -79,7 +79,7 @@ public class RoadMesh
         basicEffect = new BasicEffect(graphicsDevice);
         game = _game;
 
-        Terrain terrain = (Terrain)EntityManager.GetGlobalComponent<Terrain>();        
+        Terrain terrain = EntityManager.GetGlobalComponent<Terrain>();        
         Octree = new OctreeSuper<PathSegmentPointOctreeData>(terrain.Scale * 2, 4, terrain.WorldCenter);
         _ribbonMesh = new RoadRibbonMesh();
         //Octree = new OctreeSuper<PathSegmentOctreeData>(100, 4, terrain.WorldCenter);

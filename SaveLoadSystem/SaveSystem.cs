@@ -6,6 +6,7 @@ using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
 using Microsoft.Xna.Framework;
+using PlanetaryExpansion;
 
 namespace CS4620IS;
 
@@ -35,14 +36,49 @@ public class SaveSystem
 
      public static void Load()
      {
-          
+          //first load EntityManager state
+          //next load ComponentManager state
+          //next load Components
+          //Next load roadmesh
+          //load PathSegmentConnectors
+          //insert segments into Segments list (these should be inserted in order as they appear in EntityManager. I'm guessing the order is retained in the component manager list but will need to double check)
+          //either load Octree or just rebuild (probably rebuild)
+          //recreate ribbon mesh
+
      }
 
      public static void Save()
      {
-          //what all do we need to save and load?
-               //save the state of the entity manager
-          //byte[] msgpackBytes = MessagePackSerializer.Serialize(EntityManager.Entities, options);
+          WorldState worldState = new WorldState();
+          worldState.Entities = EntityManager.Entities;
+          worldState.EntityComponents = SerializeEntityComponents();
+          worldState.Reserved = EntityManager.Reserved;
+          worldState.DeadEntities = EntityManager.DeadEntities;
+          worldState.LastAddedEntity = EntityManager.LastAddedEntity;
+          
+          //This probably doesn't need to be saved and should be rebuilt correctly just by using AddComponentToEntity 
+          //worldState.ComponentRegistery = ComponentManager.ComponentRegistry; 
+          
+          //these 2 we might just want to rebuild and then when reloading we just have to respect the order or invalidate saves with an invalid order
+          //worldState.ComponentIDs = ComponentManager.ComponentIDs;
+          //worldState.TotalComponents = ComponentManager.TotalComponents;
+
+          worldState.PathSegmentConnectors = EntityManager.GetGlobalComponent<RoadMesh>().PathSegmentConnectors;
+
+          byte[] msgpackBytes = MessagePackSerializer.Serialize(worldState, options);
+          File.WriteAllBytes("save.dat", msgpackBytes);
+     }
+
+     public static void LoadEntityComponents()
+     {
+          byte[] bytes = File.ReadAllBytes("save.dat");
+          WorldState worldState = MessagePackSerializer.Deserialize<WorldState>(bytes, options);
+          // foreach (var entry in serializedComponents)
+          // {
+          //      Type t = Type.GetType(entry.typeName);
+          //      object loaded = MessagePackSerializer.Deserialize(t,entry.data, options);
+          //      // cast and register in ECS
+          // }
      }
 
      public static List<SavedComponent> SerializeEntityComponents()
@@ -70,12 +106,5 @@ public class SaveSystem
           }
 
           return savedComponents;
-
-          // foreach (var entry in serializedComponents)
-          // {
-          //      Type t = Type.GetType(entry.typeName);
-          //      object loaded = MessagePackSerializer.Deserialize(t,entry.data, options);
-          //      // cast and register in ECS
-          // }
      }
 }
