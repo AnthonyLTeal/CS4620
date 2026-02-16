@@ -63,6 +63,15 @@ public class EntityManager
         Entities[entity][ComponentManager.GetComponentID<T>()] = cRegister.Count;
     }
     
+    public static void AddComponentToEntity(int entity, object component, Type t)
+    {
+        ReserveZero();
+        List<int> cRegister = ComponentManager.ComponentRegistry[t];
+        cRegister.Add(entity);
+        EntityComponents[entity][ComponentManager.GetComponentID(t)] = component;
+        Entities[entity][ComponentManager.GetComponentID(t)] = cRegister.Count;
+    }
+    
     private static void ReserveZero()
     {
         if (Reserved) { return; }
@@ -111,5 +120,10 @@ public class EntityManager
     public static bool IsAlive(EntityRef entityRef)
     {
         return entityGen[entityRef.ID] == entityRef.Gen;
+    }
+
+    public static void SetLastEntityFromLoad(int entity)
+    {
+        lastAddedEntity = entity;
     }
 }

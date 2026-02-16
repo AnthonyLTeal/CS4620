@@ -12,7 +12,7 @@ namespace CS4620IS;
 
 public class SaveSystem
 {
-     private static MessagePackSerializerOptions options;
+     public static MessagePackSerializerOptions Options;
      
      public static void RegisterFormatters()
      {
@@ -27,24 +27,11 @@ public class SaveSystem
                }
           );
 
-          options = MessagePackSerializerOptions.Standard.WithResolver(resolver);
+          Options = MessagePackSerializerOptions.Standard.WithResolver(resolver);
           
           //byte[] msgpackBytes = MessagePackSerializer.Serialize(myObject, options);
           //Vector3 myObject2 = MessagePackSerializer.Deserialize<Vector3>(msgpackBytes, options);
           
-     }
-
-     public static void Load()
-     {
-          //first load EntityManager state
-          //next load ComponentManager state
-          //next load Components
-          //Next load roadmesh
-          //load PathSegmentConnectors
-          //insert segments into Segments list (these should be inserted in order as they appear in EntityManager. I'm guessing the order is retained in the component manager list but will need to double check)
-          //either load Octree or just rebuild (probably rebuild)
-          //recreate ribbon mesh
-
      }
 
      public static void Save()
@@ -65,20 +52,8 @@ public class SaveSystem
 
           worldState.PathSegmentConnectors = EntityManager.GetGlobalComponent<RoadMesh>().PathSegmentConnectors;
 
-          byte[] msgpackBytes = MessagePackSerializer.Serialize(worldState, options);
+          byte[] msgpackBytes = MessagePackSerializer.Serialize(worldState, Options);
           File.WriteAllBytes("save.dat", msgpackBytes);
-     }
-
-     public static void LoadEntityComponents()
-     {
-          byte[] bytes = File.ReadAllBytes("save.dat");
-          WorldState worldState = MessagePackSerializer.Deserialize<WorldState>(bytes, options);
-          // foreach (var entry in serializedComponents)
-          // {
-          //      Type t = Type.GetType(entry.typeName);
-          //      object loaded = MessagePackSerializer.Deserialize(t,entry.data, options);
-          //      // cast and register in ECS
-          // }
      }
 
      public static List<SavedComponent> SerializeEntityComponents()
@@ -98,7 +73,7 @@ public class SaveSystem
                     SavedComponent component = new SavedComponent()
                     {
                          EntityID = i,
-                         ComponentsData = MessagePackSerializer.Serialize(comp, options),
+                         ComponentsData = MessagePackSerializer.Serialize(comp, Options),
                          TypeName = comp.GetType().AssemblyQualifiedName
                     };
                     savedComponents.Add(component);
