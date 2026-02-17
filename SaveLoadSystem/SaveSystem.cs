@@ -59,14 +59,8 @@ public class SaveSystem
      {
           List<SavedComponent> savedComponents = new List<SavedComponent>();
           
-          //if a component is dead, it will still save the component if it exists and then when we reinsert on load
-          //it destroys our dense list for that component since we are adding dead components. 
-          //it might be better to build them from the dense lists instead in the ComponentRegistry
-          //we just will need to skip the saving for components belonging to entity 0
-          //List<object[]> entityComponents = EntityManager.EntityComponents;
-          
           List<List<int>> componentRegistry = ComponentManager.ComponentRegistry;
-
+          
           for (int componentID = 0; componentID < componentRegistry.Count; componentID++)
           {
                for (int i = 0; i < componentRegistry[componentID].Count; i++)
