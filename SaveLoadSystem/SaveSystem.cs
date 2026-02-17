@@ -58,28 +58,54 @@ public class SaveSystem
      public static List<SavedComponent> SerializeEntityComponents()
      {
           List<SavedComponent> savedComponents = new List<SavedComponent>();
-          List<object[]> entityComponents = EntityManager.EntityComponents;
           
-          // var serializedComponents = new List<(string typeName, byte[] data)>();
+          //if a component is dead, it will still save the component if it exists and then when we reinsert on load
+          //it destroys our dense list for that component since we are adding dead components. 
+          //it might be better to build them from the dense lists instead in the ComponentRegistry
+          //we just will need to skip the saving for components belonging to entity 0
+          //List<object[]> entityComponents = EntityManager.EntityComponents;
+          
+          List<List<int>> componentRegistry = ComponentManager.ComponentRegistry;
 
-          for (int i = 1; i < entityComponents.Count; i ++)
+          for (int componentID = 0; componentID < componentRegistry.Count; componentID++)
           {
-               for (int j = 0; j < entityComponents[i].Length; j++)
+               for (int i = 0; i < componentRegistry[componentID].Count; i++)
                {
-                    object component = entityComponents[i][j];
-                    
-                    if (component == null)
+                    int entity = componentRegistry[componentID][i];
+                    if (entity == 0) //don't save global entity components, we will want to recreate these manually
                          continue;
+                    
+                    object component = EntityManager.EntityComponents[entity][componentID];
                     
                     SavedComponent savedComponent = new SavedComponent()
                     {
-                         EntityID = i,
+                         EntityID = entity,
                          ComponentsData = MessagePackSerializer.Serialize(component, Options),
                          TypeName = component.GetType().AssemblyQualifiedName
                     };
+
                     savedComponents.Add(savedComponent);
                }
           }
+
+          // for (int i = 1; i < entityComponents.Count; i ++)
+          // {
+          //      for (int j = 0; j < entityComponents[i].Length; j++)
+          //      {
+          //           object component = entityComponents[i][j];
+          //           
+          //           if (component == null)
+          //                continue;
+          //           
+          //           SavedComponent savedComponent = new SavedComponent()
+          //           {
+          //                EntityID = i,
+          //                ComponentsData = MessagePackSerializer.Serialize(component, Options),
+          //                TypeName = component.GetType().AssemblyQualifiedName
+          //           };
+          //           savedComponents.Add(savedComponent);
+          //      }
+          // }
 
           return savedComponents;
      }
