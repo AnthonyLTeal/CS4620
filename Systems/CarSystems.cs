@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Timers;
 using CS4620IS.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -17,20 +18,27 @@ public class CarSystems
     public static void BasicBehavior(GameTime gameTime)
     {
          List<int> entities = ComponentManager.GetComponent<Car>();
-         
+         List<int> entitiesToRemove = new List<int>();
+
          foreach (int entity in entities)
          {
              Car car = ComponentManager.GetEntityComponent<Car>(entity);
 
              if (car.Destinations.Count < 1)
              {
-                 EntityManager.RemoveEntity(entity);
-                 return;
+                 entitiesToRemove.Add(entity);
+                 continue;
              }
 
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-             MoveCar(car, connectedSegment.Speed * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.005f);
+             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+             MoveCar(car, 2 * dt);
 
+         }
+
+         foreach (int entity in entitiesToRemove)
+         {
+             EntityManager.RemoveEntity(entity);
          }
     }
 
@@ -88,7 +96,8 @@ public class CarSystems
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
     private static void MoveCar(Car car, float velocity)
     {
-        while (velocity > 0)
+        float remaining = velocity;
+        while (remaining > 0.000001f)
         {
             
             // Console.WriteLine("While Running: " + velocity);
@@ -118,13 +127,15 @@ public class CarSystems
             if (isOverridden)
                 nextPoint = car.OverridePath.Peek();
             
-            Vector3 direction = Vector3.Normalize(nextPoint - car.Position);
-            float distanceTo = Vector3.Distance(nextPoint, car.Position);
-            float remaining = velocity - distanceTo;
+            Vector3 toTarget = nextPoint - car.Position;
+            float distanceTo = toTarget.Length();
+
+            Vector3 direction = distanceTo > 0f ? toTarget / distanceTo : Vector3.Zero;
+            // float remaining = velocity - distanceTo;
             
-            if (remaining <= 0)
+            if (distanceTo > remaining)
             {
-                car.Position += direction * velocity;
+                car.Position += direction * remaining;
                 car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
 
                 if (isOverridden)
@@ -134,16 +145,14 @@ public class CarSystems
                 return;
             }
 
-            velocity = remaining;
+            remaining -= distanceTo;
 
             if (isOverridden)
             {
                 car.Position = car.OverridePath.Pop();
                 if (car.OverridePath.Count > 0)
                     continue;
-//                return;
                 car.Position = GetPathVertex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, connectedSegment);
-                //car.Offset = RoadSideOffset(direction, car) * car.CurrentLane;
                 car.SegmentPath.CurrentIndex += car.SegmentPath.Direction; //we will want to skip the first segment point 
             }
             else
