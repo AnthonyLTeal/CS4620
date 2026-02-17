@@ -6,7 +6,7 @@ namespace CS4620IS;
 
 public class ComponentManager
 {
-    public static Dictionary<Type, List<int>> ComponentRegistry = new Dictionary<Type, List<int>>();
+    public static List<List<int>> ComponentRegistry = new List<List<int>>();
     public static Dictionary<Type, int> ComponentIDs = new Dictionary<Type, int>();
     public static int TotalComponents = 0;
     
@@ -18,21 +18,21 @@ public class ComponentManager
 
     public static void RegisterComponent<T>()
     {
-        ComponentRegistry.Add(typeof(T), new List<int>());
+        ComponentRegistry.Add(new List<int>());
         ComponentIDs.Add(typeof(T), TotalComponents);
         TotalComponents += 1;
     }
 
     public static void RegisterComponent(Type t)
     {
-        ComponentRegistry.Add(t, new List<int>());
+        ComponentRegistry.Add(new List<int>());
         ComponentIDs.Add(t, TotalComponents);
         TotalComponents += 1;
     }
 
     public static List<int> GetComponent<T>()
     {
-        return ComponentRegistry[typeof(T)];
+        return ComponentRegistry[ComponentIDs[typeof(T)]];
     }
 
     public static int GetComponentID(Type t)

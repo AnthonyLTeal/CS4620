@@ -58,7 +58,7 @@ public class EntityManager
     public static void AddComponentToEntity<T>(int entity, object component)
     {
         ReserveZero();
-        List<int> cRegister = ComponentManager.ComponentRegistry[typeof(T)];
+        List<int> cRegister = ComponentManager.ComponentRegistry[ComponentManager.ComponentIDs[typeof(T)]];
         cRegister.Add(entity);
         EntityComponents[entity][ComponentManager.GetComponentID<T>()] = component;
         Entities[entity][ComponentManager.GetComponentID<T>()] = cRegister.Count;
@@ -67,7 +67,7 @@ public class EntityManager
     public static void AddComponentToEntity(int entity, object component, Type t)
     {
         ReserveZero();
-        List<int> cRegister = ComponentManager.ComponentRegistry[t];
+        List<int> cRegister = ComponentManager.ComponentRegistry[ComponentManager.ComponentIDs[t]];
         cRegister.Add(entity);
         EntityComponents[entity][ComponentManager.GetComponentID(t)] = component;
         Entities[entity][ComponentManager.GetComponentID(t)] = cRegister.Count;
@@ -94,7 +94,7 @@ public class EntityManager
             if (entity[i] > 0)
             {
                 int componentIndex = i;
-                List<int> componentEntities = ComponentManager.ComponentRegistry.ElementAt(componentIndex).Value;
+                List<int> componentEntities = ComponentManager.ComponentRegistry[componentIndex];
                 int lastEntity = componentEntities.Last();
                 Entities[lastEntity][componentIndex] = entity[componentIndex];
                 componentEntities[entity[i]-1] = lastEntity;
