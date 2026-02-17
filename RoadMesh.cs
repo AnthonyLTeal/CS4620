@@ -123,8 +123,8 @@ public class RoadMesh
     public List<PathSegment> GeneratePath(GraphicsDevice graphicsDevice, Vector3 p0, Vector3 p1, Vector3 controlPoint, Terrain terrain, ArcBallCamera camera)
     {
         
-        Console.WriteLine("StateOneSegment: " + StateOneSnappedSegmentEntity);
-        Console.WriteLine("StateOneSnappedSegmentConnector: " + StateOneSnappedSegmentConnector);
+        //Console.WriteLine("StateOneSegment: " + StateOneSnappedSegmentEntity);
+        //Console.WriteLine("StateOneSnappedSegmentConnector: " + StateOneSnappedSegmentConnector);
         
         int componentID = ComponentManager.GetComponentID<PathSegment>();
         PathSegment stateOneSegment = StateOneSnappedSegmentEntity == null ? null : (PathSegment)EntityManager.EntityComponents[(int)StateOneSnappedSegmentEntity][componentID];;
@@ -169,16 +169,16 @@ public class RoadMesh
         //a road segment
         if (bezierPoints.Length < 4)
         {
-            Console.WriteLine("Not Long Enough");
+            //Console.WriteLine("Not Long Enough");
             return null;
         }
 
-        Console.WriteLine("TotalBezierPoints: " + bezierPoints.Length);
-        Console.WriteLine("MaxSegmentLength: " + MaxSegmentLength);
+        //Console.WriteLine("TotalBezierPoints: " + bezierPoints.Length);
+        //Console.WriteLine("MaxSegmentLength: " + MaxSegmentLength);
         int totalSegments = bezierPoints.Length / MaxSegmentLength;
-        Console.WriteLine("Initial Total Segments: " + totalSegments);
+        //Console.WriteLine("Initial Total Segments: " + totalSegments);
         int finalSegmentSize = bezierPoints.Length - MaxSegmentLength * totalSegments;
-        Console.WriteLine(("FINAL SEGMENT SIZE: " + finalSegmentSize));
+        //Console.WriteLine(("FINAL SEGMENT SIZE: " + finalSegmentSize));
         
         if (finalSegmentSize > 0)
             totalSegments += 1;
@@ -194,9 +194,9 @@ public class RoadMesh
         
         int pointCounter = 0;
         
-        Console.WriteLine(("New Final Segment Size: " + finalSegmentSize));
-        Console.WriteLine("Post Total Segments: " + totalSegments);
-        Console.WriteLine();
+        //Console.WriteLine(("New Final Segment Size: " + finalSegmentSize));
+        //Console.WriteLine("Post Total Segments: " + totalSegments);
+        //Console.WriteLine();
 
         if (totalSegments <= 0)
             return null;
@@ -269,7 +269,7 @@ public class RoadMesh
             EntityManager.AddComponentToEntity<PathSegment>(segmentEntity, newSegment);
             Segments.Add(newSegment);
             newSegment.EntityID = segmentEntity;
-            Console.WriteLine("New Entity: " + segmentEntity);
+            //Console.WriteLine("New Entity: " + segmentEntity);
         }
 
         GeneratePathSegmentConnectors(segments);
@@ -287,7 +287,7 @@ public class RoadMesh
 
         if (StateOneSnappedSegmentConnector != null)
         {
-            Console.WriteLine("State One Snapped Connector: " + StateOneSnappedSegmentConnector);
+            //Console.WriteLine("State One Snapped Connector: " + StateOneSnappedSegmentConnector);
 
             PathSegment segment = segments[0]; 
             Vector3[] newPath = new Vector3[segment.Path.Length - 1];
@@ -1361,7 +1361,7 @@ public class RoadMesh
             octreeData.PointIndex = i;
             octreeData.Position = segment.Path[i];
             Octree.InsertElementToOctreeFromPoint(octreeData.Position, octreeData); 
-            Console.WriteLine("Inserted: " + i);
+            //Console.WriteLine("Inserted: " + i);
         }
     }
 
