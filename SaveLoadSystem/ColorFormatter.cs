@@ -17,10 +17,10 @@ public class ColorFormatter : IMessagePackFormatter<Color>
     public Color Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
         var count = reader.ReadArrayHeader();
-        float R = reader.ReadSingle();
-        float G = reader.ReadSingle();
-        float B = reader.ReadSingle();
-        float A = reader.ReadSingle();
+        byte R = reader.ReadByte();
+        byte G = reader.ReadByte();
+        byte B = reader.ReadByte();
+        byte A = reader.ReadByte();
         return new Color(R, G, B, A);
     }
 }
