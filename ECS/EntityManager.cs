@@ -50,12 +50,12 @@ public class EntityManager
     /// </summary>
     /// <param name="component">Component to add to global entity</param>
     /// <typeparam name="T">The type of component being added</typeparam>
-    public static void AddComponentToGlobalEntity<T>(object component)
+    public static void AddComponentToGlobalEntity<T>(T component)
     {
         AddComponentToEntity<T>(0, component);
     }
 
-    public static void AddComponentToEntity<T>(int entity, object component)
+    public static void AddComponentToEntity<T>(int entity, T component)
     {
         ReserveZero();
         List<int> cRegister = ComponentManager.ComponentRegistry[ComponentManager.ComponentIDs[typeof(T)]];
