@@ -78,6 +78,7 @@ public class PathSegmentConnector
     public List<int> SegmentEntities = new List<int>();
     public DPath DPath;
     //public int Weight = 1;
+    public Queue<int> StopQueue = new Queue<int>();
 
     public Vector3 Position
     {
