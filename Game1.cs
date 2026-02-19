@@ -98,10 +98,10 @@ public class Game1 : Game
         //TESTING - just a test for the car generation, should be more systematic
         if (Keyboard.GetState().IsKeyDown(Keys.P))
         {
-            List<int> carEntities = ComponentManager.GetComponent<Car>();
-            Console.WriteLine(carEntities.Count);
+            //List<int> carEntities = ComponentManager.GetComponent<Car>();
+            //Console.WriteLine(carEntities.Count);
             //if (carEntities.Count == 0)
-                CarSystems.GenerateRandomCar();
+            CarSystems.GenerateRandomCar();
         }
         
         if (Keyboard.GetState().IsKeyUp(Keys.L) && oldKeyState.IsKeyDown(Keys.L))

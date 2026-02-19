@@ -44,6 +44,7 @@ public class PathSegment
     public bool IsLaneRuler = true;
     public int Weight = 1;
     public int Speed = 1;
+    public HashSet<int> EntitiesOnSegment = new HashSet<int>();
 
     public int TotalPathLength
     {
@@ -79,6 +80,7 @@ public class PathSegmentConnector
     public DPath DPath;
     //public int Weight = 1;
     public Queue<int> StopQueue = new Queue<int>();
+    //public List<int> CarEntities = new List<int>(20);
 
     public Vector3 Position
     {
