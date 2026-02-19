@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Timers;
 using CS4620IS.Collision;
 using CS4620IS.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PlanetaryExpansion;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CS4620IS;
 
@@ -106,17 +108,30 @@ public class CarSystems
     //     if (car.Destinations[0].Path.Count == 0)
     // }
 
+    private static bool CarToCarWillIntersect(Car sourceCar, Car targetCar, Vector3 sourceDir, float sourceVelocity)
+    {
+        Vector3 targetNext = GetPathVertex(targetCar);
+        Vector3 targetVelocity = targetNext - targetCar.Position;
+        
+        targetVelocity.Normalize();
+        
+        return SphereIntersection.WillIntersect(sourceCar.Position, targetCar.Position, sourceDir * sourceVelocity);
+    }
+    
+    //TODO WaitOnTraffic isn't complete
+    //For cars that are on a connector, before they've left a connector, they should check that the road ahead isn't backed up
+    //not just wait on the intersection
     private static bool WaitOnTraffic(int entity, float velocity, Vector3 direction)
     {
         Car car = ComponentManager.GetEntityComponent<Car>(entity);
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
 
-        Vector3 predPosition = car.Position + velocity * direction;
+        //Vector3 predPosition = car.Position + velocity * direction;
 
-        if (car.ConnectorQueued != -1)
+        if (car.OnConnector != -1)
         {
-            PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.ConnectorQueued];
+            PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.OnConnector];
             if (connector.SegmentEntities.Count > 2) //no need to wait on traffic if we are waiting on stop queue
                 return false;
         }
@@ -128,7 +143,7 @@ public class CarSystems
                 continue;
             if (targetCarEntity == entity)
                 continue;
-            if (SphereIntersection.StaticIntersection(targetCar.Position, predPosition))
+            if (CarToCarWillIntersect(car, targetCar, direction, velocity))
                 return true;
         }
         
@@ -146,7 +161,7 @@ public class CarSystems
                     //     continue;
                     if (targetCarEntity == entity)
                         continue;
-                    if (SphereIntersection.StaticIntersection(targetCar.Position, predPosition))
+                    if (CarToCarWillIntersect(car, targetCar, direction, velocity))
                         return true;
                 }
             }
@@ -167,7 +182,7 @@ public class CarSystems
                         //     continue;
                         if (targetCarEntity == entity)
                             continue;
-                        if (SphereIntersection.StaticIntersection(targetCar.Position, predPosition))
+                        if (CarToCarWillIntersect(car, targetCar, direction, velocity))
                             return true;
                     }
                 }
@@ -181,11 +196,11 @@ public class CarSystems
     {
         Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
         
-        if (car.ConnectorQueued == -1)
+        if (car.OnConnector == -1)
             return false;
         
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-        PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.ConnectorQueued];
+        PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.OnConnector];
 
         if (connector.SegmentEntities.Count <= 2)
             return false;
@@ -224,8 +239,8 @@ public class CarSystems
             
             if (distanceTo > remaining)
             {
-                //if (WaitOnTraffic(entity, remaining, direction))
-                //    return;
+                if (WaitOnTraffic(entity, remaining, direction))
+                    return;
                 
                 car.Position += direction * remaining;
                 car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
@@ -234,8 +249,8 @@ public class CarSystems
 
             remaining -= distanceTo;
 
-            //if (WaitOnTraffic(entity, remaining, direction))
-            //    return;
+            if (WaitOnTraffic(entity, remaining, direction))
+                return;
 
             if (isOverridden) //if overidden, car is traveling through an intersection/connector, but not necessarily an intersection
             {
@@ -244,14 +259,14 @@ public class CarSystems
                     continue;
                 car.Position = GetPathVertex(car);
                 car.SegmentPath.CurrentIndex += car.SegmentPath.Direction; //we will want to skip the first segment point
-                if (car.OverridePath.Count == 0 && car.ConnectorQueued != -1)
+                if (car.OverridePath.Count == 0 && car.OnConnector != -1)
                 {
-                    PathSegmentConnector connectorQueued = roadMesh.PathSegmentConnectors[car.ConnectorQueued];
+                    PathSegmentConnector connectorQueued = roadMesh.PathSegmentConnectors[car.OnConnector];
                     if (connectorQueued.SegmentEntities.Count() > 2)
                     {
                         connectorQueued.StopQueue.Dequeue();
-                        car.ConnectorQueued = -1;   
                     }
+                    car.OnConnector = -1;
                 }
             }
             else
@@ -289,7 +304,7 @@ public class CarSystems
                 BuildIntersectionPath(car, p1, p2, p3);
                 car.Position = car.OverridePath.Pop();
                 
-                car.ConnectorQueued = lastConnectorID;
+                car.OnConnector = lastConnectorID;
                 PathSegmentConnector lastConnector = roadMesh.PathSegmentConnectors[lastConnectorID];
                 
                 if (lastConnector.SegmentEntities.Count > 2)
@@ -558,6 +573,7 @@ public class CarSystems
         if (WaitOnTraffic(newCarEntity, 0, Vector3.Zero))
         {
             EntityManager.RemoveEntity(newCarEntity);
+            return;
         }
         
         segment.EntitiesOnSegment.Add(newCarEntity);

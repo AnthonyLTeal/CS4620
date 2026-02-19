@@ -22,7 +22,7 @@ public class Car
     public SegmentPath SegmentPath;
     public Stack<Vector3> OverridePath = new Stack<Vector3>();
     public float CurrentLane = 1 * -0.2f;
-    public int ConnectorQueued = -1;
+    public int OnConnector = -1;
     
     [IgnoreMember]
     public Matrix Rotation;
