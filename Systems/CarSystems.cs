@@ -89,7 +89,36 @@ public class CarSystems
         if (turnSign > 0)
             tangent = -tangent;
         
+        bool isLeftTurn = turnSign > 0;
+
+        // PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+        //
+        // bool laneIsRightSide = (car.SegmentPath.Direction * (int)segment.PathDirection) == -1; // if that's how you define it
+        //
+        // bool isInside =
+        //     (isLeftTurn && !laneIsRightSide) ||
+        //     (!isLeftTurn && laneIsRightSide);
+        //
+        //
+        // int modifier = 1;
+        //
+        // if (Vector3.Dot(p1Dir, p2Dir) < 0 && isInside)
+        // {
+        //     modifier = 3;
+        // } 
+        
+        
+        // float originalDistSq = Vector3.DistanceSquared(connectorPosition, p1);
+        // float offsetDistSq   = Vector3.DistanceSquared(position, p1);
+        //
+        // bool isOutside = offsetDistSq > originalDistSq;
+        
         Vector3 position = connectorPosition + tangent * car.CurrentLane;
+
+        if (Vector3.Distance(position, p1) > Vector3.Distance(connectorPosition, p1))
+        {
+            //outside
+        }
         
         car.OverridePath.Push(p2 - p2Offset * car.CurrentLane);
         car.OverridePath.Push(position);
@@ -136,15 +165,27 @@ public class CarSystems
                 return false;
         }
         
-        foreach (int targetCarEntity in segment.EntitiesOnSegment)
+        // if (car.OnConnector == -1)
+        //TODO fix this for inside turns on road connectors (not intersections)
         {
-            Car targetCar = ComponentManager.GetEntityComponent<Car>(targetCarEntity);
-            if (targetCar.SegmentPath.Direction != car.SegmentPath.Direction)
-                continue;
-            if (targetCarEntity == entity)
-                continue;
-            if (CarToCarWillIntersect(car, targetCar, direction, velocity))
-                return true;
+            foreach (int targetCarEntity in segment.EntitiesOnSegment) //wait on path on segment only?
+            {
+                Car targetCar = ComponentManager.GetEntityComponent<Car>(targetCarEntity);
+                
+                if (car.OnConnector != -1 && targetCar.OnConnector != -1)
+                {
+                    Vector3 targetCarDir = Vector3.Normalize(targetCar.OverridePath.Peek() - targetCar.Position);
+                    if (Vector3.Dot(targetCarDir, direction) < 0)
+                        continue;
+                }
+                
+                if (targetCar.SegmentPath.Direction != car.SegmentPath.Direction)
+                    continue;
+                if (targetCarEntity == entity)
+                    continue;
+                if (CarToCarWillIntersect(car, targetCar, direction, velocity))
+                    return true;
+            }
         }
         
         //I think we just check the next path destination to see if we are hitting a connector
@@ -152,7 +193,7 @@ public class CarSystems
         {
             PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.Destinations[0].Path.Peek()];
 
-            if (connector.SegmentEntities.Count > 2) //check against intersection
+            if (connector.SegmentEntities.Count > 2) //check against entering intersection
             {
                 foreach (int targetCarEntity in connector.StopQueue)
                 {
@@ -166,13 +207,13 @@ public class CarSystems
                 }
             }
             
-            else //check against connector that has only 2 segments so isn't an intersection
+            else //check against entering connector that has only 2 segments so isn't an intersection
             {
                 foreach (int nextSegmentEntity in connector.SegmentEntities)
                 {
                     if (nextSegmentEntity == car.ConnectedSegment)
                         continue;
-        
+            
                     PathSegment nextSegment = ComponentManager.GetEntityComponent<PathSegment>(nextSegmentEntity);
                 
                     foreach (int targetCarEntity in nextSegment.EntitiesOnSegment)
@@ -182,8 +223,11 @@ public class CarSystems
                         //     continue;
                         if (targetCarEntity == entity)
                             continue;
+            
                         if (CarToCarWillIntersect(car, targetCar, direction, velocity))
+                        {
                             return true;
+                        }
                     }
                 }
             }

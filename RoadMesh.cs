@@ -119,6 +119,74 @@ public class RoadMesh
             Path = segmentPoints
         };
     }
+
+    public static bool PathsIntersect(Vector3 a1, Vector3 a2, Vector3 b1, Vector3 b2)
+    {
+        return false;
+    }
+
+    public static void DestroyPathPoint(PathSegment segment, int index)
+    {
+        
+    }
+
+    public static void CullIntersectingPathPoints(PathSegmentConnector connector)
+    {
+        List<(PathSegment, int)> pathPointsToDestroy = new List<(PathSegment, int)>();
+        for (int i = 0; i < connector.SegmentEntities.Count; i++)
+        {
+            for (int j = i + 1; j < connector.SegmentEntities.Count; j++)
+            {
+                PathSegment segmentOne = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
+                PathSegment segmentTwo = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[j]);
+
+                bool segmentOneEnd = segmentOne.EndConnector == connector.ID;
+                bool segmentTwoEnd = segmentTwo.EndConnector == connector.ID;
+
+                int segmentOneI = 0;
+                int segmentOneDir = 1;
+                int segmentOneMax = segmentOne.Path.Length - 1;
+
+                int segmentTwoI = 0;
+                int segmentTwoDir = 1;
+                int segmentTwoMax = segmentTwo.Path.Length - 1;
+
+                if (segmentOneEnd)
+                {
+                    segmentOneI = segmentOne.Path.Length - 1;
+                    segmentOneDir = -1;
+                    segmentOneMax = 0;
+                }
+
+                if (segmentTwoEnd)
+                {
+                    segmentTwoI = segmentTwo.Path.Length - 1;
+                    segmentTwoDir = -1;
+                    segmentTwoMax = 0;
+                }
+
+                while (segmentOneI != segmentOneMax && segmentTwoI != segmentTwoMax)
+                {
+                    Vector3 a1 = segmentOne.Path[segmentOneI];
+                    Vector3 a2 = segmentOne.Path[segmentOneI + segmentOneDir];
+                    Vector3 b1 = segmentTwo.Path[segmentTwoI];
+                    Vector3 b2 = segmentTwo.Path[segmentTwoI + segmentTwoDir];
+                    if (PathsIntersect(a1, a2, b1, b2))
+                    {
+                        pathPointsToDestroy.Add((segmentOne, segmentOneI));
+                        pathPointsToDestroy.Add((segmentTwo, segmentTwoI));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    
+                    segmentTwoI += segmentTwoDir;
+                    segmentOneI += segmentOneDir;
+                }
+            }
+        }
+    }
     
     public List<PathSegment> GeneratePath(GraphicsDevice graphicsDevice, Vector3 p0, Vector3 p1, Vector3 controlPoint, Terrain terrain, ArcBallCamera camera)
     {
@@ -781,10 +849,7 @@ public class RoadMesh
         PathSegment oldSegment = (PathSegment)EntityManager.EntityComponents[entityIndex][componentID];
         RemovePathSegmentPointsFromOctree(oldSegment);
         Vector3[] path = oldSegment.Path;
-
         
-        //Vector3[] path = Segments[segmentIndex].Path;
-        //PathSegment oldSegment = Segments[segmentIndex];
         var slicedPathOne = path;
         Array.Resize(ref slicedPathOne, pathIndex);
         oldSegment.Path = slicedPathOne;
@@ -801,7 +866,7 @@ public class RoadMesh
             IsLaneRuler = oldSegment.IsLaneRuler
         };
         EntityManager.AddEntity();
-        EntityManager.AddComponentToEntity<PathSegment>(EntityManager.LastAddedEntity, segmentTwo);
+        EntityManager.AddComponentToEntity(EntityManager.LastAddedEntity, segmentTwo);
         segmentTwo.ID = Segments.Count;
         segmentTwo.EntityID = EntityManager.LastAddedEntity;
         Segments.Add(segmentTwo);
@@ -810,27 +875,11 @@ public class RoadMesh
         InsertSegmentPathPointsIntoOctree(oldSegment);
         
         segmentTwo.EndConnector = oldSegment.EndConnector;
-        // if (oldSegment.EndConnector != null)
-        // {
-            PathSegmentConnectors[(int)oldSegment.EndConnector].SegmentEntities.Add(segmentTwo.EntityID);
-            PathSegmentConnectors[(int)oldSegment.EndConnector].PointIDs.Add(segmentTwo.Path.Length - 1);
-            PathSegmentConnectors[(int)oldSegment.EndConnector].DebugPoints.Add(new VertexPositionColor(segmentTwo.Path[^1], Color.Blue));
-        // }
-        //
-        // if (oldSegment.EndConnector != null)
-        // {
-            PathSegmentConnectorSystems.RemoveSegmentFromConnector(PathSegmentConnectors[(int)oldSegment.EndConnector], entityIndex, path.Length - 1);
-            //PathSegmentConnectorSystems.RemoveSegmentFromConnector(PathSegmentConnectors[(int)oldSegment.EndConnector], entityIndex, path.Length);
+        PathSegmentConnectors[(int)oldSegment.EndConnector].SegmentEntities.Add(segmentTwo.EntityID);
+        PathSegmentConnectors[(int)oldSegment.EndConnector].PointIDs.Add(segmentTwo.Path.Length - 1);
+        PathSegmentConnectors[(int)oldSegment.EndConnector].DebugPoints.Add(new VertexPositionColor(segmentTwo.Path[^1], Color.Blue));
 
-            //PathSegmentConnector testConnector = PathSegmentConnectors[(int)oldSegment.EndConnector];
-
-            // for (int i = 0; i < testConnector.SegmentEntities.Count; i++)
-            // {
-            //     Console.WriteLine($"Entity: {testConnector.SegmentEntities[i]} Path Point: {testConnector.PointIDs[i]} | Old Path Length: {path.Length}");
-            // }
-            // Console.WriteLine($"Removed Segment From Connector: {oldSegment.EndConnector} With segment ID: {oldSegment.EntityID}");
-        // }
-
+        PathSegmentConnectorSystems.RemoveSegmentFromConnector(PathSegmentConnectors[(int)oldSegment.EndConnector], entityIndex, path.Length - 1);
         PathSegmentConnector slicedConnector = new PathSegmentConnector();
         slicedConnector.ID = PathSegmentConnectors.Count;
         PathSegmentConnectors.Add(slicedConnector);
@@ -839,16 +888,6 @@ public class RoadMesh
         
         PathSegmentConnectorSystems.AddSegmentToSegmentConnector(slicedConnector, oldSegment, SegmentConnectorIndex.Last);
         PathSegmentConnectorSystems.AddSegmentToSegmentConnector(slicedConnector, segmentTwo, SegmentConnectorIndex.First);
-
-        if (oldSegment.AdjacentPathSegmentEntities[0] != 0)
-        {
-            
-        }
-
-        if (oldSegment.AdjacentPathSegmentEntities[1] != 0)
-        {
-            
-        }
     }
 
     public static float AngleBetweenThreePoints(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 worldCenter)
