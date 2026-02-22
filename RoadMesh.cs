@@ -120,61 +120,288 @@ public class RoadMesh
         };
     }
 
-    public static bool PathsIntersect(Vector3 a1, Vector3 a2, Vector3 b1, Vector3 b2)
-    {
-        return false;
-    }
+    // public static bool PathsIntersect(Vector3 a1, Vector3 a2, Vector3 b1, Vector3 b2)
+    // {
+    //
+    //     float testWidth = 10;
+    //     
+    //     Console.WriteLine($"a1: {a1} | a2: {a2} | b1: {b1} | b2: {b2}");
+    //     //The idea is that we build 2 OBBs here and check for intersection, that's all
+    //     Vector3 up = Vector3.Up;
+    //     
+    //     Vector3 aCenter = (a1 + a2) / 2;
+    //     Vector3 aForward = Vector3.Normalize(a2 - a1);
+    //     Vector3 aRight = Vector3.Normalize(Vector3.Cross(up, aForward));
+    //     aForward = Vector3.Cross(aRight, up);
+    //     Matrix aMatrix = new Matrix(
+    //         aRight.X, up.X, aForward.X, 0,
+    //         aRight.Y, up.Y, aForward.Y, 0,
+    //         aRight.Z, up.Z, aForward.Z, 0,
+    //         0, 0, 0, 1);
+    //     // Matrix aMatrix = new Matrix(
+    //     //     aRight.X, aRight.Y, aRight.Z, 0,
+    //     //     up.X, up.Y, up.Z, 0,
+    //     //     aForward.X, aForward.Y, aForward.Z, 0,
+    //     //     0, 0, 0, 1);
+    //     Quaternion aQuaternion = Quaternion.CreateFromRotationMatrix(aMatrix);
+    //     float aLength = Vector3.Distance(a1, a2);
+    //     Vector3 aHalfExtents = new Vector3(
+    //         testWidth * 0.5f,
+    //         2f,
+    //         aLength * 0.5f
+    //     );
+    //     BoundingOrientedBox aObb = new BoundingOrientedBox(aCenter, aHalfExtents, aQuaternion);
+    //     
+    //     Vector3 bCenter = (b1 + b2) / 2;
+    //     Vector3 bForward = Vector3.Normalize(b2 - b1);
+    //     Vector3 bRight = Vector3.Normalize(Vector3.Cross(up, bForward));
+    //     bForward = Vector3.Cross(bRight, up);
+    //     Matrix bMatrix = new Matrix(
+    //         bRight.X, up.X, bForward.X, 0,
+    //         bRight.Y, up.Y, bForward.Y, 0,
+    //         bRight.Z, up.Z, bForward.Z, 0,
+    //         0, 0, 0, 1);
+    //     // Matrix bMatrix = new Matrix(
+    //     //     bRight.X, bRight.Y, bRight.Z, 0,
+    //     //     up.X, up.Y, up.Z, 0,
+    //     //     bForward.X, bForward.Y, bForward.Z, 0,
+    //     //     0, 0, 0, 1);
+    //     Quaternion bQuaternion = Quaternion.CreateFromRotationMatrix(bMatrix);
+    //     float bLength = Vector3.Distance(b1, b2);
+    //     Vector3 bHalfExtants = new Vector3(
+    //         testWidth * .5f,
+    //         2f,
+    //         bLength * 0.5f
+    //     );
+    //     BoundingOrientedBox bObb = new BoundingOrientedBox(bCenter, bHalfExtants, bQuaternion);
+    //
+    //     bool intersects = bObb.Intersects(ref aObb);
+    //     
+    //     Console.WriteLine("INTERSECTS: " + intersects);
+    //
+    //     return bObb.Intersects(ref aObb);
+    // }
 
-    public static void DestroyPathPoint(PathSegment segment, int index)
+//     private static BoundingOrientedBox CreateBox(Vector3 p1, Vector3 p2, float width, float height)
+//     {
+//         Vector3 center = (p1 + p2) * 0.5f;
+//         Vector3 xAxis = Vector3.Normalize(p2 - p1);
+//         Vector3 yAxis = Vector3.Up;
+//         if (Math.Abs(Vector3.Dot(xAxis, yAxis)) > 0.99f) yAxis = Vector3.Forward;
+//     
+//         Vector3 zAxis = Vector3.Normalize(Vector3.Cross(xAxis, yAxis));
+//         yAxis = Vector3.Cross(zAxis, xAxis);
+//
+//         // Build the Matrix Row-by-Row exactly like your working example
+//         Matrix rot = new Matrix(
+//             xAxis.X, xAxis.Y, xAxis.Z, 0,
+//             yAxis.X, yAxis.Y, yAxis.Z, 0,
+//             zAxis.X, zAxis.Y, zAxis.Z, 0,
+//             0, 0, 0, 1
+//         );
+//
+//         // Use the Invert trick to get HalfExtents - this is the only way to be 100% sure
+//         Vector3 corner = center + (xAxis * Vector3.Distance(p1, p2) * 0.5f) 
+//                                 + (yAxis * height * 0.5f) 
+//                                 + (zAxis * width * 0.5f);
+//                             
+//         Vector3 hLocal = Vector3.Transform(corner - center, Matrix.Invert(rot));
+// //        Vector3 halfExtents = new Vector3(Math.Abs(hLocal.X), Math.Abs(hLocal.Y), Math.Abs(hLocal.Z));
+//         Vector3 halfExtents = new Vector3(0.5f, 0.5f, 0.5f);
+//
+//         return new BoundingOrientedBox(center, halfExtents, Quaternion.CreateFromRotationMatrix(rot));
+//     }
+
+    public static bool Intersects(BoundingOrientedBox a, BoundingOrientedBox b)
     {
+        Matrix ma = Matrix.CreateFromQuaternion(a.Orientation);
+        ma.Translation = a.Center;
+    
+        Matrix mb = Matrix.CreateFromQuaternion(b.Orientation);
+        mb.Translation = b.Center;
+
+        // Use Matrix Inversion - this handles the relative center 
+        // AND the rotation in one go, bypassing the Conjugate/Multiply issues.
+        Matrix relative = mb * Matrix.Invert(ma);
+
+        Vector3 hA = a.HalfExtent;
+        Vector3 hB = b.HalfExtent;
+
+        // Call the static SAT method directly
+        return BoundingOrientedBox.ContainsRelativeBox(ref hA, ref hB, ref relative) != ContainmentType.Disjoint;
+    }
+    
+    private static BoundingOrientedBox CreateBox(Vector3 p1, Vector3 p2, float width, float height)
+    {
+        Vector3 center = (p1 + p2) * 0.5f;
+        float length = Vector3.Distance(p1, p2);
         
+        Vector3 right = Vector3.Normalize(p2 - p1);
+        Vector3 up = Vector3.Normalize(Vector3.Up);
+        Vector3 forward = Vector3.Normalize(Vector3.Cross(right, up));
+        right = Vector3.Normalize(Vector3.Cross(up, forward));
+        up = Vector3.Normalize(Vector3.Cross(forward, right));
+        
+        Matrix rotationMatrix = new Matrix(
+            right.X,   right.Y,   right.Z,   0f,
+            up.X,      up.Y,      up.Z,      0f,
+            forward.X, forward.Y, forward.Z, 0f,
+            0f, 0f, 0f, 1f
+        );
+    
+        Quaternion quaternion = Quaternion.CreateFromRotationMatrix(rotationMatrix);
+        
+        Vector3 halfExtents = new Vector3(
+            Math.Abs(length * 0.5f),
+            Math.Abs(height * 0.5f),
+            Math.Abs(width * 0.5f)
+        );
+    
+        return new BoundingOrientedBox(center, halfExtents, quaternion);
+    }
+    
+    // public static bool PathsIntersect(Vector3 a1, Vector3 a2, Vector3 b1, Vector3 b2)
+    // {
+    //     // If your width is 0.5, then the distance between the center-lines 
+    //     // must be 0.5 or less to touch.
+    //     float threshold = PATH_WIDTH * 2;
+    //     bool intersects = SqrDistanceSegmentSegment(a1, a2, b1, b2) <= (threshold * threshold);
+    //     
+    //     Console.WriteLine("Intersects: " + intersects);
+    //
+    //     return SqrDistanceSegmentSegment(a1, a2, b1, b2) <= (threshold * threshold);
+    // }
+
+    // public static float SqrDistanceSegmentSegment(Vector3 p1, Vector3 q1, Vector3 p2, Vector3 q2)
+    // {
+    //     Vector3 d1 = q1 - p1; 
+    //     Vector3 d2 = q2 - p2; 
+    //     Vector3 r = p1 - p2;
+    //     float a = Vector3.Dot(d1, d1); 
+    //     float e = Vector3.Dot(d2, d2); 
+    //     float f = Vector3.Dot(d2, r);
+    //     float epsilon = 1e-8f;
+    //
+    //     float s, t;
+    //     float c = Vector3.Dot(d1, r);
+    //     float b = Vector3.Dot(d1, d2);
+    //     float denom = a * e - b * b;
+    //
+    //     if (denom != 0.0f) {
+    //         s = MathHelper.Clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+    //     } else {
+    //         s = 0.0f; 
+    //     }
+    //
+    //     t = (b * s + f) / e;
+    //
+    //     if (t < 0.0f) {
+    //         t = 0.0f;
+    //         s = MathHelper.Clamp(-c / a, 0.0f, 1.0f);
+    //     } else if (t > 1.0f) {
+    //         t = 1.0f;
+    //         s = MathHelper.Clamp((b - c) / a, 0.0f, 1.0f);
+    //     }
+    //
+    //     Vector3 closestPointOnA = p1 + d1 * s;
+    //     Vector3 closestPointOnB = p2 + d2 * t;
+    //
+    //     return Vector3.DistanceSquared(closestPointOnA, closestPointOnB);
+    // }
+
+    public static void CreatePathHitBoxes(PathSegment segment)
+    {
+        segment.HitBoxes = new List<BoundingOrientedBox>();
+        for (int i = 0; i < segment.Path.Length - 1; i++)
+        {
+            segment.HitBoxes.Add(CreateBox(segment.Path[i], segment.Path[i+1], PATH_WIDTH * 2, PATH_WIDTH));
+        }
+    }
+    
+    public static void DestroyPathPoints(PathSegment segment, int counter, PathSegmentConnector connector, int direction)
+    {
+        int newConnectorPointIndex = 0;
+        int fromIndex = counter;
+        int newLength = segment.Path.Length - counter;
+
+        if (direction == -1)
+        {
+            fromIndex = 0;
+        }
+        
+        //replace the segment path point in segment connector
+        
+        Vector3[] trimmed = new Vector3[newLength];
+        Array.Copy(segment.Path, fromIndex, trimmed, 0, newLength);
+        segment.Path = trimmed;
+        
+        for (int i = 0; i < connector.SegmentEntities.Count; i++)
+        {
+            if (segment.EntityID != connector.SegmentEntities[i])
+                continue;
+            if (direction == -1)
+                connector.PointIDs[i] = segment.Path.Length - 1;
+            else
+                connector.PointIDs[i] = 0;
+        }
     }
 
     public static void CullIntersectingPathPoints(PathSegmentConnector connector)
     {
-        List<(PathSegment, int)> pathPointsToDestroy = new List<(PathSegment, int)>();
+        bool dirtyDebugPoints = false;
         for (int i = 0; i < connector.SegmentEntities.Count; i++)
         {
             for (int j = i + 1; j < connector.SegmentEntities.Count; j++)
             {
                 PathSegment segmentOne = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
                 PathSegment segmentTwo = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[j]);
-
+    
                 bool segmentOneEnd = segmentOne.EndConnector == connector.ID;
                 bool segmentTwoEnd = segmentTwo.EndConnector == connector.ID;
-
+    
                 int segmentOneI = 0;
                 int segmentOneDir = 1;
-                int segmentOneMax = segmentOne.Path.Length - 1;
-
+                int segmentOneMax = segmentOne.HitBoxes.Count - 1;
+    
                 int segmentTwoI = 0;
                 int segmentTwoDir = 1;
-                int segmentTwoMax = segmentTwo.Path.Length - 1;
-
+                int segmentTwoMax = segmentTwo.HitBoxes.Count - 1;
+    
                 if (segmentOneEnd)
                 {
-                    segmentOneI = segmentOne.Path.Length - 1;
+                    segmentOneI = segmentOne.HitBoxes.Count - 1;
                     segmentOneDir = -1;
                     segmentOneMax = 0;
                 }
-
+    
                 if (segmentTwoEnd)
                 {
-                    segmentTwoI = segmentTwo.Path.Length - 1;
+                    segmentTwoI = segmentTwo.HitBoxes.Count - 1;
                     segmentTwoDir = -1;
                     segmentTwoMax = 0;
                 }
-
+    
+                int segmentOneCounter = 0;
+                int segmentTwoCounter = 0;
+    
                 while (segmentOneI != segmentOneMax && segmentTwoI != segmentTwoMax)
                 {
-                    Vector3 a1 = segmentOne.Path[segmentOneI];
-                    Vector3 a2 = segmentOne.Path[segmentOneI + segmentOneDir];
-                    Vector3 b1 = segmentTwo.Path[segmentTwoI];
-                    Vector3 b2 = segmentTwo.Path[segmentTwoI + segmentTwoDir];
-                    if (PathsIntersect(a1, a2, b1, b2))
+                    BoundingOrientedBox boxOne = segmentOne.HitBoxes[segmentOneI];
+                    BoundingOrientedBox boxTwo = segmentTwo.HitBoxes[segmentTwoI];
+                    // Console.WriteLine($"Half Extents {boxOne.HalfExtent} : Quaternion {boxOne.Orientation} : Center {boxOne.Center}");
+                    // Console.WriteLine($"Half Extents {boxTwo.HalfExtent} : Quaternion {boxTwo.Orientation} : Center {boxTwo.Center}");
+                    // ContainmentType containmentType = boxOne.Contains(ref boxTwo);
+                    // Console.WriteLine($"Containment Type: {containmentType}" );
+                    bool intersects = Intersects(boxOne, boxTwo);//(boxOne.Intersects(ref boxTwo));
+                    // Console.WriteLine($"A: {segmentOneI} | B: {segmentTwoI} | Intersects: " + intersects);
+                    // float distance = Vector3.Distance(boxOne.Center, boxTwo.Center);
+                    // float combinedRadius = boxOne.HalfExtent.Length() + boxTwo.HalfExtent.Length();
+                    // Console.WriteLine($"Distance: {distance}, Max Reach: {combinedRadius}");
+                
+                    if (intersects)
                     {
-                        pathPointsToDestroy.Add((segmentOne, segmentOneI));
-                        pathPointsToDestroy.Add((segmentTwo, segmentTwoI));
+                        segmentOneCounter++;
+                        segmentTwoCounter++;
                     }
                     else
                     {
@@ -184,7 +411,24 @@ public class RoadMesh
                     segmentTwoI += segmentTwoDir;
                     segmentOneI += segmentOneDir;
                 }
+    
+                if (segmentOneCounter == 0)
+                    continue;
+                
+                DestroyPathPoints(segmentOne, segmentOneCounter, connector, segmentOneDir);
+                DestroyPathPoints(segmentTwo, segmentTwoCounter, connector, segmentTwoDir);
+                dirtyDebugPoints = true;
             }
+        }
+    
+        if (!dirtyDebugPoints)
+            return;
+    
+        connector.DebugPoints = new List<VertexPositionColor>();
+        for (int i = 0; i < connector.SegmentEntities.Count; i++)
+        {
+            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
+            connector.DebugPoints.Add(new VertexPositionColor(segment.Path[connector.PointIDs[i]], Color.Blue));
         }
     }
     
@@ -334,8 +578,9 @@ public class RoadMesh
 
             segments.Add(newSegment);
             int segmentEntity = EntityManager.AddEntity();
-            EntityManager.AddComponentToEntity<PathSegment>(segmentEntity, newSegment);
+            EntityManager.AddComponentToEntity(segmentEntity, newSegment);
             Segments.Add(newSegment);
+            Console.WriteLine("Segment Entity: " + segmentEntity);
             newSegment.EntityID = segmentEntity;
             //Console.WriteLine("New Entity: " + segmentEntity);
         }
@@ -1427,7 +1672,17 @@ public class RoadMesh
             Reset();
             return;
         }
-        
+
+        //second pass after hitboxes are made
+        foreach (PathSegment segment in segments)
+        {
+            PathSegmentConnector endConnector = PathSegmentConnectors[(int)segment.EndConnector];
+            PathSegmentConnector frontConnector = PathSegmentConnectors[(int)segment.FrontConnector];
+            CullIntersectingPathPoints(endConnector);
+            CullIntersectingPathPoints(frontConnector);
+        }
+
+        //third pass for inserting path points into octree (don't want to add culled points)
         foreach (PathSegment segment in segments)
         {
             InsertSegmentPathPointsIntoOctree(segment);

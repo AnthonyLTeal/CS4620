@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MessagePack;
 using Microsoft.Xna.Framework;
@@ -13,7 +14,7 @@ namespace CS4620IS.Components;
 public class Car
 {
     public int GroupID;
-    public int ConnectedSegment;
+    public int connectedSegment;
     public int InitialPathIndex;
     public Vector3 Position;
     public Color Color;
@@ -24,6 +25,23 @@ public class Car
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
     
+
+    public int ConnectedSegment
+    {
+        get => connectedSegment;
+        set
+        {
+            if (value == 0)
+            {
+                Console.WriteLine("ERROR: WTF");
+            }
+            else
+            {
+                connectedSegment = value;
+            }
+        }
+    }
+
     [IgnoreMember]
     public Matrix Rotation;
 }

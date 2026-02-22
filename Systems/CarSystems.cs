@@ -381,6 +381,7 @@ public class CarSystems
             }
         }
 
+        //TODO we are sometimes returning 0 from here still, need to look into this 
         return 0; //should never get here so might be good to throw an error
         //throw new InvalidOperationException($"No segment connects connectors {lastConnectorID} -> {nextConnectorID}");
     }
@@ -594,6 +595,8 @@ public class CarSystems
         // Console.WriteLine("Destination Path Point: " + destination.SegmentPathIndex);
         
         List<Destination> destinations = new List<Destination>() {destination};
+        
+        Console.WriteLine(segment.EntityID);
 
         Car car = new Car()
         {

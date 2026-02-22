@@ -1,5 +1,6 @@
 using System;
 using MessagePack;
+using PlanetaryExpansion;
 
 namespace CS4620IS.Components;
 using System.Collections.Generic;
@@ -38,14 +39,33 @@ public class PathSegment
     public int? EndConnector = null;
     public int? FrontConnector = null;
     public int ID;
-    public int EntityID;
+    public int entityID;
     public int[] AdjacentPathSegmentEntities = new int[2];
     public PathDirection PathDirection; 
     public bool IsLaneRuler = true;
     public int Weight = 1;
     public int Speed = 1;
     public HashSet<int> EntitiesOnSegment = new HashSet<int>();
+    
+    [IgnoreMember]
+    public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();
 
+    public int EntityID
+    {
+        get =>  entityID;
+        set
+        {
+            if (value == 0)
+            {
+                Console.WriteLine("WTF X2: " + value);
+            }
+            else
+            {
+                entityID = value;
+            }
+        }
+    }
+    
     public int TotalPathLength
     {
         get { return _path.Length + 2; }
@@ -58,6 +78,7 @@ public class PathSegment
         {
             _path = value;
             DebugPoints = PathSegmentSystems.GenerateRoadOutline(value, IsLaneRuler);
+            RoadMesh.CreatePathHitBoxes(this);
             //TODO uncomment the following 2 lines to build perpendiculars when roadmesh is fixed
             //if (IsLaneRuler)
                 //Perpendiculars = RoadMesh.GeneratePerpendiculars(_path);

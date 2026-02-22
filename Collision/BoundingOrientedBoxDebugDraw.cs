@@ -13,23 +13,29 @@ public class BoundingOrientedBoxDebugDraw
 
     public static void DrawEntityOOBs()
     {
-        ArcBallCamera camera = (ArcBallCamera)EntityManager.GetGlobalComponent<ArcBallCamera>();
-        GraphicsDevice graphicsDevice = (GraphicsDevice)EntityManager.GetGlobalComponent<GraphicsDevice>();
+        ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
+        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
 
         int componentID = ComponentManager.GetComponentID<HitBox>();
-        List<int> entities = ComponentManager.GetComponent<HitBox>();
+        List<int> entities = ComponentManager.GetComponent<PathSegment>();
 
         foreach (int entity in entities)
         {
-            HitBox entityData = (HitBox)EntityManager.EntityComponents[entity][componentID];
-            if (entityData == null)
+            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            foreach (BoundingOrientedBox box in segment.HitBoxes)
             {
-                //TODO Look into this bug where entityData can sometimes be null
-                Console.WriteLine("Entity " + entity + " does not have a hitbox. Something went wrong here.");
-                continue;
+                
+                DrawOBB(graphicsDevice, camera, box.Center, box.HalfExtent, box.Orientation);
             }
-            DrawOBB(graphicsDevice, camera, entityData.BoundingOrientedBox.Center, entityData.BoundingOrientedBox.HalfExtent, entityData.BoundingOrientedBox.Orientation);
+            // HitBox entityData = (HitBox)EntityManager.EntityComponents[entity][componentID];
+            // if (entityData == null)
+            // {
+            //     //TODO Look into this bug where entityData can sometimes be null
+            //     Console.WriteLine("Entity " + entity + " does not have a hitbox. Something went wrong here.");
+            //     continue;
+            // }
         }
+        
     }
 
     public static void DrawOBB(GraphicsDevice graphicsDevice, ArcBallCamera camera, Vector3 center, Vector3 halfExtents, Quaternion rotation)

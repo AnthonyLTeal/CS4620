@@ -134,6 +134,7 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
         _terrain.Draw(_graphics.GraphicsDevice, _camera);
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
+        BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
         
         CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
         cubeMeshBatcher.Draw();
