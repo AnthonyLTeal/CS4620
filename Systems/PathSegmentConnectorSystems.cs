@@ -88,7 +88,7 @@ public class PathSegmentConnectorSystems
         for (int i = 0; i < connectors.Count; i++)
         {
             PathSegmentConnector _connector = connectors[i];
-            //Console.WriteLine($"Segments connected to connector: {_connector.ID}");
+            Console.WriteLine($"Segments connected to connector: {_connector.ID}");
         
             for (int j = 0; j < _connector.SegmentEntities.Count; j++)
             {

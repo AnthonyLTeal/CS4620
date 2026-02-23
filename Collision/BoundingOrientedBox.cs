@@ -640,50 +640,60 @@ namespace CS4620IS
             Vector3 axis;
 
             // a.X ^ b.X = (1,0,0) ^ bX
-            axis = new Vector3(0, -bX.Z, bX.Y);
-            if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Y * axis.Y) + Math.Abs(hA.Z * axis.Z) + Math.Abs(Vector3.Dot(axis, hy_B)) + Math.Abs(Vector3.Dot(axis, hz_B)))
-                return ContainmentType.Disjoint;
+            if (bX.X != 0 &&  bY.X != 0 && bZ.X != 0) 
+            { 
+                // a.X ^ b.X = (1,0,0) ^ bX 
+                axis = new Vector3(0, -bX.Z, bX.Y); 
+                if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Y * axis.Y) + Math.Abs(hA.Z * axis.Z) + Math.Abs(Vector3.Dot(axis, hy_B)) + Math.Abs(Vector3.Dot(axis, hz_B))) 
+                    return ContainmentType.Disjoint; 
 
-            // a.X ^ b.Y = (1,0,0) ^ bY
-            axis = new Vector3(0, -bY.Z, bY.Y);
-            if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Y * axis.Y) + Math.Abs(hA.Z * axis.Z) + Math.Abs(Vector3.Dot(axis, hz_B)) + Math.Abs(Vector3.Dot(axis, hx_B)))
-                return ContainmentType.Disjoint;
+                // a.X ^ b.Y = (1,0,0) ^ bY 
+                axis = new Vector3(0, -bY.Z, bY.Y); 
+                if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Y * axis.Y) + Math.Abs(hA.Z * axis.Z) + Math.Abs(Vector3.Dot(axis, hz_B)) + Math.Abs(Vector3.Dot(axis, hx_B))) 
+                    return ContainmentType.Disjoint; 
 
-            // a.X ^ b.Z = (1,0,0) ^ bZ
-            axis = new Vector3(0, -bZ.Z, bZ.Y);
-            if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Y * axis.Y) + Math.Abs(hA.Z * axis.Z) + Math.Abs(Vector3.Dot(axis, hx_B)) + Math.Abs(Vector3.Dot(axis, hy_B)))
-                return ContainmentType.Disjoint;
+                // a.X ^ b.Z = (1,0,0) ^ bZ 
+                axis = new Vector3(0, -bZ.Z, bZ.Y); 
+                if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Y * axis.Y) + Math.Abs(hA.Z * axis.Z) + Math.Abs(Vector3.Dot(axis, hx_B)) + Math.Abs(Vector3.Dot(axis, hy_B))) 
+                    return ContainmentType.Disjoint; 
+            } 
 
-            // a.Y ^ b.X = (0,1,0) ^ bX
-            axis = new Vector3(bX.Z, 0, -bX.X);
-            if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Z * axis.Z) + Math.Abs(hA.X * axis.X) + Math.Abs(Vector3.Dot(axis, hy_B)) + Math.Abs(Vector3.Dot(axis, hz_B)))
-                return ContainmentType.Disjoint;
+            if (bX.Y != 0 && bY.Y != 0 && bZ.Y != 0) 
+            { 
+                // a.Y ^ b.X = (0,1,0) ^ bX 
+                axis = new Vector3(bX.Z, 0, -bX.X); 
+                if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Z * axis.Z) + Math.Abs(hA.X * axis.X) + Math.Abs(Vector3.Dot(axis, hy_B)) + Math.Abs(Vector3.Dot(axis, hz_B))) 
+                    return ContainmentType.Disjoint; 
 
-            // a.Y ^ b.Y = (0,1,0) ^ bY
-            axis = new Vector3(bY.Z, 0, -bY.X);
-            if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Z * axis.Z) + Math.Abs(hA.X * axis.X) + Math.Abs(Vector3.Dot(axis, hz_B)) + Math.Abs(Vector3.Dot(axis, hx_B)))
-                return ContainmentType.Disjoint;
+                // a.Y ^ b.Y = (0,1,0) ^ bY 
+                axis = new Vector3(bY.Z, 0, -bY.X); 
+                if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Z * axis.Z) + Math.Abs(hA.X * axis.X) + Math.Abs(Vector3.Dot(axis, hz_B)) + Math.Abs(Vector3.Dot(axis, hx_B))) 
+                    return ContainmentType.Disjoint; 
 
-            // a.Y ^ b.Z = (0,1,0) ^ bZ
-            axis = new Vector3(bZ.Z, 0, -bZ.X);
-            if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Z * axis.Z) + Math.Abs(hA.X * axis.X) + Math.Abs(Vector3.Dot(axis, hx_B)) + Math.Abs(Vector3.Dot(axis, hy_B)))
-                return ContainmentType.Disjoint;
+                // a.Y ^ b.Z = (0,1,0) ^ bZ 
+                axis = new Vector3(bZ.Z, 0, -bZ.X); 
+                if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.Z * axis.Z) + Math.Abs(hA.X * axis.X) + Math.Abs(Vector3.Dot(axis, hx_B)) + Math.Abs(Vector3.Dot(axis, hy_B))) 
+                    return ContainmentType.Disjoint; 
+            } 
 
-            // a.Z ^ b.X = (0,0,1) ^ bX
-            axis = new Vector3(-bX.Y, bX.X, 0);
-            if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.X * axis.X) + Math.Abs(hA.Y * axis.Y) + Math.Abs(Vector3.Dot(axis, hy_B)) + Math.Abs(Vector3.Dot(axis, hz_B)))
-                return ContainmentType.Disjoint;
+            if (bX.Z != 0 &&  bY.Z != 0 && bZ.Z != 0) 
+            { 
+                // a.Z ^ b.X = (0,0,1) ^ bX 
+                axis = new Vector3(-bX.Y, bX.X, 0); 
+                if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.X * axis.X) + Math.Abs(hA.Y * axis.Y) + Math.Abs(Vector3.Dot(axis, hy_B)) + Math.Abs(Vector3.Dot(axis, hz_B))) 
+                    return ContainmentType.Disjoint; 
 
-            // a.Z ^ b.Y = (0,0,1) ^ bY
-            axis = new Vector3(-bY.Y, bY.X, 0);
-            if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.X * axis.X) + Math.Abs(hA.Y * axis.Y) + Math.Abs(Vector3.Dot(axis, hz_B)) + Math.Abs(Vector3.Dot(axis, hx_B)))
-                return ContainmentType.Disjoint;
+                // a.Z ^ b.Y = (0,0,1) ^ bY 
+                axis = new Vector3(-bY.Y, bY.X, 0); 
+                if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.X * axis.X) + Math.Abs(hA.Y * axis.Y) + Math.Abs(Vector3.Dot(axis, hz_B)) + Math.Abs(Vector3.Dot(axis, hx_B))) 
+                    return ContainmentType.Disjoint; 
 
-            // a.Z ^ b.Z = (0,0,1) ^ bZ
-            axis = new Vector3(-bZ.Y, bZ.X, 0);
-            if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.X * axis.X) + Math.Abs(hA.Y * axis.Y) + Math.Abs(Vector3.Dot(axis, hx_B)) + Math.Abs(Vector3.Dot(axis, hy_B)))
-                return ContainmentType.Disjoint;
-
+                // a.Z ^ b.Z = (0,0,1) ^ bZ 
+                axis = new Vector3(-bZ.Y, bZ.X, 0); 
+                if (Math.Abs(Vector3.Dot(mB_T, axis)) >= Math.Abs(hA.X * axis.X) + Math.Abs(hA.Y * axis.Y) + Math.Abs(Vector3.Dot(axis, hx_B)) + Math.Abs(Vector3.Dot(axis, hy_B))) 
+                    return ContainmentType.Disjoint; 
+            }
+        
             return ContainmentType.Intersects;
         }
 

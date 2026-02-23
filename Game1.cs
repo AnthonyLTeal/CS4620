@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using CS4620IS.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -48,14 +49,14 @@ public class Game1 : Game
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
         base.Initialize();
+        SaveSystem.RegisterFormatters();
     }
 
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         
-        Console.WriteLine("Just once right?");
-        
+        ComponentManager.RegisterComponent<CubeMeshBatcher>();
         ComponentManager.RegisterComponent<ArcBallCamera>();
         // ComponentManager.RegisterComponent<TerrainCursor>();
         // ComponentManager.RegisterComponent<Desktop>();
@@ -79,19 +80,49 @@ public class Game1 : Game
         EntityManager.AddComponentToGlobalEntity<Terrain>(_terrain);
         EntityManager.AddComponentToGlobalEntity<GraphicsDevice>(GraphicsDevice);
         
+        CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
+        EntityManager.AddComponentToGlobalEntity<CubeMeshBatcher>(cubeMeshBatcher);
+        
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
         EntityManager.AddComponentToGlobalEntity<RoadMesh>(_roadMesh);
     }
 
+    private KeyboardState oldKeyState;
     protected override void Update(GameTime gameTime)
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
         
+        
+        //TESTING - just a test for the car generation, should be more systematic
+        if (Keyboard.GetState().IsKeyDown(Keys.P))
+        {
+            //List<int> carEntities = ComponentManager.GetComponent<Car>();
+            //Console.WriteLine(carEntities.Count);
+            //if (carEntities.Count == 0)
+            CarSystems.GenerateRandomCar();
+        }
+        
+        if (Keyboard.GetState().IsKeyUp(Keys.L) && oldKeyState.IsKeyDown(Keys.L))
+        {
+            LoadSystem.Load();
+        }
+        
+        if (Keyboard.GetState().IsKeyUp(Keys.S) && oldKeyState.IsKeyDown(Keys.S))
+        {
+            SaveSystem.Save();
+        }
+
+        oldKeyState = Keyboard.GetState();
+        
+        CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
+        cubeMeshBatcher.Update();
+        
         _cameraControls.Update(gameTime, Keyboard.GetState(), Mouse.GetState(), _camera);
         CursorSystem.Update(gameTime);
         _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
+        CarSystems.BasicBehavior(gameTime);
 
         // TODO: Add your update logic here
 
@@ -103,6 +134,10 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
         _terrain.Draw(_graphics.GraphicsDevice, _camera);
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
+        BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
+        
+        CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
+        cubeMeshBatcher.Draw();
         
         // TODO: Add your drawing code here
 

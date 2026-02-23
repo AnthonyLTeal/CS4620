@@ -8,7 +8,7 @@ namespace CS4620IS;
 public class RoadRibbonMesh
 {
     private const int MAX_VERTICES = 50;
-    private Color DEFAULT_COLOR = Color.Red; //red for testing 
+    private Color DEFAULT_COLOR = new Color(0.35f, 0.35f, 0.35f); //red for testing 
 
     private bool _dirty = false;
     private List<Vector3[]> _segmentVertices = new List<Vector3[]>();
@@ -36,8 +36,8 @@ public class RoadRibbonMesh
         int idx = 0;
         for (int i = 0; i < vertices.Length - 2; i += 2)
         {
-            Console.WriteLine($"VERTEX ONE: {vertices[i]}");
-            Console.WriteLine($"VERTEX TWO: {vertices[i + 1]}");
+            //Console.WriteLine($"VERTEX ONE: {vertices[i]}");
+            //Console.WriteLine($"VERTEX TWO: {vertices[i + 1]}");
             int left0 = i;
             int right0 = i + 1;
             int left1 = i + 2;
@@ -126,7 +126,7 @@ public class RoadRibbonMesh
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
 
-        _basicEffect.World = Matrix.Identity; // make it bigger
+        _basicEffect.World = Matrix.Identity;
         _basicEffect.View = camera.ViewMatrix;
         _basicEffect.Projection = camera.ProjectionMatrix;
 
@@ -135,7 +135,7 @@ public class RoadRibbonMesh
         _basicEffect.VertexColorEnabled = true;
 
         _basicEffect.LightingEnabled = false;
-        _basicEffect.DiffuseColor = new Vector3(.9f, 0.0f, 0.0f);
+        //_basicEffect.DiffuseColor = DEFAULT_COLOR;
 
         foreach (var pass in _basicEffect.CurrentTechnique.Passes)
         {

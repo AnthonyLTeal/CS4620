@@ -1,5 +1,7 @@
 ## Build Instructions
-Ensure that .net 8 is installed and ensure that your project and solution settings have .net 8 selected as the target framework.
+Ensure that .net 8 **and** .net 6 is installed and ensure that your project and solution settings have .net 8 selected as the target framework.
+
+Run the command to install the effects build tool `dotnet tool install dotnet-mgcb-compute`
 
 Open project in supported IDE and run.
 * Jetbrains Rider: Opens without any extra work needed.

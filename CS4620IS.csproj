@@ -5,6 +5,7 @@
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -15,15 +16,13 @@
         <None Remove="Icon.bmp"/>
         <Compile Remove="Systems\DrawSystem.cs" />
         <None Include="Systems\DrawSystem.txt" />
-        <None Include="Systems\CursorSystem.txt" />
-        <None Include="RoadMesh.txt" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico"/>
         <EmbeddedResource Include="Icon.bmp"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="MonoGame.Content.Builder.Task.Compute" Version="3.8.3" />
+        <PackageReference Include="MessagePack" Version="3.1.4" />
         <PackageReference Include="MonoGame.Framework.Compute.DesktopGL" Version="3.8.3" />
         <PackageReference Include="Nopipeline.Task" Version="2.2.0" />
     </ItemGroup>
