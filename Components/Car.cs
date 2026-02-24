@@ -25,7 +25,7 @@ public class Car
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
     
-
+    [IgnoreMember]
     public int ConnectedSegment
     {
         get => connectedSegment;

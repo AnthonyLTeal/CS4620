@@ -37,7 +37,7 @@ public class CarSystems
                  //Console.WriteLine("Pathing Update ");
                  car.Destinations[0].Path = GetShortestPath(connectedSegment, car.Destinations[0]);
                  //int nextConnector = car.Destinations[0].Path.Pop();
-                 car.CarPath = BuildSegmentPath(car, car.Destinations[0]);
+                 //car.CarPath = BuildSegmentPath(car, car.Destinations[0]); //shouldn't need this anymore, this is what we are trying to not have to use
              }
 
              if (car.Destinations.Count < 1)
@@ -58,16 +58,37 @@ public class CarSystems
          }
     }
 
+    private static Vector3 GetIntersectionVertex(int direction, PathSegment segment)
+    {
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        PathSegmentConnector connector;
+        if (direction == -1)
+        {
+            connector = roadMesh.PathSegmentConnectors[(int)segment.FrontConnector];
+        }
+        else
+        {
+            connector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
+        }
+        return connector.Position;
+    }
+
     private static Vector3 GetPathVertexFromIndex(int index, PathSegment pathSegment)
     {
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
         if (index <= -1)
         {
+            Console.WriteLine();
+            Console.WriteLine("Index -1 to front connector");
+            Console.WriteLine();
             PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)pathSegment.FrontConnector];
             return connector.Position;
         } 
         if (index >= pathSegment.Path.Length)
         {
+            Console.WriteLine();
+            Console.WriteLine("Index +1 to end connector");
+            Console.WriteLine();
             PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)pathSegment.EndConnector];
             return connector.Position;
         }
@@ -91,14 +112,14 @@ public class CarSystems
     {
         PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         Vector3 currentVertexPos = pathSegment.Path[i];
-        Vector3 nextVertexPos = GetPathVertexFromIndex(i + traverseDirection, pathSegment);
+        Vector3 nextVertexPos = pathSegment.Path[i + traverseDirection];//GetPathVertexFromIndex(i + traverseDirection, pathSegment);
         Vector3 direction = Vector3.Normalize(nextVertexPos - currentVertexPos);
         return nextVertexPos + RoadSideOffset(direction) * car.CurrentLane;
     }
 
     private static void BuildIntersectionPath(Car car, Vector3 p1, Vector3 p2, Vector3 connectorPosition)
     {
-        //     Vector3 dir = Vector3.Slerp(v1, v2, 0.5f); //can use Slerp to get angles between.
+        //     Vector3 dir = Vector3.Slerp(v1, v2, 0.5f); //can use Slerp to get angles between which will make a smoother curve
         Vector3 p2Dir = Vector3.Normalize(p2 - connectorPosition);
         Vector3 p1Dir = Vector3.Normalize(connectorPosition - p1);
         Vector3 p2Offset = Vector3.Cross(p2Dir, Vector3.Up);
@@ -111,7 +132,7 @@ public class CarSystems
         if (turnSign > 0)
             tangent = -tangent;
         
-        bool isLeftTurn = turnSign > 0;
+        //bool isLeftTurn = turnSign > 0;
 
         // PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         //
@@ -487,7 +508,7 @@ public class CarSystems
             if (connectedSegment.EndConnector == lastConnectorID)
             {
                 traverseDir = -1;
-                index = connectedSegment.TotalPathLength - 1; //need to treat this like an index for an array
+                index = connectedSegment.Path.Length - 1; //need to treat this like an index for an array
                 finalIndex = 0;
             }
         }
@@ -527,7 +548,7 @@ public class CarSystems
         Console.WriteLine("End: " + finalIndex);
         
         Queue<Vector3> positions = new Queue<Vector3>();
-        while (index != finalIndex + traverseDir)
+        while (index != finalIndex)
         {
             Console.WriteLine("Index: " + index);
             positions.Enqueue(BuildPathVertex(car, index, carPath.Direction));
@@ -629,11 +650,11 @@ public class CarSystems
 
     public static Vector3 GetInitialPosition(Car car)
     {
-        //PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+        PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         //Vector3 currentVertexPos = GetPathVertexFromIndex(car.CarPath.CurrentIndex, pathSegment);;
         //Vector3 nextVertexPos = GetPathVertexFromIndex(car.InitialPathIndex + car.CarPath.Direction, pathSegment);
         Vector3 currentVertexPos = car.CarPath.Positions.Dequeue();
-        Vector3 nextVertexPos = car.CarPath.Positions.Peek();
+        Vector3 nextVertexPos = pathSegment.Path[car.InitialPathIndex + car.CarPath.Direction];
         //RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
         Vector3 direction = Vector3.Normalize(nextVertexPos - currentVertexPos);
         return currentVertexPos + RoadSideOffset(direction) * car.CurrentLane;
