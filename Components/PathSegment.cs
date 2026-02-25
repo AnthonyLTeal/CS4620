@@ -46,6 +46,7 @@ public class PathSegment
     public int Weight = 1;
     public int Speed = 1;
     public HashSet<int> EntitiesOnSegment = new HashSet<int>();
+    public int SlicedParent;
     
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();

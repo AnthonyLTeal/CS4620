@@ -31,18 +31,16 @@ public class CarSystems
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
 
              //rebuild path if it's changed?
-             bool isPathValid = ValidPath(entity);
-             if (!isPathValid)
-             {
-                 //Console.WriteLine("Pathing Update ");
-                 car.Destinations[0].Path = GetShortestPath(connectedSegment, car.Destinations[0]);
-                 //int nextConnector = car.Destinations[0].Path.Pop();
-                 //car.CarPath = BuildSegmentPath(car, car.Destinations[0]); //shouldn't need this anymore, this is what we are trying to not have to use
-             }
+             // bool isPathValid = ValidPath(entity);
+             // if (!isPathValid)
+             // {
+             //     car.Destinations[0].Path = GetShortestPath(connectedSegment, car.Destinations[0]);
+             // }
 
              if (car.Destinations.Count < 1)
              {
                  entitiesToRemove.Add(entity);
+                 connectedSegment.EntitiesOnSegment.Remove(entity);
                  continue;
              } 
              
@@ -53,7 +51,6 @@ public class CarSystems
 
          foreach (int entity in entitiesToRemove)
          {
-             Console.WriteLine("Killing Entity: " + entity);
              EntityManager.RemoveEntity(entity);
          }
     }
@@ -95,18 +92,6 @@ public class CarSystems
     
         return pathSegment.Path[index];
     }
-
-    // private static Vector3 GetPathVertex(Car car)
-    // {
-    //     // PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-    //     // Vector3 currentVertexPos = GetPathVertexFromIndex(car.CarPath.CurrentIndex, pathSegment);;
-    //     // Vector3 nextVertexPos = GetPathVertexFromIndex(car.CarPath.CurrentIndex + car.CarPath.Direction, pathSegment);
-    //     // //RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-    //     // Vector3 direction = Vector3.Normalize(nextVertexPos - currentVertexPos);
-    //     // return nextVertexPos + RoadSideOffset(direction) * car.CurrentLane;
-    //
-    //     //return car.CarPath.Positions[car.CarPath.CurrentIndex];
-    // }
     
     private static Vector3 BuildPathVertex(Car car, int i, int traverseDirection)
     {
@@ -163,9 +148,9 @@ public class CarSystems
             //outside
         }
         
-        car.OverridePath.Push(p2 - p2Offset * car.CurrentLane);
+        car.OverridePath.Push(p2);
         car.OverridePath.Push(position);
-        car.OverridePath.Push(p1 - p1Offset * car.CurrentLane);
+        car.OverridePath.Push(p1);
     }
 
     // private static Vector3? forwardLookPoint(Car car)
@@ -182,10 +167,10 @@ public class CarSystems
 
     private static bool CarToCarWillIntersect(Car sourceCar, Car targetCar, Vector3 sourceDir, float sourceVelocity)
     {
-        Vector3 targetNext = targetCar.CarPath.Positions.Peek();
-        Vector3 targetVelocity = targetNext - targetCar.Position;
-        
-        targetVelocity.Normalize();
+        // Vector3 targetNext = targetCar.CarPath.Positions.Peek();
+        // Vector3 targetVelocity = targetNext - targetCar.Position;
+        //
+        // targetVelocity.Normalize();
         
         return SphereIntersection.WillIntersect(sourceCar.Position, targetCar.Position, sourceDir * sourceVelocity);
     }
@@ -340,9 +325,40 @@ public class CarSystems
                 return;
             }
             
+            // Vector3 nextPoint = car.CarPath.Positions.Peek();
+            // // if (isOverridden)
+            // //     nextPoint = car.OverridePath.Peek();
+            //
+            // Vector3 toTarget = nextPoint - car.Position;
+            // float distanceTo = toTarget.Length();
+            //
+            // Vector3 direction = distanceTo > 0f ? toTarget / distanceTo : Vector3.Zero;
+            //
+            // if (distanceTo > remaining)
+            // {
+            //     // if (WaitOnTraffic(entity, remaining, direction))
+            //     //     return;
+            //     
+            //     car.Position += direction * remaining;
+            //     car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
+            //     return;
+            // }
+            //
+            // remaining -= distanceTo;
+            // car.Position = car.CarPath.Positions.Dequeue();
+            
+
+            
+            bool isOverridden = (car.OverridePath.Count > 0);
+            PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+            
+            if (WaitOnStopSign(entity))
+                break;
+            
             Vector3 nextPoint = car.CarPath.Positions.Peek();
-            // if (isOverridden)
-            //     nextPoint = car.OverridePath.Peek();
+            
+            if (isOverridden)
+                nextPoint = car.OverridePath.Peek();
             
             Vector3 toTarget = nextPoint - car.Position;
             float distanceTo = toTarget.Length();
@@ -351,8 +367,8 @@ public class CarSystems
             
             if (distanceTo > remaining)
             {
-                // if (WaitOnTraffic(entity, remaining, direction))
-                //     return;
+                if (WaitOnTraffic(entity, remaining, direction))
+                    return;
                 
                 car.Position += direction * remaining;
                 car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
@@ -360,98 +376,112 @@ public class CarSystems
             }
             
             remaining -= distanceTo;
-            car.Position = car.CarPath.Positions.Dequeue();
             
+            if (WaitOnTraffic(entity, remaining, direction))
+                return;
+            
+            if (isOverridden) //if overidden, car is traveling through an intersection/connector, but not necessarily an intersection
+            {
+                car.Position = car.OverridePath.Pop();
+                if (car.OverridePath.Count > 0)
+                    continue;
+                //car.Position = car.CarPath.Positions; //no sure what this one was for?
+                if (car.OverridePath.Count == 0 && car.OnConnector != -1)
+                {
+                    PathSegmentConnector connectorQueued = roadMesh.PathSegmentConnectors[car.OnConnector];
+                    if (connectorQueued.SegmentEntities.Count() > 2)
+                    {
+                        connectorQueued.StopQueue.Dequeue();
+                    }
+                    car.OnConnector = -1;
+                }
+            }
+            else
+            {
+                car.Position = nextPoint;
+                car.CarPath.Positions.Dequeue();
+            }
+            
+            bool finalSegment = (car.Destinations[0].Path.Count == 0);
+            if (!car.CarPath.Positions.Any() && finalSegment)
+            {
+                car.Destinations.RemoveAt(0);
+                connectedSegment.EntitiesOnSegment.Remove(entity);
+                return;
+            }
+            
+            if (!car.CarPath.Positions.Any() && !finalSegment)
+            {
+                int lastConnectorID = car.Destinations[0].Path.Pop();
+            
+                Vector3 p1 = car.Position;
+                PathSegment previousSegment = ComponentManager.GetEntityComponent<PathSegment>(car.connectedSegment);
+                Vector3 p3Sub = previousSegment.Path[0];
 
-            
-            // bool isOverridden = (car.OverridePath.Count > 0);
-            // PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-            //
-            // if (WaitOnStopSign(entity))
-            //     break;
-            //
-            // Vector3 nextPoint = car.CarPath.Positions[car.CarPath.CurrentIndex];
-            //
-            // if (isOverridden)
-            //     nextPoint = car.OverridePath.Peek();
-            //
-            // Vector3 toTarget = nextPoint - car.Position;
-            // float distanceTo = toTarget.Length();
-            //
-            // Vector3 direction = distanceTo > 0f ? toTarget / distanceTo : Vector3.Zero;
-            // // float remaining = velocity - distanceTo;
-            //
-            // if (distanceTo > remaining)
-            // {
-            //     if (WaitOnTraffic(entity, remaining, direction))
-            //         return;
-            //     
-            //     car.Position += direction * remaining;
-            //     car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
-            //     return;
-            // }
-            //
-            // remaining -= distanceTo;
-            //
-            // if (WaitOnTraffic(entity, remaining, direction))
-            //     return;
-            //
-            // if (isOverridden) //if overidden, car is traveling through an intersection/connector, but not necessarily an intersection
-            // {
-            //     car.Position = car.OverridePath.Pop();
-            //     if (car.OverridePath.Count > 0)
-            //         continue;
-            //     car.Position = car.CarPath.Positions[car.CarPath.CurrentIndex];
-            //     car.CarPath.CurrentIndex += 1; //we will want to skip the first segment point
-            //     if (car.OverridePath.Count == 0 && car.OnConnector != -1)
-            //     {
-            //         PathSegmentConnector connectorQueued = roadMesh.PathSegmentConnectors[car.OnConnector];
-            //         if (connectorQueued.SegmentEntities.Count() > 2)
-            //         {
-            //             connectorQueued.StopQueue.Dequeue();
-            //         }
-            //         car.OnConnector = -1;
-            //     }
-            // }
-            // else
-            // {
-            //     car.CarPath.CurrentIndex += 1;
-            //     car.Position = nextPoint;
-            // }
-            //
-            // bool finalSegment = (car.Destinations[0].Path.Count == 0);
-            // if ((car.CarPath.CurrentIndex == car.CarPath.Positions.Count - 1 && 
-            //      finalSegment))
-            // {
-            //     car.Destinations.RemoveAt(0);
-            //     connectedSegment.EntitiesOnSegment.Remove(entity);
-            //     return;
-            // }
-            //
-            // if (car.CarPath.CurrentIndex == car.CarPath.Positions.Count - 1 &&
-            //     !finalSegment)
-            // {
-            //     int lastConnectorID = car.Destinations[0].Path.Pop();
-            //
-            //     Vector3 p1 = car.CarPath.Positions.Dequeue();
-            //     
-            //     car.ConnectedSegment = GetNextSegment(car, lastConnectorID);
-            //     car.CarPath = BuildSegmentPath(car, car.Destinations[0], lastConnectorID);
-            //     
-            //     PathSegment newSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-            //     connectedSegment.EntitiesOnSegment.Remove(entity);
-            //     newSegment.EntitiesOnSegment.Add(entity);
-            //     Vector3 p2 = car.CarPath.Positions[car.CarPath.CurrentIndex + 1];
-            //     Vector3 p3 = roadMesh.PathSegmentConnectors[lastConnectorID].Position;
-            //     BuildIntersectionPath(car, p1, p2, p3);
-            //     car.Position = car.OverridePath.Pop();
-            //     
-            //     car.OnConnector = lastConnectorID;
-            //     PathSegmentConnector lastConnector = roadMesh.PathSegmentConnectors[lastConnectorID];
-            //     
-            //     if (lastConnector.SegmentEntities.Count > 2)
-            //         lastConnector.StopQueue.Enqueue(entity);
-            // }
+                if (previousSegment.EndConnector == lastConnectorID)
+                    p3Sub = previousSegment.Path[^1];
+                
+                Vector3 p3 = roadMesh.PathSegmentConnectors[lastConnectorID].Position;
+                p3 += Vector3.Cross(Vector3.Normalize(p3), Vector3.Normalize(p3Sub)) * car.CurrentLane;
+
+                //TODO might need to rebuild destination here.
+                if (car.CarPath.PathSize != previousSegment.Path.Length)
+                {
+                    // Console.WriteLine("Rebuilding Path");
+                    // car.Destinations[0].Path = GetShortestPath(previousSegment, car.Destinations[0]);
+                    // car.Destinations[0].Path.Pop();
+                    
+                    //TODO something isn't right here with rebuilding the path due to the sliced segments, let's just destroy for now if path has changed
+                    car.Destinations[0].Path.Clear();
+                    return;
+                }
+
+                int nextSegmentID = GetNextSegment(car, lastConnectorID);
+                
+
+                if (nextSegmentID == 0) //we need to rebuild the destinations, returning 0 here means our connections are no longer valid
+                {
+                    // Console.WriteLine("REBUILT DESTINATION SHORTEST PATH");
+                    // car.Destinations[0].Path = GetShortestPath(previousSegment, car.Destinations[0]);
+                    // nextSegmentID = GetNextSegment(car, car.Destinations[0].Path.Pop());
+                    // Console.WriteLine("Next Segment: " + nextSegmentID);
+                    
+                    //TODO this needs a good solution with rebuilding a path, but for now, I think we just destroy the car w/e
+                    //clearing the path and returning will kill it
+                    car.Destinations[0].Path.Clear();
+                    return;
+                }
+                
+                car.ConnectedSegment = nextSegmentID;
+
+                PathSegment nextSegment = ComponentManager.GetEntityComponent<PathSegment>(nextSegmentID);
+
+                if (nextSegmentID == car.Destinations[0].SegmentID)
+                {
+                    if (nextSegment.Path.Length <= car.Destinations[0].SegmentPathIndex)
+                    {
+                        //TODO car should change its segment destination to the sliced portion where it now exists, can do this with a forward look at the next node then checking if it's "SlicedParent" is equal to the current segment, and then subtracting from the current size.
+                        //for now we just kill it like we do with other edge cases
+                        car.Destinations[0].Path.Clear();
+                        return;
+                    }
+                }
+
+                car.CarPath = BuildSegmentPath(car, car.Destinations[0], lastConnectorID);
+                PathSegment newSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+                connectedSegment.EntitiesOnSegment.Remove(entity);
+                newSegment.EntitiesOnSegment.Add(entity);
+                Vector3 p2 = car.CarPath.Positions.Dequeue();
+
+                BuildIntersectionPath(car, p1, p2, p3);
+                car.Position = car.OverridePath.Pop();
+                
+                car.OnConnector = lastConnectorID;
+                PathSegmentConnector lastConnector = roadMesh.PathSegmentConnectors[lastConnectorID];
+                
+                if (lastConnector.SegmentEntities.Count > 2)
+                    lastConnector.StopQueue.Enqueue(entity);
+            }
         }
     }
 
@@ -471,7 +501,13 @@ public class CarSystems
         int nextConnectorID = car.Destinations[0].Path.Peek();
         foreach (int segmentEntity in connector.SegmentEntities)
         {
+            Console.WriteLine("Checking Segment: " + segmentEntity);
             PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+            Console.WriteLine("Segment End Connector: " + segment.EndConnector);
+            Console.WriteLine("Segment Front Connector: " + segment.FrontConnector);
+            Console.WriteLine("Previous Connector: " + lastConnectorID);
+            Console.WriteLine("Next Connector: " + nextConnectorID);
+
             if ((segment.EndConnector == nextConnectorID && segment.FrontConnector == lastConnectorID) ||
                 (segment.EndConnector == lastConnectorID && segment.FrontConnector == nextConnectorID))
             {
@@ -479,7 +515,8 @@ public class CarSystems
             }
         }
 
-        //TODO we are sometimes returning 0 from here still, need to look into this 
+        //right now this can happen when a path segment connector has it's segments changed, such as when the terrain is sliced.
+        //This causes index errors so maybe we can use this right now to tell the agent to get a new path
         return 0; //should never get here so might be good to throw an error
         //throw new InvalidOperationException($"No segment connects connectors {lastConnectorID} -> {nextConnectorID}");
     }
@@ -497,7 +534,7 @@ public class CarSystems
     private static CarPath BuildSegmentPath(Car car,  Destination destination, int? lastConnectorID = null)
     {
         PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-        Console.WriteLine("Segment Path Size: " + connectedSegment.TotalPathLength);
+        Console.WriteLine("Segment Path Size: " + connectedSegment.Path.Length);
         
         int finalIndex = connectedSegment.Path.Length - 1; //need to treat this like an index for an array
         int traverseDir = 1;
@@ -505,8 +542,10 @@ public class CarSystems
         
         if (lastConnectorID != null) //from connector to connecter
         {
+            Console.WriteLine("From Connector");
             if (connectedSegment.EndConnector == lastConnectorID)
             {
+                
                 traverseDir = -1;
                 index = connectedSegment.Path.Length - 1; //need to treat this like an index for an array
                 finalIndex = 0;
@@ -515,9 +554,12 @@ public class CarSystems
         
         if (lastConnectorID == null)  //from segment
         {
+            Console.WriteLine("From Segment, new car most likely");
+
             index = car.InitialPathIndex;
             if (destination.Path.Count > 0) //from segment to connector
             {
+                Console.WriteLine("Has another destination");
                 int nextDest = car.Destinations[0].Path.Peek();
                 if (nextDest == connectedSegment.FrontConnector)
                 {
@@ -527,6 +569,7 @@ public class CarSystems
             }
             else //from segment to segment
             {
+                Console.WriteLine("Final Destination Segment");
                 if (destination.SegmentPathIndex > index)
                     traverseDir = 1;
                 else
@@ -546,11 +589,12 @@ public class CarSystems
         Console.WriteLine("Initial Index: " + index);
         Console.WriteLine("Direction: " + traverseDir);
         Console.WriteLine("End: " + finalIndex);
+        Console.WriteLine();
         
         Queue<Vector3> positions = new Queue<Vector3>();
         while (index != finalIndex)
         {
-            Console.WriteLine("Index: " + index);
+            //Console.WriteLine("Index: " + index);
             positions.Enqueue(BuildPathVertex(car, index, carPath.Direction));
             index += carPath.Direction;
         }
@@ -717,17 +761,18 @@ public class CarSystems
         car.CarPath = BuildSegmentPath(car, destination);
         
         Console.WriteLine("Car Path Length: " + car.CarPath.Positions.Count);
+        Console.WriteLine();
         car.Position = GetInitialPosition(car);
         
         EntityManager.AddComponentToEntity(newCarEntity, car);
 
         //might be better to add these to a list to be added when there is free space on the road rather than just not spawning them
         //let's see if this even works though lol
-        // if (WaitOnTraffic(newCarEntity, 0, Vector3.Zero))
-        // {
-        //     EntityManager.RemoveEntity(newCarEntity);
-        //     return;
-        // }
+        if (WaitOnTraffic(newCarEntity, 0, Vector3.Zero))
+        {
+            EntityManager.RemoveEntity(newCarEntity);
+            return;
+        }
         
         segment.EntitiesOnSegment.Add(newCarEntity);
     }

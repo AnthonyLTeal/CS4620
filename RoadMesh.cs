@@ -1090,6 +1090,7 @@ public class RoadMesh
     //TODO still need to verify that each segment has it's end and front connectors set correctly
     public void SlicePathSegment(int entityIndex, int pathIndex, PathSegment previousPathSegment = null)
     {
+        Console.WriteLine("Slicing Segment: " + entityIndex);
         int componentID = ComponentManager.GetComponentID<PathSegment>();
         PathSegment oldSegment = (PathSegment)EntityManager.EntityComponents[entityIndex][componentID];
         RemovePathSegmentPointsFromOctree(oldSegment);
@@ -1114,6 +1115,7 @@ public class RoadMesh
         EntityManager.AddComponentToEntity(EntityManager.LastAddedEntity, segmentTwo);
         segmentTwo.ID = Segments.Count;
         segmentTwo.EntityID = EntityManager.LastAddedEntity;
+        segmentTwo.SlicedParent = entityIndex;
         Segments.Add(segmentTwo);
         
         InsertSegmentPathPointsIntoOctree(segmentTwo);
