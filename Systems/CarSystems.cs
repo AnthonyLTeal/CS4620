@@ -26,7 +26,9 @@ public class CarSystems
              {
                  entitiesToRemove.Add(entity);
                  continue;
-             } 
+             }
+
+             ValidateCurrentSegment(car);
              
              float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
              MoveCar(entity, 2 * dt);
@@ -160,35 +162,35 @@ public class CarSystems
         return lastConnector;
     }
 
-    public static int ValidateCurrentSegment(Car car, int lastConnector)
+    public static void ValidateDestinationSegment(Destination destination)
+    {
+        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(destination.TargetSegmentID);
+        if (destination.TargetPathIndex > segment.Path.Length)
+        {
+            
+        }
+    }
+
+    public static void ValidateCurrentSegment(Car car)
     {
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
 
         if (car.SegmentPath.SegmentSize != segment.Path.Count())
         {
-            if (car.SegmentPath.CurrentIndex > segment.Path.Count())
+            if (car.SegmentPath.CurrentIndex >= segment.Path.Count())
             {
-                //Here we know the car should now belong to the new segment generated from the sliced segment
-                //Depending on the direction, we can determine if the next connector has changed or if the previous one changed
-                //This is important to track both because we will use the previous segment connector as our origin when getting the next target connector
-                //we can also change segment in this function to the new one
-                
-                //**direction might not be important
-                //we really just need to know our current actual index here, direction might not be important
-                //once we determine our current segment index and position index, we can generate a new carPath
-                //yeah I think that's the plan, we just find out our current segment index and position index relative to the graph and the sliced road segment
-                    //and just build a new carPath here
+                car.InitialPathIndex = Math.Max(car.SegmentPath.CurrentIndex - segment.Path.Length - 1, 0);
+                RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)segment.endConnector];
+                car.connectedSegment = connector.SegmentEntities[1];
             } else
             {
-                //here we know we are still on the old segment
-                //this segment size has changed and needs to be updated
-                //we need to check the direction to determine if our next connector or previous connector changed
+                car.SegmentPath.SegmentSize = segment.Path.Length;
+                car.InitialPathIndex = car.SegmentPath.CurrentIndex;
             }
-
-            car.SegmentPath.SegmentSize = segment.Path.Length;
+            car.SegmentPath = BuildCarPath(car, car.Destinations[0]);
+            
         }
-
-        return car.connectedSegment;
     }
 
     private static bool CarToCarWillIntersect(Car sourceCar, Car targetCar, Vector3 sourceDir, float sourceVelocity)
