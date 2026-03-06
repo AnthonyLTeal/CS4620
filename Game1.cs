@@ -48,6 +48,7 @@ public class Game1 : Game
         _graphics.ApplyChanges();
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
+        InitializeGum();
         base.Initialize();
     }
 
@@ -115,6 +116,11 @@ public class Game1 : Game
 
 
         base.Draw(gameTime);
+    }
+
+    private void InitializeGum()
+    {
+        
     }
 }
 
