@@ -6,6 +6,13 @@ using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 using PlanetaryExpansion;
 
+//Added to Initialize Gum:
+using Gum.Forms;
+using Gum.Forms.Controls;
+using MonoGameGum;
+using System.Reflection.Metadata;
+//using MonoGameLibrary; ## No namespace for this one. is it already in our Monogame Framework?
+
 namespace CS4620IS;
 
 public class Game1 : Game
@@ -48,8 +55,10 @@ public class Game1 : Game
         _graphics.ApplyChanges();
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
-        InitializeGum();
         base.Initialize();
+        InitializeGum(); //for UI
+        
+        
     }
 
     protected override void LoadContent()
@@ -116,11 +125,18 @@ public class Game1 : Game
 
 
         base.Draw(gameTime);
+        GumService.Default.Draw();
     }
 
     private void InitializeGum()
     {
-        
+        GumService.Default.Initialize(this, DefaultVisualsVersion.V3);
+
+        //GumService.Default.ContentLoader.XnaContentManager = Core.Content; // What are we using for our Content Manager?
+
+        FrameworkElement.KeyboardsForUiControl.Add(GumService.Default.Keyboard);
+    
+
     }
 }
 

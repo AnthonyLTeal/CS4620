@@ -1,14 +1,6 @@
 using MonoGameGum;
-using GumDataTypes;
-using GumRuntime;
 using Gum.Forms.Controls;
-using Gum.Converters;
-using Gum.DataTypes;
-using Gum.Managers;
 using Gum.Wireframe;
-using MonoGameGum.GueDeriving;
-using RenderingLibrary.Graphics;
-using System.Linq;
 using System;
 
 class GumInterface
@@ -28,6 +20,9 @@ class GumInterface
         Button StartButton = new Button();
         StartButton.Anchor(Anchor.TopLeft);
         StartPanel.AddChild(StartButton);
+
+        StartButton.X = 20;
+        StartButton.Y = -20;
 
         StartButton.Click += (sender, args) =>
         {
