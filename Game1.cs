@@ -131,11 +131,14 @@ public class Game1 : Game
     private void InitializeGum()
     {
         GumService.Default.Initialize(this, DefaultVisualsVersion.V3);
-
         //GumService.Default.ContentLoader.XnaContentManager = Core.Content; // What are we using for our Content Manager?
 
         FrameworkElement.KeyboardsForUiControl.Add(GumService.Default.Keyboard);
+       
+        GumInterface _interface = new GumInterface();
+        _interface.InitializeUI(); // Hopefully Create start panel, and we should be able to see the button? 
     
+        
 
     }
 }

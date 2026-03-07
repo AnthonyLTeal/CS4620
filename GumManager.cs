@@ -5,7 +5,7 @@ using System;
 
 class GumInterface
 {
-    private void InitializeUI()
+    public void InitializeUI()
     {
         GumService.Default.Root.Children.Clear();
         CreateStartPanel();
