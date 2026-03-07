@@ -107,6 +107,7 @@ public class Game1 : Game
         // TODO: Add your update logic here
 
         base.Update(gameTime);
+        GumService.Default.Update(gameTime); // Added Gum update logic 
     }
 
     protected override void Draw(GameTime gameTime)
@@ -125,7 +126,7 @@ public class Game1 : Game
 
 
         base.Draw(gameTime);
-        GumService.Default.Draw();
+        GumService.Default.Draw(); // Draw Gum code 
     }
 
     private void InitializeGum()
@@ -138,7 +139,6 @@ public class Game1 : Game
         GumInterface _interface = new GumInterface();
         _interface.InitializeUI(); // Hopefully Create start panel, and we should be able to see the button? 
     
-        
 
     }
 }
