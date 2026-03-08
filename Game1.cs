@@ -11,7 +11,7 @@ using Gum.Forms;
 using Gum.Forms.Controls;
 using MonoGameGum;
 using System.Reflection.Metadata;
-//using MonoGameLibrary; ## No namespace for this one. is it already in our Monogame Framework?
+ // ## No namespace for this one. is it already in our Monogame Framework?
 
 namespace CS4620IS;
 
@@ -118,13 +118,6 @@ public class Game1 : Game
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
         
         // TODO: Add your drawing code here
-        // _spriteBatch.Begin(); // Start listening (every call is batched together)
-        // Texture2D pixel = new Texture2D(GraphicsDevice, 1, 1);
-        // pixel.SetData(new[] { Color.White });
-        // _spriteBatch.Draw(pixel, new Rectangle(100,50,100,10), Color.Aqua);
-        // _spriteBatch.End(); //stop listening
-
-
         base.Draw(gameTime);
         GumService.Default.Draw(); // Draw Gum code 
     }
@@ -132,7 +125,7 @@ public class Game1 : Game
     private void InitializeGum()
     {
         GumService.Default.Initialize(this, DefaultVisualsVersion.V3);
-        //GumService.Default.ContentLoader.XnaContentManager = Core.Content; // What are we using for our Content Manager?
+        GumService.Default.ContentLoader.XnaContentManager = Content; // What are we using for our Content Manager?
 
         FrameworkElement.KeyboardsForUiControl.Add(GumService.Default.Keyboard);
        
