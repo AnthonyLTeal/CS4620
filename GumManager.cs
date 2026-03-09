@@ -77,7 +77,30 @@ class GumInterface
                 CreateWindow();
             };
 
-            //Add Slider Button:
+            //Add Start Simulation Button:
+            Button StartSimulationButton = new Button();
+            StartSimulationButton.Text = "Start Simulation";
+            StartPanel.AddChild(StartSimulationButton);
+
+            StartSimulationButton.Click += (sender, args) =>
+            {
+                Console.WriteLine("Clicked on the start simulation button!");
+                // Logic to start the traffic simulation goes here
+            };
+
+
+            //Add Stop Simulation Button:
+            Button StopSimulationButton = new Button();     
+            StopSimulationButton.Text = "Stop Simulation";
+            StartPanel.AddChild(StopSimulationButton);
+
+            StopSimulationButton.Click += (sender, args) =>
+            {
+                Console.WriteLine("Clicked on the stop simulation button!");
+                // Logic to stop the traffic simulation goes here
+            };
+
+            //Add Slider :
             Slider newSlider = new Slider();
             newSlider.AddToRoot();
             newSlider.Maximum = 30;
@@ -86,11 +109,26 @@ class GumInterface
             newSlider.IsSnapToTickEnabled = true;
             newSlider.Width = 150;
             StartPanel.AddChild(newSlider);
-            
+
             newSlider.ValueChanged += (sender, args) =>
                 {
                     Console.WriteLine($"Slider value changed to: {newSlider.Value}");
                 }; 
+
+            Slider newSlider2 = new Slider();
+            newSlider2.AddToRoot();
+            newSlider2.Maximum = 30;
+            newSlider2.Minimum = 0;
+            newSlider2.TicksFrequency = 1;
+            newSlider2.IsSnapToTickEnabled = true;
+            newSlider2.Width = 150;
+            StartPanel.AddChild(newSlider2);
+
+            newSlider2.ValueChanged += (sender, args) =>
+                {
+                    Console.WriteLine($"Slider value changed to: {newSlider.Value}");
+                }; 
+
 
 
 
@@ -98,8 +136,9 @@ class GumInterface
 
             //Add a colored rectangle
             ColoredRectangleRuntime coloredRectangle = new ColoredRectangleRuntime();
-            coloredRectangle.Color = Microsoft.Xna.Framework.Color.Red;
-            coloredRectangle.WidthUnits = Gum.DataTypes.DimensionUnitType.RelativeToChildren;
+            coloredRectangle.Color = Microsoft.Xna.Framework.Color.MediumAquamarine;
+            coloredRectangle.WidthUnits = Gum.DataTypes.DimensionUnitType.RelativeToParent;
+            coloredRectangle.Width = -5f;
             StartPanel.AddChild(coloredRectangle);
 
                 //Add spawncontainer inside the colored rectangle
@@ -112,8 +151,20 @@ class GumInterface
                     SpawnContainer.AddChild(SpawnLabel);
 
                     //add Spawn textbox inside of the Spawn container
+                    // Count.input(might be text)
                     TextBox textBox = new TextBox();
+                    textBox.Text = "# of cars to spawn";
+                    textBox.WidthUnits= Gum.DataTypes.DimensionUnitType.RelativeToParent;
+                    textBox.Width = -3f;
+                    textBox.Y = 10;
                     SpawnContainer.AddChild(textBox);
+
+                    TextBox SeedTextBox = new TextBox();
+                    SeedTextBox.Text = "Seed goes here";
+                    SeedTextBox.WidthUnits = Gum.DataTypes.DimensionUnitType.RelativeToParent;
+                    SeedTextBox.Width = -3f;
+                    SeedTextBox.Y = 25;
+                    SpawnContainer.AddChild(SeedTextBox);
 
         
 
@@ -149,20 +200,4 @@ class GumInterface
         
     }
 
-    private Slider CreateSlider()
-    {
-        Slider newSlider = new Slider();
-        newSlider.AddToRoot();
-        newSlider.Maximum = 30;
-        newSlider.Minimum = 0;
-        newSlider.TicksFrequency = 1;
-        newSlider.IsSnapToTickEnabled = true;
-        newSlider.Width = 150;
-        newSlider.ValueChanged += (sender, args) =>
-        {
-            Console.WriteLine($"Slider value changed to: {newSlider.Value}");
-        }; 
-
-        return newSlider;
-    }
 }
