@@ -126,7 +126,8 @@ public class PathSegmentConnector
     public List<(int, int)> StoplightConnections;
     public int CurrentLightGreen = 0;
     public double LightTimer = 0;
-    public double LightTime = 5000;
+    public double YellowTimer = 3000;
+    public double LightTime = 10000;
     //public List<int> CarEntities = new List<int>(20);
 
     public Vector3 Position

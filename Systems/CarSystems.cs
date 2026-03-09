@@ -29,6 +29,8 @@ public class CarSystems
          foreach (int entity in entities)
          {
              Car car = ComponentManager.GetEntityComponent<Car>(entity);
+             //Car.AliveTime += gameTime.ElapsedGameTime.TotalMillisecond
+             //create a list of doubles and add the alive time to it.
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
 
              if (car.Destinations.Count < 1)
@@ -319,6 +321,7 @@ public class CarSystems
                         connectorQueued.StopQueue.Dequeue();
                     }
                     car.OnConnector = -1;
+                    car.InIntersection = false;
                 }
             }
             else

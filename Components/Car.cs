@@ -24,7 +24,8 @@ public class Car
     public Stack<Vector3> OverridePath = new Stack<Vector3>();
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
-    
+    public bool InIntersection = false;
+    public int PreviousSegment;
 
     public int ConnectedSegment
     {
@@ -37,6 +38,7 @@ public class Car
             }
             else
             {
+                PreviousSegment = connectedSegment;
                 connectedSegment = value;
             }
         }

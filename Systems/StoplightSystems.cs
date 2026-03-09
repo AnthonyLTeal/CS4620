@@ -98,6 +98,10 @@ public class StoplightSystems
     {
         Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        if (car.InIntersection)
+        {
+            return false;
+        }
         
         if (car.OnConnector == -1) {return false;}
         
@@ -110,11 +114,14 @@ public class StoplightSystems
         int segmentOne;
         int segmentTwo;
         (segmentOne, segmentTwo) = connector.StoplightConnections[connector.CurrentLightGreen];
-        if (segmentOne == car.connectedSegment || segmentTwo == car.connectedSegment) 
+        if (segmentOne == car.PreviousSegment || segmentTwo == car.PreviousSegment) 
         {
-            return true;
+            if (connector.LightTime - connector.LightTimer > connector.YellowTimer)
+            {
+                car.InIntersection = true;
+                return false;
+            }
         }
-        
-        return false;
+        return true;
     }
 }
