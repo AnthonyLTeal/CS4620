@@ -123,6 +123,8 @@ public class Game1 : Game
         CursorSystem.Update(gameTime);
         _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
         CarSystems.BasicBehavior(gameTime);
+        //new stuff for stoplights
+        StoplightSystems.ChangeRedGreen(gameTime);
 
         // TODO: Add your update logic here
 

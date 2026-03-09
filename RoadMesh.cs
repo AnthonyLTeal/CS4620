@@ -627,6 +627,7 @@ public class RoadMesh
             PathSegmentConnectorSystems.AddSegmentToSegmentConnector(PathSegmentConnectors[(int)StateThreeSnappedSegmentConnector], segments[^1], SegmentConnectorIndex.Last);
         }
 
+        //StoplightSystems.SegmentRoads.Add(new List<PathSegment> { segments });
         return segments;
     }
 

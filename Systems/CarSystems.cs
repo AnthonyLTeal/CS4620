@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -155,7 +157,6 @@ public class CarSystems
         Car car = ComponentManager.GetEntityComponent<Car>(entity);
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-
         //Vector3 predPosition = car.Position + velocity * direction;
 
         if (car.OnConnector != -1)
@@ -248,13 +249,14 @@ public class CarSystems
 
         if (connector.SegmentEntities.Count <= 2)
             return false;
-
+        
         if (carEntity == connector.StopQueue.Peek())
             return false;
-
+        
         return true;
     }
-
+   
+   
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
     private static void MoveCar(int entity, float velocity)
     {
@@ -267,8 +269,14 @@ public class CarSystems
             bool isOverridden = (car.OverridePath.Count > 0);
             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
             
-            if (WaitOnStopSign(entity))
+           //if (WaitOnStopSign(entity))
+             //break;
+
+            //my new stuff
+            if (StoplightSystems.WaitOnStopLight(entity))
+            {
                 break;
+            }
             
             Vector3 nextPoint = GetPathVertex(car);
 
@@ -324,6 +332,7 @@ public class CarSystems
                  car.SegmentPath.CurrentIndex == car.SegmentPath.BottomIndex) && 
                  finalSegment)
             {
+                //StoplightSystems.CarSegment.Remove(entity);
                 car.Destinations.RemoveAt(0);
                 connectedSegment.EntitiesOnSegment.Remove(entity);
                 return;
