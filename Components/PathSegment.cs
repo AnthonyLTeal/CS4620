@@ -51,6 +51,7 @@ public class PathSegment
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();
 
+    [IgnoreMember]
     public int? EndConnector
     {
         get => endConnector;
@@ -61,6 +62,7 @@ public class PathSegment
         }
     }
     
+    [IgnoreMember]
     public int? FrontConnector
     {
         get => frontConnector;
@@ -123,6 +125,7 @@ public class PathSegmentConnector
     //public int Weight = 1;
     public Queue<int> StopQueue = new Queue<int>();
     // new stuff for stoplights
+    [IgnoreMember]
     public List<(int, int)> StoplightConnections;
     public int CurrentLightGreen = 0;
     public double LightTimer = 0;
