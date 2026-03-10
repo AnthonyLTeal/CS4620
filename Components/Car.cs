@@ -15,6 +15,7 @@ public class Car
 {
     public int GroupID;
     public int connectedSegment;
+    public int PreviousSegment;
     public int InitialPathIndex;
     public Vector3 Position;
     public Color Color;
@@ -24,8 +25,8 @@ public class Car
     public Stack<Vector3> OverridePath = new Stack<Vector3>();
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
+    public bool InIntersection = false;
     
-
     public int ConnectedSegment
     {
         get => connectedSegment;

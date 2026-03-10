@@ -19,56 +19,64 @@ namespace CS4620IS;
 
 public class StoplightSystems
 {
-    
-    //public static Dictionary<int, bool> lights = new Dictionary<int, bool>();
-
-     //test this function 
-    public static List<(int, int)> GenerateStoplights(int id)
+    public static void GenerateStoplights(int id)
     {
+        PriorityQueue<(int, int), float> potentialConnections = new PriorityQueue<(int, int), float>();
         List<(int, int)> stoplightConnections = new List<(int, int)>();
-        List<int> segmentidsWithLights = new List<int>();
+        List<int> segments = new List<int>();
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
         PathSegmentConnector connector = roadMesh.PathSegmentConnectors[id];
         connector.StoplightConnections = stoplightConnections;
-        
+
+        if (connector.SegmentEntities.Count < 3)
+            return;
             
         for (int i = 0; i < connector.SegmentEntities.Count; i++)
         {
-            PathSegment segment1 = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
-            if (connector.SegmentEntities.Count <= 2) {continue;}
-            //if (stoplightConnections.Any(t => t.Item1 == segment1.ID)) {continue;}
-            float smallestDotValue = -1;
-            int sharedSegmentID = -1;
-            if (segmentidsWithLights.Contains(segment1.ID)) {continue;}
-            Vector3 point1;
-            point1 = segment1.Path[0];
-            if (segment1.EndConnector == connector.ID) {point1 = segment1.Path[^1];}
-            Vector3 maindirection = Vector3.Normalize(point1 - connector.Position);
+            int segmentOneEntity = connector.SegmentEntities[i];
+            PathSegment segmentOne = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
+            segments.Add(segmentOneEntity);
+            if (connector.SegmentEntities.Count <= 2)
+                continue;
+
+            Vector3 p1 = segmentOne.Path[0];
+            if (segmentOne.EndConnector == connector.ID) 
+                p1 = segmentOne.Path[^1];
+            Vector3 mainDirection = Vector3.Normalize(p1 - connector.Position);
             
-            for (int j = 0; j < connector.SegmentEntities.Count; j++)
+            for (int j = i + 1; j < connector.SegmentEntities.Count; j++)
             {
-                PathSegment segment2 = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[j]);
-                //if (stoplightConnections.Any(t => t.Item2 == segment2.ID)) {continue;}
-                if (i == j) {continue;}
-                if (segmentidsWithLights.Contains(segment2.ID)) {continue;}
-                Vector3 point2;
-                point2 = segment2.Path[0];
-                if (segment2.EndConnector == connector.ID) {point2 = segment2.Path[^1];}
-                Vector3 nextDirection = Vector3.Normalize(point2 - connector.Position);
-                float dotProduct = Vector3.Dot(maindirection, nextDirection);
-                if (dotProduct > smallestDotValue)
-                {
-                    smallestDotValue = dotProduct;
-                    sharedSegmentID = segment2.ID;
-                }
+                int segmentTwoEntity = connector.SegmentEntities[j];
+                PathSegment segmentTwo = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[j]);
+                
+                Vector3 p2 = segmentTwo.Path[0];
+                if (segmentTwo.EndConnector == connector.ID) 
+                    p2 = segmentTwo.Path[^1];
+                Vector3 nextDirection = Vector3.Normalize(p2 - connector.Position);
+                float dotProduct = Vector3.Dot(mainDirection, nextDirection);
+                potentialConnections.Enqueue((segmentOneEntity, segmentTwoEntity), dotProduct);
             }
-            if (sharedSegmentID != -1) {segmentidsWithLights.Add(sharedSegmentID);}
-            segmentidsWithLights.Add(segment1.ID);
-            //segmentidsWithLights.Add(sharedSegmentID);
-            stoplightConnections.Add((segment1.ID, sharedSegmentID));
-            
         }
-        return stoplightConnections;
+
+        while (segments.Count > 1)
+        {
+            int segmentOneEntity;
+            int segmentTwoEntity;
+            
+            (segmentOneEntity, segmentTwoEntity) = potentialConnections.Dequeue();
+
+            if (segments.Contains(segmentOneEntity) && segments.Contains(segmentTwoEntity))
+            {
+                segments.Remove(segmentOneEntity);
+                segments.Remove(segmentTwoEntity);
+                stoplightConnections.Add((segmentOneEntity, segmentTwoEntity));
+            }
+        }
+        
+        if (segments.Count == 1)
+        {
+            stoplightConnections.Add((-1, segments[0]));
+        }
     }
 
     public static void ChangeRedGreen(GameTime gametime)
@@ -86,7 +94,6 @@ public class StoplightSystems
                 } 
                 connectors[i].LightTimer = 0;
             }
-            
 
             if (connectors[i].LightTime > connectors[i].LightTimer)
             {
@@ -103,18 +110,23 @@ public class StoplightSystems
         
         PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.OnConnector];
         
-
         if (connector.SegmentEntities.Count <= 2) {return false;}
+
+        if (car.InIntersection)
+            return false;
         
-        //don't make it wait if it's connector is green
         int segmentOne;
         int segmentTwo;
         (segmentOne, segmentTwo) = connector.StoplightConnections[connector.CurrentLightGreen];
-        if (segmentOne == car.connectedSegment || segmentTwo == car.connectedSegment) 
+        if (segmentOne == car.PreviousSegment || segmentTwo == car.PreviousSegment) 
         {
-            return true;
+            if (connector.LightTime - connector.LightTimer > connector.YellowTimer)
+            {
+                car.InIntersection = true;
+                return false;
+            }
         }
-        
-        return false;
+
+        return true;
     }
 }

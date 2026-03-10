@@ -29,6 +29,7 @@ public class CarSystems
          foreach (int entity in entities)
          {
              Car car = ComponentManager.GetEntityComponent<Car>(entity);
+             //car.Alive += gameTime.ElapsedGameTime.TotalMilliseconds;
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
 
              if (car.Destinations.Count < 1)
@@ -44,7 +45,7 @@ public class CarSystems
 
          foreach (int entity in entitiesToRemove)
          {
-             Console.WriteLine("Killing Entity: " + entity);
+             //Console.WriteLine("Killing Entity: " + entity);
              EntityManager.RemoveEntity(entity);
          }
     }
@@ -274,9 +275,7 @@ public class CarSystems
 
             //my new stuff
             if (StoplightSystems.WaitOnStopLight(entity))
-            {
                 break;
-            }
             
             Vector3 nextPoint = GetPathVertex(car);
 
@@ -319,6 +318,7 @@ public class CarSystems
                         connectorQueued.StopQueue.Dequeue();
                     }
                     car.OnConnector = -1;
+                    car.InIntersection = false;
                 }
             }
             else
@@ -345,7 +345,8 @@ public class CarSystems
                 int lastConnectorID = car.Destinations[0].Path.Pop();
 
                 Vector3 p1 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, connectedSegment);
-                
+
+                car.PreviousSegment = car.connectedSegment;
                 car.ConnectedSegment = GetNextSegment(car, lastConnectorID);
                 car.SegmentPath = BuildSegmentPath(car, car.Destinations[0], lastConnectorID);
                 
