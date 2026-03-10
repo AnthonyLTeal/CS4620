@@ -58,7 +58,7 @@ public class PathSegment
         set
         {
             endConnector = value;
-            StoplightSystems.GenerateStoplights((int)value);
+            //StoplightSystems.GenerateStoplights((int)value);
         }
     }
     
@@ -69,7 +69,7 @@ public class PathSegment
         set
         {
             frontConnector = value;
-            StoplightSystems.GenerateStoplights((int)value);
+            //StoplightSystems.GenerateStoplights((int)value);
         }
     }
 
