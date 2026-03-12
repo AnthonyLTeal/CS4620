@@ -94,8 +94,8 @@ public class Game1 : Game
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
         EntityManager.AddComponentToGlobalEntity<RoadMesh>(_roadMesh);
     }
-
-    private KeyboardState oldKeyState;
+/* 
+ */    private KeyboardState oldKeyState;
     protected override void Update(GameTime gameTime)
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
