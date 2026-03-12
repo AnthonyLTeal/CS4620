@@ -77,6 +77,29 @@ class GumInterface
                 CreateWindow();
             };
 
+            //Add Weather options button(opens window):
+            Button WeatherButton = new Button();
+            WeatherButton.Text = "Weather options";
+            StartPanel.AddChild(WeatherButton);
+
+            WeatherButton.Click += (sender, args) =>
+            {
+                CreateWindow();
+            };
+
+            //Button for different save formats
+            Button SaveFormatButton = new Button();
+            SaveFormatButton.Text = "Save Graph";
+            StartPanel.AddChild(SaveFormatButton);
+
+            SaveFormatButton.Click += (sender, args) =>
+            { 
+               ItemsControl ControlBox = CreateFormatSelection();
+               StartPanel.AddChild(ControlBox);
+
+            };
+
+
             //Add Slider Button:
             Slider newSlider = new Slider();
             newSlider.AddToRoot();
@@ -94,7 +117,6 @@ class GumInterface
 
 
 
-            
 
             //Add a colored rectangle
             ColoredRectangleRuntime coloredRectangle = new ColoredRectangleRuntime();
@@ -121,9 +143,10 @@ class GumInterface
 
         //Seed.input
         //Count.input(might be text)
+            //Adding an Items control
     }
 
-    private void CreateWindow()
+    private Window CreateWindow()
     {
         Window GraphWindow = new Window();
         GraphWindow.Anchor(Anchor.Center);
@@ -134,7 +157,7 @@ class GumInterface
             TextBox windowBox = new TextBox();
             windowBox.IsReadOnly = true;
             windowBox.Text = "This is a window for Graphs!";
-            GraphWindow.AddChild(windowBox);
+        
 
             Button CloseWindowButton = new Button();
             CloseWindowButton.Anchor(Anchor.Bottom);
@@ -145,10 +168,50 @@ class GumInterface
                 {
                     GraphWindow.RemoveFromRoot(); 
                 };
-
+        return GraphWindow; 
         
     }
 
+
+
+    private ItemsControl CreateFormatSelection()
+    {
+        ItemsControl NewControl = new ItemsControl();
+        NewControl.RemoveFromRoot();
+        NewControl.AddToRoot();
+
+            // Create Buttons to select file type:
+            Button PdfButton = new Button();
+            PdfButton.Text="Save as Pdf";
+            PdfButton.AddToRoot();
+            NewControl.AddChild(PdfButton);
+
+            Button Save1 = new Button();
+            Save1.Text = "Save As...";
+            NewControl.AddChild(Save1);
+
+            Button Save2 = new Button();
+            Save2.Text = "Save As...";
+            NewControl.AddChild(Save2);
+           
+            Button Save3 = new Button();
+            Save3.Text = "Save As...";
+            NewControl.AddChild(Save3);
+
+            //Create Exit Button
+            Button ExitButton = new Button();
+            ExitButton.Text = "Exit";
+            NewControl.AddChild(ExitButton);
+
+            ExitButton.Click += (sender, args) =>
+                {
+                    NewControl.RemoveFromRoot();
+                };
+
+        return NewControl;
+    }
+            
+    /*
     private Slider CreateSlider()
     {
         Slider newSlider = new Slider();
@@ -164,5 +227,5 @@ class GumInterface
         }; 
 
         return newSlider;
-    }
+    } */
 }
