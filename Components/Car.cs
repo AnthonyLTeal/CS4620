@@ -24,6 +24,7 @@ public class Car
     public Stack<Vector3> OverridePath = new Stack<Vector3>();
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
+    public List<String> Log = new List<String>();
     
     [IgnoreMember]
     public int ConnectedSegment

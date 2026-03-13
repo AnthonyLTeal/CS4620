@@ -98,6 +98,16 @@ public class RoadMesh
         // Console.WriteLine("Next Node: " + element.NextElement);
     }
 
+    public void DestroyAll()
+    {
+        Terrain terrain = EntityManager.GetGlobalComponent<Terrain>();        
+        Octree = new OctreeSuper<PathSegmentPointOctreeData>(terrain.Scale * 2, 4, terrain.WorldCenter);
+        _ribbonMesh = new RoadRibbonMesh();
+        Reset();
+        Segments = new List<PathSegment>();
+        PathSegmentConnectors = new List<PathSegmentConnector>();
+    }
+
     private bool meshGenerated = false;
 
     //TODO the portion using the ClampVerticeToTerrain function should be optimized in some way since it's not the quickest to update every frame

@@ -104,6 +104,24 @@ public class Game1 : Game
             CarSystems.GenerateRandomCar();
         }
         
+        if (Keyboard.GetState().IsKeyUp(Keys.C) && oldKeyState.IsKeyDown(Keys.C))
+        {
+            List<int> carComponents = ComponentManager.GetComponent<Car>();
+            for (int i = carComponents.Count - 1; i >= 0; i--)
+            {
+                EntityManager.RemoveEntity(carComponents[i]);
+            }
+            
+            List<int> pathSegmentComponents = ComponentManager.GetComponent<PathSegment>();
+            for (int i = pathSegmentComponents.Count - 1; i >= 0; i--)
+            {
+                EntityManager.RemoveEntity(pathSegmentComponents[i]);
+            }
+
+            RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+            roadMesh.DestroyAll();
+        }
+        
         if (Keyboard.GetState().IsKeyUp(Keys.L) && oldKeyState.IsKeyDown(Keys.L))
         {
             LoadSystem.Load();
