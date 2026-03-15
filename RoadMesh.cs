@@ -43,7 +43,6 @@ public enum State
 
 public class RoadMesh
 {
-    public List<PathSegment> Segments = new List<PathSegment>();
     public int MaxSegmentLength = 25;
     public float Spacing = 0.75f;
     public float Resolution = 50;
@@ -71,6 +70,7 @@ public class RoadMesh
     public bool CreateEnabled = true;
     private const float PATH_WIDTH = .5f;
     private RoadRibbonMesh _ribbonMesh = new RoadRibbonMesh();
+    private List<int> DeadConnectorIDs = new List<int>();
     
     public List<PathSegmentConnector> PathSegmentConnectors = new List<PathSegmentConnector>();
 
@@ -104,7 +104,6 @@ public class RoadMesh
         Octree = new OctreeSuper<PathSegmentPointOctreeData>(terrain.Scale * 2, 4, terrain.WorldCenter);
         _ribbonMesh = new RoadRibbonMesh();
         Reset();
-        Segments = new List<PathSegment>();
         PathSegmentConnectors = new List<PathSegmentConnector>();
     }
 
@@ -589,7 +588,6 @@ public class RoadMesh
             segments.Add(newSegment);
             int segmentEntity = EntityManager.AddEntity();
             EntityManager.AddComponentToEntity(segmentEntity, newSegment);
-            Segments.Add(newSegment);
             Console.WriteLine("Segment Entity: " + segmentEntity);
             newSegment.EntityID = segmentEntity;
             //Console.WriteLine("New Entity: " + segmentEntity);
@@ -988,7 +986,7 @@ public class RoadMesh
             
             for (int i = 0; i < pathSegmentConnector.SegmentEntities.Count; i++)
             {
-                PathSegment currentRulerSegment = Segments[pathSegmentConnector.SegmentEntities[i]];
+                PathSegment currentRulerSegment = ComponentManager.GetEntityComponent<PathSegment>(pathSegmentConnector.SegmentEntities[i]);
 
                 if (currentRulerSegment == sourceRulerSegment)
                     continue;
@@ -1124,10 +1122,8 @@ public class RoadMesh
         };
         EntityManager.AddEntity();
         EntityManager.AddComponentToEntity(EntityManager.LastAddedEntity, segmentTwo);
-        segmentTwo.ID = Segments.Count;
         segmentTwo.EntityID = EntityManager.LastAddedEntity;
         segmentTwo.SlicedParent = entityIndex;
-        Segments.Add(segmentTwo);
         
         InsertSegmentPathPointsIntoOctree(segmentTwo);
         InsertSegmentPathPointsIntoOctree(oldSegment);
@@ -1185,8 +1181,10 @@ public class RoadMesh
 
         //TODO optimize this
         //Could put points in an octree or something
-        foreach (PathSegment segment in Segments)
+        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        foreach (int entity in segmentEntities)
         {
+            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
             float closestPoint = 100;
 
             for (int i = 0; i < segment.Path.Length; i++)
@@ -1704,8 +1702,11 @@ public class RoadMesh
             GenerateRibbonMesh(segment);
         }
 
-        foreach (PathSegment segment in Segments)
+        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        
+        foreach (int entity in segmentEntities)
         {
+            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
             if (segment.EndConnector == null)
             {
                 Console.WriteLine($"Segment {segment.ID} missing end connector");
@@ -1800,7 +1801,6 @@ public class RoadMesh
             EntityManager.AddEntity();
             int segmentEntity = EntityManager.LastAddedEntity;
             EntityManager.AddComponentToEntity<PathSegment>(segmentEntity, newSegment);
-            Segments.Add(newSegment);
             newSegment.EntityID = segmentEntity;
 
             int rulerIndex = 0;
@@ -2166,20 +2166,20 @@ public class RoadMesh
         basicEffect.DiffuseColor = new Vector3(1f, 1f, 1f);
         basicEffect.CurrentTechnique.Passes[0].Apply();
 
-        foreach (PathSegment segment in Segments)
-        {
-            // foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
-            // {
-            //     pass.Apply();
-            //     graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, segment.Vertices, 0, segment.Vertices.Length, segment.Indices, 0, segment.Indices.Length / 3, VertexPositionColor.VertexDeclaration);
-            // }
-
-            //segment.DebugDraw(graphicsDevice, viewMatrix, projectionMatrix);
-            for (int i = 0; i < segment.DebugPoints.Length - 1; i ++)
-            {
-                graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, new[]{segment.DebugPoints[i], segment.DebugPoints[i + 1]}, 0, 1);
-            }
-        }
+        // foreach (PathSegment segment in Segments)
+        // {
+        //     // foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+        //     // {
+        //     //     pass.Apply();
+        //     //     graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, segment.Vertices, 0, segment.Vertices.Length, segment.Indices, 0, segment.Indices.Length / 3, VertexPositionColor.VertexDeclaration);
+        //     // }
+        //
+        //     //segment.DebugDraw(graphicsDevice, viewMatrix, projectionMatrix);
+        //     for (int i = 0; i < segment.DebugPoints.Length - 1; i ++)
+        //     {
+        //         graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, new[]{segment.DebugPoints[i], segment.DebugPoints[i + 1]}, 0, 1);
+        //     }
+        // }
 
         if ((state != State.One) && meshGenerated)
         {
