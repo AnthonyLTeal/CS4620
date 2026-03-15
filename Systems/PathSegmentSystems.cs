@@ -32,6 +32,34 @@ public class PathSegmentSystems
 
         return vertexPositionColor;
     }
+    
+    public static void DestroySegmentConnector(int id)
+    {
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        roadMesh.PathSegmentConnectors[id] = null;
+    }
+
+    public static void DestroySegment(int entity)
+    {
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+
+        PathSegmentConnector endConnector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
+        endConnector.SegmentEntities.Remove(entity);
+        
+        PathSegmentConnector frontConnector = roadMesh.PathSegmentConnectors[(int)segment.FrontConnector];
+        frontConnector.SegmentEntities.Remove(entity);
+
+        if (endConnector.SegmentEntities.Count == 0)
+            DestroySegmentConnector((int)segment.EndConnector);
+        
+        if (frontConnector.SegmentEntities.Count == 0)
+            DestroySegmentConnector((int)segment.FrontConnector);
+
+        CalculateAllPaths();
+        EntityManager.RemoveEntity(entity);
+        
+    }
 
     public static void CalculateAllPaths()
     {
@@ -39,6 +67,8 @@ public class PathSegmentSystems
 
         foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
         {
+            if (connector == null)
+                continue;
             connector.DPath = CalculatePaths(connector, roadMesh);
         }
     }

@@ -22,6 +22,25 @@ public class CarSystems
          {
              Car car = ComponentManager.GetEntityComponent<Car>(entity);
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+
+             //destroy car if segment entity is dead
+             if (connectedSegment is null)
+             {
+                 Console.WriteLine("Null Segment");
+                 car.Destinations.Clear();
+             }
+
+             //destroy if destination entity is dead
+             if (car.Destinations.Count > 0)
+             {
+                 PathSegment destinationSegment = ComponentManager.GetEntityComponent<PathSegment>((car.Destinations[0].TargetSegmentID));
+
+                 if (destinationSegment is null)
+                 {
+                     Console.WriteLine("Null Destination");
+                     car.Destinations.Clear();
+                 }
+             }
              
              if (car.Destinations.Count < 1)
              {

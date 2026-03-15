@@ -2195,6 +2195,8 @@ public class RoadMesh
 
         foreach (PathSegmentConnector pathSegmentConnector in PathSegmentConnectors)
         {
+            if (pathSegmentConnector == null)
+                continue;
             for (int i = 0; i < pathSegmentConnector.SegmentEntities.Count; i++)
             {
                 //int segmentID = pathSegmentConnector.SegmentIDs[i];
