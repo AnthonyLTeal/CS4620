@@ -96,7 +96,7 @@ public class Game1 : Game
         
         
         //TESTING - just a test for the car generation, should be more systematic
-        if (Keyboard.GetState().IsKeyDown(Keys.P))
+        if (Keyboard.GetState().IsKeyUp(Keys.P) && oldKeyState.IsKeyDown(Keys.P))
         {
             //List<int> carEntities = ComponentManager.GetComponent<Car>();
             //Console.WriteLine(carEntities.Count);
@@ -121,13 +121,18 @@ public class Game1 : Game
             RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
             roadMesh.DestroyAll();
         }
-        
+
+        if (Keyboard.GetState().IsKeyUp(Keys.X) && oldKeyState.IsKeyDown(Keys.X))
+        {
+            PathSegmentSystems.DestroySegment(1);
+        }
+
         if (Keyboard.GetState().IsKeyUp(Keys.L) && oldKeyState.IsKeyDown(Keys.L))
         {
             LoadSystem.Load();
         }
         
-        if (Keyboard.GetState().IsKeyUp(Keys.S) && oldKeyState.IsKeyDown(Keys.S))
+        if (Keyboard.GetState().IsKeyUp(Keys.S) && oldKeyState.IsKeyDown(Keys.S) && Keyboard.GetState().IsKeyDown(Keys.LeftControl))
         {
             SaveSystem.Save();
         }
