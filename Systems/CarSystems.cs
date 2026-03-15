@@ -42,6 +42,12 @@ public class CarSystems
                  }
              }
              
+             if (car.Destinations.Count > 0 && !PathExists(car.Destinations[0], car.ConnectedSegment))
+             {
+                 Console.WriteLine("No valid path");
+                 car.Destinations.Clear();
+             }
+             
              if (car.Destinations.Count < 1)
              {
                  entitiesToRemove.Add(entity);
@@ -66,6 +72,17 @@ public class CarSystems
              //Console.WriteLine("Killing Entity: " + entity);
              EntityManager.RemoveEntity(entity);
          }
+    }
+
+    private static bool PathExists(Destination destination, int segmentEntity)
+    {
+        PathSegment segmentOne = ComponentManager.GetEntityComponent<PathSegment>(destination.TargetSegmentID);
+        PathSegment segmentTwo = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+
+        PathSegmentConnector destinationConnector = roadMesh.PathSegmentConnectors[(int)segmentOne.EndConnector];
+        return !(destinationConnector.DPath.Prevs[(int)segmentTwo.EndConnector] == -1);
     }
 
     private static Vector3 GetPathVertexFromIndex(int index, PathSegment pathSegment)
@@ -654,6 +671,8 @@ public class CarSystems
         List<int> segments = ComponentManager.GetComponent<PathSegment>();
         int randomSegment = random.Next(segments.Count);
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segments[randomSegment]);
+        if (segment.Path.Length < 3)
+            return (-1, -1);
         int randomPathPoint = random.Next(1, segment.Path.Length - 2); //don't let it be the last or the first point on a path, this is the start of an intersection
         return (segment.EntityID, randomPathPoint);
     }
@@ -720,14 +739,18 @@ public class CarSystems
 
     public static void GenerateRandomCar()
     {
-        int newCarEntity = EntityManager.AddEntity();
 
         //List<int> segments = ComponentManager.GetComponent<PathSegment>();
         (int randomSegment, int randomPathPoint) = GetRandomPathPoint();
+        if (randomSegment == -1)
+            return;
+        
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(randomSegment);
         Vector3 position = segment.Path[randomPathPoint];
 
         (int randomSegmentDestination, int randomPathPointDestination) = GetRandomPathPoint();
+        if (randomSegmentDestination == -1)
+            return;
 
         Destination destination = new Destination()
         {
@@ -735,10 +758,15 @@ public class CarSystems
             TargetPathIndex = randomPathPointDestination + 1
 //            TargetPathIndex = 0
         };
+
+        if (!PathExists(destination, randomSegment))
+        {
+            return;
+        }
         
         if (randomPathPoint == randomPathPointDestination && randomSegment == randomSegmentDestination)
         {
-            EntityManager.RemoveEntity(newCarEntity);
+            //EntityManager.RemoveEntity(newCarEntity);
             return;
         }
         
@@ -759,6 +787,7 @@ public class CarSystems
 
         car.Position = GetInitialPosition(car);
         
+        int newCarEntity = EntityManager.AddEntity();
         EntityManager.AddComponentToEntity(newCarEntity, car);
 
         //might be better to add these to a list to be added when there is free space on the road rather than just not spawning them
