@@ -22,14 +22,19 @@ public class CarSystems
          {
              Car car = ComponentManager.GetEntityComponent<Car>(entity);
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-
+             
              if (car.Destinations.Count < 1)
              {
                  entitiesToRemove.Add(entity);
+                 foreach (string comment in car.Log)
+                 {
+                     Console.WriteLine(comment);
+                 }
+                 Console.WriteLine();
                  continue;
              }
 
-             ValidateDestinationSegment(car.Destinations[0], entity);
+             ValidateDestinationSegment(car.Destinations[0], car);
              ValidateCurrentSegment(car, entity);
              
              float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -164,24 +169,26 @@ public class CarSystems
         return lastConnector;
     }
 
-    public static void ValidateDestinationSegment(Destination destination, int entity)
+    public static void ValidateDestinationSegment(Destination destination, Car car)
     {
+        //todo look into this maybe in the future for a weird edge case
+        //the car direction can matter here, if we slice at the point of the destination, and the car is on the
+        //point of intersection as well (just before or after), then it will set it to the first index of the new
+        //segment always. We don't always want this, if it's negative direction, we'd want to set it to the 
+        //old segment at the last point, but this might not be needed when cars go to buildings directly
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(destination.TargetSegmentID);
         if (destination.TargetPathIndex >= segment.Path.Length)
         {
-            Console.WriteLine("Previous Destination Segment ID: " + destination.TargetSegmentID);
-            Console.WriteLine("Previous Destination Path Point: " + destination.TargetPathIndex);
+            car.Log.Add("Previous Destination Segment ID: " + destination.TargetSegmentID);
+            car.Log.Add("Previous Destination Path Point: " + destination.TargetPathIndex);
             RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
             
-            
-            //todo something still isn't right here, some cars are going to the 0th index for some reason
             PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
             destination.TargetSegmentID = connector.SegmentEntities[1];
             destination.TargetPathIndex = Math.Max(destination.TargetPathIndex - segment.Path.Length - 1, 0);
             
-            Console.WriteLine("New Destination Segment ID: " + destination.TargetSegmentID);
-            Console.WriteLine("New Destination Path Point: " + destination.TargetPathIndex);
-
+            car.Log.Add("New Destination Segment ID: " + destination.TargetSegmentID);
+            car.Log.Add("New Destination Path Point: " + destination.TargetPathIndex);
         }
     }
 
@@ -189,25 +196,73 @@ public class CarSystems
     {
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         
-        //TODO bug here still, not really sure what's going on
         if (car.SegmentPath.SegmentSize != segment.Path.Count())
         {
-            car.Log.Add("Car Entity: " + entity);
+            car.Log.Add("-----------------------------------");
+            car.Log.Add("Target Destination Segment: " + car.Destinations[0].TargetSegmentID);
+            car.Log.Add("Target Destination Index: " + car.Destinations[0].TargetPathIndex);
             car.Log.Add("Previous Connected Segment:" + car.connectedSegment);
             car.Log.Add("Previous Connected Segment Size: " + car.SegmentPath.SegmentSize);
+            car.Log.Add("Previous Direction: " + car.SegmentPath.Direction);
             car.Log.Add("Previous Index:" + car.SegmentPath.CurrentIndex);
-            
-            if (car.SegmentPath.CurrentIndex > segment.Path.Count() || 
-                (car.SegmentPath.CurrentIndex == segment.Path.Count() && car.SegmentPath.Direction == 1))
+
+            if (car.SegmentPath.Direction == -1)
             {
-                car.InitialPathIndex = Math.Max(car.SegmentPath.CurrentIndex - segment.Path.Length - 1, 0);
-                RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-                PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
-                car.connectedSegment = connector.SegmentEntities[1];
-            } else
-            { 
-                // car.SegmentPath.SegmentSize = segment.Path.Length;
-                car.InitialPathIndex = car.SegmentPath.CurrentIndex;
+                if (car.SegmentPath.CurrentIndex > segment.Path.Length + 1)
+                {
+                    car.Log.Add("Branch: 1");
+
+                    car.InitialPathIndex = Math.Max(car.SegmentPath.CurrentIndex - segment.Path.Length - 2, 0);
+                    RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                    PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
+                    car.connectedSegment = connector.SegmentEntities[1];
+                }
+
+                //todo this should eventually create a intersection override as well
+                else if (car.SegmentPath.CurrentIndex >= segment.Path.Length)
+                {
+                    car.Log.Add("Branch: 2");
+                    car.InitialPathIndex = segment.Path.Length - 1;
+                    RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                    PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
+                    car.connectedSegment = connector.SegmentEntities[0];
+                }
+
+                else
+                {
+                    car.Log.Add("Branch: 3");
+                    car.SegmentPath.SegmentSize = segment.Path.Length;
+                    car.InitialPathIndex = car.SegmentPath.CurrentIndex;
+                }
+            }
+            else
+            {
+                if (car.SegmentPath.CurrentIndex > segment.Path.Length)
+                {
+                    car.Log.Add("Branch: 4");
+                    car.InitialPathIndex = Math.Max(car.SegmentPath.CurrentIndex - segment.Path.Length - 2, 0);
+                    RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                    PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
+                    car.connectedSegment = connector.SegmentEntities[1];
+                }
+                
+                //todo this should eventually create a intersection override as well
+                else if (car.SegmentPath.CurrentIndex >= segment.Path.Length - 1)
+                {
+                    
+                    car.Log.Add("Branch: 5");
+                    car.InitialPathIndex = 0;
+                    RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                    PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
+                    car.connectedSegment = connector.SegmentEntities[1];
+                }
+
+                else
+                {
+                    car.Log.Add("Branch: 6");
+                    car.SegmentPath.SegmentSize = segment.Path.Length;
+                    car.InitialPathIndex = car.SegmentPath.CurrentIndex;
+                }
             }
             
             car.Log.Add("New Car Initial Index: " + car.InitialPathIndex);
@@ -387,11 +442,11 @@ public class CarSystems
                 return;
             }
             
-            Console.WriteLine("Target Segment: " + car.Destinations[0].TargetSegmentID);
-            Console.WriteLine("Target Point Index: " + car.Destinations[0].TargetPathIndex);
-            
-            Console.WriteLine("Current Segment: " + car.connectedSegment);
-            Console.WriteLine("Current Point Index: " + car.SegmentPath.CurrentIndex);
+            // Console.WriteLine("Target Segment: " + car.Destinations[0].TargetSegmentID);
+            // Console.WriteLine("Target Point Index: " + car.Destinations[0].TargetPathIndex);
+            //
+            // Console.WriteLine("Current Segment: " + car.connectedSegment);
+            // Console.WriteLine("Current Point Index: " + car.SegmentPath.CurrentIndex);
             // if (WaitOnTraffic(entity, remaining, direction))
             //     return;
 
@@ -509,7 +564,7 @@ public class CarSystems
         if (lastConnectorID == -1 && car.Destinations[0].TargetSegmentID != car.connectedSegment) //new car target on different segment
         {
             nextConnector = GetInitialConnector(connectedSegment, destination);
-            Console.WriteLine("Next Connector From Initial: " + nextConnector);
+            //Console.WriteLine("Next Connector From Initial: " + nextConnector);
             
             carPath.CurrentIndex = car.InitialPathIndex;
             if (nextConnector == connectedSegment.FrontConnector)

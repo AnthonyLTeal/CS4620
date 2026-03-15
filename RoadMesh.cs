@@ -1101,6 +1101,7 @@ public class RoadMesh
     public void SlicePathSegment(int entityIndex, int pathIndex, PathSegment previousPathSegment = null)
     {
         Console.WriteLine("Slicing Segment: " + entityIndex);
+        Console.WriteLine("Slicing at: " + pathIndex);
         int componentID = ComponentManager.GetComponentID<PathSegment>();
         PathSegment oldSegment = (PathSegment)EntityManager.EntityComponents[entityIndex][componentID];
         RemovePathSegmentPointsFromOctree(oldSegment);
@@ -1145,6 +1146,8 @@ public class RoadMesh
         
         PathSegmentConnectorSystems.AddSegmentToSegmentConnector(slicedConnector, oldSegment, SegmentConnectorIndex.Last);
         PathSegmentConnectorSystems.AddSegmentToSegmentConnector(slicedConnector, segmentTwo, SegmentConnectorIndex.First);
+        
+        Console.WriteLine("New Segment From Slice: " + segmentTwo.entityID);
     }
 
     public static float AngleBetweenThreePoints(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 worldCenter)
