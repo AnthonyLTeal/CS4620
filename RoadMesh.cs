@@ -41,6 +41,12 @@ public enum State
     Three
 }
 
+public enum BuildType
+{
+    Straight,
+    Curved
+}
+
 public class RoadMesh
 {
     public int MaxSegmentLength = 25;
@@ -71,6 +77,7 @@ public class RoadMesh
     private const float PATH_WIDTH = .5f;
     private RoadRibbonMesh _ribbonMesh = new RoadRibbonMesh();
     private List<int> DeadConnectorIDs = new List<int>();
+    public BuildType BuildType = BuildType.Straight;
     
     public List<PathSegmentConnector> PathSegmentConnectors = new List<PathSegmentConnector>();
 
@@ -1495,6 +1502,7 @@ public class RoadMesh
                 }
             }
             PendingP3 = selectedPoint;
+            PendingP2 = (PendingP1 + PendingP3) / 2;
         }
     }
 
@@ -2064,6 +2072,13 @@ public class RoadMesh
         bool connected = false;
 
         StateOneUpdate(cursor);
+
+        if (state == State.Two && BuildType == BuildType.Straight)
+        {
+            state = State.Three;
+            PendingP2 = PendingP1;
+        }
+        
         StateThreeUpdate(cursor);
 
         if (spacePressed == false && keyState.IsKeyDown(Keys.Space))
@@ -2071,7 +2086,7 @@ public class RoadMesh
             spacePressed = true;
             if (cursor.Location != null)
             {
-                SelectPoint((Vector3)cursor.Location, graphicsDevice, terrain, camera);
+                SelectPoint((Vector3)cursor.Location + new Vector3(0,0.1f,0), graphicsDevice, terrain, camera);
                 //SelectPointStraight((Vector3)terrainCursor.brushLocation, graphicsDevice, terrain, camera);
             }
         }
