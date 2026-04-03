@@ -8,6 +8,8 @@ using MonoGameGum.GueDeriving;
 using System.ComponentModel;
 using Gum.Forms;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+using System.IO;
 
 namespace CS4620IS;
 
@@ -37,7 +39,80 @@ class GumInterface
             SaveButton.Click += (sender, args) =>
             {
                 Console.WriteLine("Clicked on the Save button!");
-                SaveSystem.Save();
+                Window SaveWindow = CreateWindow();
+                SaveWindow.Height = 400;
+                SaveWindow.AddToRoot();
+                    // Add a Panel to the window 
+                    StackPanel SavePanel = new StackPanel();
+                    SavePanel.Spacing = 3;
+                    SavePanel.Dock(Dock.Fill);
+                    SavePanel.Anchor(Anchor.Center);
+                    SaveWindow.AddChild(SavePanel);
+
+                        //Add Label to Panel
+                        Label SaveLabel = new Label();
+                        SaveLabel.Text = "File Name: ";
+                        //SaveLabel.Anchor(Anchor.Center);
+                        //SaveLabel.Anchor(Anchor.Top);
+                        SavePanel.AddChild(SaveLabel);
+
+                        // Add Textbox to the panel
+                        TextBox inputBox = new TextBox();
+                        inputBox.Text = "";
+                        //inputBox.Anchor(Anchor.Center);
+                        //inputBox.Anchor(Anchor.Top);
+                        SavePanel.AddChild(inputBox);   
+                        
+                        Label FileLabel = new Label();
+                        FileLabel.Text = "Select file to save";
+                        SavePanel.AddChild(FileLabel);
+
+                        //Create a ListBox with all of the file information
+                        ListBox SaveBox = new ListBox();
+                        SavePanel.AddChild(SaveBox);
+                        SaveBox.Items.Add("New File");
+                        foreach (String file in Directory.GetFiles(@"CRoadSaves"))
+                        {
+                            String InputItem = (file);
+                            SaveBox.Items.Add(InputItem);
+                        }
+            
+
+                        // Add Button to Save Road Data:
+                        Button SButton = new Button();
+                        SButton.Text = "Save File";
+                        //SButton.Anchor(Anchor.Center);
+                        SavePanel.AddChild(SButton);
+
+                        SButton.Click += (sender, args) =>
+                        {
+                             if(inputBox.Text == "")
+                                {
+                                Console.WriteLine("Please Enter a file name first");
+                                }
+
+                            else{    
+                                // LoadSystem.Load(SaveBox.SelectedIndex);
+                                SaveWindow.RemoveFromRoot();
+                                }
+                        };
+
+                        // Add Cancel Button to the Panel:
+                        Button CloseWindowButton = new Button();
+                        //CloseWindowButton.Anchor(Anchor.Bottom);
+                        //CloseWindowButton.Anchor(Anchor.Center);
+                        CloseWindowButton.Text = "Cancel";
+                        SavePanel.AddChild(CloseWindowButton);
+            
+                        CloseWindowButton.Click += (sender, args) =>
+                        {
+                            SaveWindow.RemoveFromRoot(); 
+                        };             
+
+                            
+
+
+                    
             };
 
             //Add button 2
@@ -48,7 +123,49 @@ class GumInterface
             LoadButton.Click += (sender, args) =>
             {
                 Console.WriteLine("Clicked on the load button!");
-                LoadSystem.Load();
+                Window LoadWindow = CreateWindow();
+                LoadWindow.Height = 350;
+                LoadWindow.AddToRoot();
+
+
+                    StackPanel LoadPanel = new StackPanel();
+                    LoadWindow.AddChild(LoadPanel);
+
+                        Label LoadLabel = new Label();
+                        LoadLabel.Text = "Select which road system to open";
+                        LoadPanel.AddChild(LoadLabel);
+
+                        //Creating a List Box to view files
+                        ListBox LoadBox = new ListBox();
+                        LoadPanel.AddChild(LoadBox);
+                        for(int i = 0; i < 20; i++)
+                        {
+                            String InputItem = ("File");
+                            LoadBox.Items.Add(InputItem);
+                        }
+
+                        //Create a Button to load once file is selected from listBox:
+                        Button LButton = new Button();
+                        LButton.Text = "Load";
+                        LoadPanel.AddChild(LButton);
+                        LButton.Click += (sender, args) =>
+                        {
+                            // LoadSystem.Load(ListBox.SelectedStateName);
+                            LoadWindow.RemoveFromRoot();
+                        };
+
+
+                        Button CancelButton = new Button();
+                        CancelButton.Text = "Cancel";
+                        LoadPanel.AddChild(CancelButton);
+
+                        CancelButton.Click += (sender, args) =>
+                        {
+                            LoadWindow.RemoveFromRoot();
+                        };
+            
+                    
+
             };  
 
             //Add button 3 -> ExitButton
@@ -64,13 +181,14 @@ class GumInterface
 
             //Add Road Path Button:
             Button RoadPathButton = new Button();
-            RoadPathButton.Text = "Road Path";  
+            RoadPathButton.Text = "Draw Road";  
             StartPanel.AddChild(RoadPathButton);
 
             RoadPathButton.Click += (sender, args) =>
             {
                 Console.WriteLine("Clicked on the road path button!");
                 // Logic to enable road path editing mode goes here
+                
             };
 
             //Add Graph Window Button:
@@ -100,10 +218,11 @@ class GumInterface
             };
 
             //Add Weather options button(opens window):
+            
             Button WeatherButton = new Button();
             WeatherButton.Text = "Weather options";
-            StartPanel.AddChild(WeatherButton);
-
+            //StartPanel.AddChild(WeatherButton);
+            
             WeatherButton.Click += (sender, args) =>
             {
                 Window WeatherWindow = CreateWindow();
@@ -128,7 +247,7 @@ class GumInterface
             //Button to Add A Sign: 
             Button AddSignButton = new Button();
             AddSignButton.Text = "Add Sign";    
-            StartPanel.AddChild(AddSignButton);
+            //StartPanel.AddChild(AddSignButton);
 
             AddSignButton.Click += (sender, args) =>
             {
@@ -156,20 +275,20 @@ class GumInterface
         NewWindow.Height = 300;
         
             //Create a TextBox to display some information in the window:
-            TextBox windowBox = new TextBox();
-            windowBox.IsReadOnly = true;
-            windowBox.Text = "This is a window for Graphs!";
+           // TextBox windowBox = new TextBox();
+            //windowBox.IsReadOnly = true; 
+            //windowBox.Text = "This is a window for Graphs!";
         
             //Button To close the window:
-            Button CloseWindowButton = new Button();
-            CloseWindowButton.Anchor(Anchor.TopLeft);
-            CloseWindowButton.Text = "Exit";
-            NewWindow.AddChild(CloseWindowButton);
+            //Button CloseWindowButton = new Button();
+            //CloseWindowButton.Anchor(Anchor.TopLeft);
+            //CloseWindowButton.Text = "Exit";
+            //NewWindow.AddChild(CloseWindowButton);
             
-                CloseWindowButton.Click += (sender, args) =>
-                {
-                    NewWindow.RemoveFromRoot(); 
-                };
+                //CloseWindowButton.Click += (sender, args) =>
+                //{
+                //    NewWindow.RemoveFromRoot(); 
+                //};
 
         return NewWindow; 
         
@@ -275,6 +394,8 @@ class GumInterface
 
         return newSlider;
     } 
+
+ 
 
     /* 
      //Add a colored rectangle
