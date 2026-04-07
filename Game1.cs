@@ -6,6 +6,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PlanetaryExpansion;
 
+
+//Added to Initialize Gum:
+using Gum.Forms;
+using Gum.Forms.Controls;
+using MonoGameGum;
+
 namespace CS4620IS;
 
 public class Game1 : Game
@@ -49,7 +55,9 @@ public class Game1 : Game
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
         base.Initialize();
+        InitializeGum(); // Added to Initialize UI
         SaveSystem.RegisterFormatters();
+        
     }
 
     protected override void LoadContent()
@@ -86,8 +94,8 @@ public class Game1 : Game
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
         EntityManager.AddComponentToGlobalEntity<RoadMesh>(_roadMesh);
     }
-
-    private KeyboardState oldKeyState;
+/* 
+ */    private KeyboardState oldKeyState;
     protected override void Update(GameTime gameTime)
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
@@ -127,6 +135,7 @@ public class Game1 : Game
         // TODO: Add your update logic here
 
         base.Update(gameTime);
+        GumService.Default.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
@@ -142,5 +151,15 @@ public class Game1 : Game
         // TODO: Add your drawing code here
 
         base.Draw(gameTime);
+        GumService.Default.Draw();
+    }
+
+    private void InitializeGum()
+    {
+        GumService.Default.Initialize(this, DefaultVisualsVersion.V3);
+        GumService.Default.ContentLoader.XnaContentManager = Content; 
+        FrameworkElement.KeyboardsForUiControl.Add(GumService.Default.Keyboard);
+        GumInterface _interface = new GumInterface();
+        _interface.InitializeUI(); 
     }
 }
