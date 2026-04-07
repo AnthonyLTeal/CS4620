@@ -211,25 +211,43 @@ class GumInterface
                 Button Chart1Button = new Button();
                 Chart1Button.Text = "Chart 1";
                 ChartPanel.AddChild(Chart1Button); 
+                Chart1Button.Click += (sender, args) =>
+                {
+                    Window Chart1Window = CreateWindow();
+                    Chart1Window.AddToRoot();
+                        Button SaveFormatButton = new Button();
+                        SaveFormatButton.Text = "Save Graph";
+                        SaveFormatButton.Anchor(Anchor.BottomRight);
+                        Chart1Window.AddChild(SaveFormatButton);
+                        SaveFormatButton.Click += (sender, args) =>
+                        { 
+                            ItemsControl ControlBox = CreateFormatSelection();
+                            Chart1Window.AddChild(ControlBox);
+                            ControlBox.Anchor(Anchor.BottomRight);
+                        };
+                        
+                };
 
                 Button Chart2Button = new Button();
                 Chart2Button.Text = "Chart 2";  
                 ChartPanel.AddChild(Chart2Button);
-
-
-                // Add Save format Selection to the graph window:
-                Button SaveFormatButton = new Button();
-                SaveFormatButton.Text = "Save Graph";
-                SaveFormatButton.Anchor(Anchor.BottomRight);
-                GraphWindow.AddChild(SaveFormatButton);
-
-                SaveFormatButton.Click += (sender, args) =>
-                { 
-                    ItemsControl ControlBox = CreateFormatSelection();
-                    GraphWindow.AddChild(ControlBox);
-                    ControlBox.Anchor(Anchor.BottomRight);
+                Chart2Button.Click += (sender, args) =>
+                {
+                    Window Chart2Window = CreateWindow();
+                    Chart2Window.AddToRoot();
+                        Button SaveFormatButton = new Button();
+                        SaveFormatButton.Text = "Save Graph";
+                        SaveFormatButton.Anchor(Anchor.BottomRight);
+                        Chart2Window.AddChild(SaveFormatButton);
+                        SaveFormatButton.Click += (sender, args) =>
+                        { 
+                            ItemsControl ControlBox = CreateFormatSelection();
+                            Chart2Window.AddChild(ControlBox);
+                            ControlBox.Anchor(Anchor.BottomRight);
+                        };
 
                 };
+
 
                 //Add Exit button to the graph window:
                 Button ExitGraphButton = new Button();              
@@ -295,6 +313,7 @@ class GumInterface
                 
                     StackPanel SpawnPanel = new StackPanel();
                     SpawnPanel.Spacing = 4;
+                    SpawnPanel.Anchor(Anchor.Center);
                     SpawnWindow.AddChild(SpawnPanel);
 
                     //Create Labels and TextBoxes for Static and Dynamic Cars:
