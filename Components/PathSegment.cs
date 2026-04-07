@@ -45,8 +45,12 @@ public class PathSegment
     public bool IsLaneRuler = true;
     public int Weight = 1;
     public int Speed = 1;
-    public HashSet<int> EntitiesOnSegment = new HashSet<int>();
+    public List<int> EntitiesOnSegment = new List<int>();
     public int SlicedParent;
+    public int RibbonLength;
+    public int RibbonOffset;
+    //public int LastColorIndex = 1;
+    public int CurrentColorIndex = 1;
     
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();

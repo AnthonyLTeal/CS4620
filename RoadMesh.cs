@@ -1842,8 +1842,12 @@ public class RoadMesh
             meshVerts[2 * i] = segment.Path[i] + perpendiculars[i] * PATH_WIDTH + new Vector3(0, 0.1f, 0);
             meshVerts[2 * i + 1] = segment.Path[i] - perpendiculars[i] * PATH_WIDTH + new Vector3(0, 0.1f, 0);
         }
-        
+
+        segment.RibbonOffset = _ribbonMesh.GetVertexCount();
+        segment.RibbonLength = meshVerts.Length;
         _ribbonMesh.Insert(meshVerts);
+        //Console.WriteLine("Segment Offset: " + segment.RibbonOffset);
+        //Console.WriteLine("Segment Length: " + meshVerts.Length);
     }
 
     private void GenerateParallelPaths(List<PathSegment> rulerSegments, int leftPathCount, int rightPathCount)
@@ -2161,6 +2165,11 @@ public class RoadMesh
         // }
         //
         // previousBrushLocation = cursor.Location;
+    }
+
+    public RoadRibbonMesh RibbonMesh
+    {
+        get => _ribbonMesh;
     }
 
     BasicEffect basicEffect;

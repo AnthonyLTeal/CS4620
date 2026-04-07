@@ -150,6 +150,7 @@ public class Game1 : Game
         CursorSystem.Update(gameTime);
         _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
         CarSystems.BasicBehavior(gameTime);
+        PathSegmentSystems.SetPathColor();
 
         // TODO: Add your update logic here
 

@@ -56,7 +56,7 @@ public class CarSystems
                  {
                      Console.WriteLine(comment);
                  }
-                 Console.WriteLine();
+                 //Console.WriteLine();
                  continue;
              }
 
@@ -310,7 +310,7 @@ public class CarSystems
             car.Log.Add("Direction: " + car.SegmentPath.Direction);
             car.Log.Add("New Connected Segment Size: " + car.SegmentPath.SegmentSize);
 
-            Console.WriteLine();
+            //Console.WriteLine();
         }
     }
 
@@ -444,8 +444,8 @@ public class CarSystems
             bool isOverridden = (car.OverridePath.Count > 0);
             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
             
-            if (WaitOnStopSign(entity))
-                break;
+            // if (WaitOnStopSign(entity))
+            //     break;
             
             Vector3 nextPoint = GetPathVertex(car);
             if (isOverridden)
@@ -512,15 +512,37 @@ public class CarSystems
             if (((car.SegmentPath.CurrentIndex == 0 && car.SegmentPath.Direction == -1) || 
                 (car.SegmentPath.CurrentIndex == car.SegmentPath.SegmentSize - 1  && car.SegmentPath.Direction == 1)))
             {
+                // List<int> entities = ComponentManager.GetComponent<PathSegment>();
+                // foreach (int segmentEntity in entities)
+                // {
+                //     PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+                //     Console.WriteLine($"Segment: {segmentEntity} | Entities On Segment: {segment.EntitiesOnSegment.Count}");
+                // }
+                
+                // Console.WriteLine($"Current Segment: {car.connectedSegment}");
+                // Console.WriteLine($"Current Segment Car Count: " + connectedSegment.EntitiesOnSegment.Count);
+                connectedSegment.EntitiesOnSegment.Remove(entity);
+                // Console.WriteLine($"Current Segment Car Count (removed): " + connectedSegment.EntitiesOnSegment.Count);
+
                 int lastConnectorID = car.SegmentPath.NextConnectorID;
                 int nextConnectorId = GetNextConnectorID(car.Destinations[0], lastConnectorID);
                 int lastPathIndex = car.SegmentPath.CurrentIndex;
-                PathSegment previousSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-                previousSegment.EntitiesOnSegment.Remove(entity);
+                //PathSegment previousSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+                //previousSegment.EntitiesOnSegment.Remove(entity);
                 int nextSegmentId = GetNextSegment(car.Destinations[0], nextConnectorId, lastConnectorID);
-                PathSegment nextSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-                nextSegment.EntitiesOnSegment.Add(entity);
                 car.connectedSegment = nextSegmentId;
+                PathSegment nextSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+                
+                // Console.WriteLine($"Next Segment: {car.connectedSegment}");
+                // Console.WriteLine($"Next Segment Car Count: " + nextSegment.EntitiesOnSegment.Count);
+                nextSegment.EntitiesOnSegment.Add(entity);
+                // Console.WriteLine($"Next Segment Car Count (Added): " + nextSegment.EntitiesOnSegment.Count);
+                
+                // foreach (int segmentEntity in entities)
+                // {
+                //     PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+                //     Console.WriteLine($"Segment: {segmentEntity} | Entities On Segment: {segment.EntitiesOnSegment.Count}");
+                // }
 
                 Vector3 p1 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, connectedSegment);
 
@@ -531,15 +553,15 @@ public class CarSystems
                 //car.Position = nextPoint;
                 car.OnConnector = lastConnectorID;
                 PathSegment newSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-                connectedSegment.EntitiesOnSegment.Remove(entity);
-                newSegment.EntitiesOnSegment.Add(entity);
+                //connectedSegment.EntitiesOnSegment.Remove(entity);
+                //newSegment.EntitiesOnSegment.Add(entity);
                 Vector3 p2 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, newSegment);
-                Console.WriteLine("Current Path Index: " + car.SegmentPath.CurrentIndex);
-                Console.WriteLine("Current Path Size: " + car.SegmentPath.SegmentSize);
+                //Console.WriteLine("Current Path Index: " + car.SegmentPath.CurrentIndex);
+                //Console.WriteLine("Current Path Size: " + car.SegmentPath.SegmentSize);
                 Vector3 p3 = roadMesh.PathSegmentConnectors[lastConnectorID].Position;
                 BuildIntersectionPath(car, p1, p2, p3);
                 car.Position = car.OverridePath.Pop();
-                Console.WriteLine("Override Length: " + car.OverridePath.Count);
+                //Console.WriteLine("Override Length: " + car.OverridePath.Count);
                 car.OnConnector = lastConnectorID;
                 PathSegmentConnector lastConnector = roadMesh.PathSegmentConnectors[lastConnectorID];
                 if (lastConnector.SegmentEntities.Count > 2) 

@@ -8,11 +8,14 @@ namespace CS4620IS;
 public class RoadRibbonMesh
 {
     private const int MAX_VERTICES = 50;
-    private Color DEFAULT_COLOR = new Color(0.35f, 0.35f, 0.35f); //red for testing 
+    private Color DEFAULT_COLOR = new Color(0.35f, 0.35f, 0.35f);
 
     private bool _dirty = false;
+    private bool _verticesDirty = false;
     private List<Vector3[]> _segmentVertices = new List<Vector3[]>();
     private List<int[]> _segmentIndices = new List<int[]>();
+    private int _totalVertexCount;
+    private VertexPositionColor[] _vertices;
 
     //private VertexPositionColor[] _vertices;
     //private int[] _indices;
@@ -26,6 +29,34 @@ public class RoadRibbonMesh
     {
         GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
         _basicEffect = new BasicEffect(graphicsDevice);
+    }
+
+    public void UpdateVertexColor(int index, Color color)
+    {
+        //Console.WriteLine($"Index Updated: {index}");
+        _vertices[index].Color = color;
+        _verticesDirty = true;
+    }
+
+    public Vector3[] GetSegmentVertices(int ribbonIndex)
+    {
+        return _segmentVertices[ribbonIndex];
+    }
+
+    public int GetVertexCount()
+    {
+        return _totalVertexCount;
+    }
+
+    public int GetSegmentCount()
+    {
+        return _segmentIndices.Count;
+    }
+
+    public void SetVertices()
+    {
+        _vertexBuffer.SetData(_vertices);
+        _verticesDirty = false;
     }
 
     public void Insert(Vector3[] vertices)
@@ -53,10 +84,13 @@ public class RoadRibbonMesh
         }
         _segmentIndices.Add(indices);
         _dirty = true;
+        _totalVertexCount += vertices.Length;
     }
 
     public void Update()
     {
+        if (_verticesDirty)
+            SetVertices();
         if (_dirty)
             RebuildMesh();
     }
@@ -112,6 +146,8 @@ public class RoadRibbonMesh
         _triangleCount = indices.Count / 3;
 
         _dirty = false;
+
+        _vertices = vertices.ToArray();
     }
 
     public void Draw()
