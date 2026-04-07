@@ -20,18 +20,26 @@ public class CarSystems
 {
     private const float UPDATE_TIME = 1000f;
     private static float _carTimer = 0;
+    private static Dictionary<int, double> carDestinationTimes = new Dictionary<int, double>();
+    public static List<double> finalDestinationTimes = new List<double>();
 
     public static void BasicBehavior(GameTime gameTime)
     {
          List<int> entities = ComponentManager.GetComponent<Car>();
          List<int> entitiesToRemove = new List<int>();
-
+         //Dictionary<int, double> carDestinationTimes = new Dictionary<int, double>();
+         //List<double> finalDestinationTimes = new List<double>();
+         
          foreach (int entity in entities)
          {
              Car car = ComponentManager.GetEntityComponent<Car>(entity);
              //car.Alive += gameTime.ElapsedGameTime.TotalMilliseconds;
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-
+             if (!carDestinationTimes.ContainsKey(entity))
+             {
+                 carDestinationTimes[entity] = 0.00;
+             }
+             
              if (car.Destinations.Count < 1)
              {
                  entitiesToRemove.Add(entity);
@@ -40,14 +48,17 @@ public class CarSystems
              
              float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
              MoveCar(entity, 2 * dt);
-
+             //carDestinationTimes[entity] += gameTime.ElapsedGameTime.TotalSeconds;
          }
 
          foreach (int entity in entitiesToRemove)
          {
              //Console.WriteLine("Killing Entity: " + entity);
+             finalDestinationTimes.Add(carDestinationTimes[entity]);
+             carDestinationTimes.Remove(entity);
              EntityManager.RemoveEntity(entity);
          }
+         Console.WriteLine("Final Destinations Accounted For: " + finalDestinationTimes.Count);
     }
 
     private static Vector3 GetPathVertexFromIndex(int index, PathSegment pathSegment)

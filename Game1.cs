@@ -125,6 +125,7 @@ public class Game1 : Game
         CarSystems.BasicBehavior(gameTime);
         //new stuff for stoplights
         StoplightSystems.ChangeRedGreen(gameTime);
+    
 
         // TODO: Add your update logic here
 
