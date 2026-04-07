@@ -45,7 +45,7 @@ class GumInterface
                     // Add a Panel to the window 
                     StackPanel SavePanel = new StackPanel();
                     SavePanel.Spacing = 3;
-                    SavePanel.Dock(Dock.Fill);
+                    //SavePanel.Dock(Dock.Fill);
                     SavePanel.Anchor(Anchor.Center);
                     SaveWindow.AddChild(SavePanel);
 
@@ -71,11 +71,11 @@ class GumInterface
                         ListBox SaveBox = new ListBox();
                         SavePanel.AddChild(SaveBox);
                         SaveBox.Items.Add("New File");
-                        foreach (String file in Directory.GetFiles(@"CRoadSaves"))
-                        {
-                            String InputItem = (file);
-                            SaveBox.Items.Add(InputItem);
-                        }
+                       // foreach (String file in Directory.GetFiles(@"CRoadSaves"))
+                        //{
+                        //    String InputItem = (file);
+                        //    SaveBox.Items.Add(InputItem);
+                        //}
             
 
                         // Add Button to Save Road Data:
@@ -129,6 +129,8 @@ class GumInterface
 
 
                     StackPanel LoadPanel = new StackPanel();
+                    LoadPanel.Anchor(Anchor.Center);
+                    LoadPanel.Spacing = 4;
                     LoadWindow.AddChild(LoadPanel);
 
                         Label LoadLabel = new Label();
@@ -193,13 +195,27 @@ class GumInterface
 
             //Add Graph Window Button:
             Button GraphWindowButton = new Button();
-            GraphWindowButton.Text = "Open Graph Window";
+            GraphWindowButton.Text = "View Charts";
             StartPanel.AddChild(GraphWindowButton);
 
             GraphWindowButton.Click += (sender, args) =>
             {
                 Window GraphWindow = CreateWindow();
                 GraphWindow.AddToRoot();
+
+                StackPanel ChartPanel = new StackPanel();
+                ChartPanel.Spacing = 20;
+                ChartPanel.Anchor(Anchor.Center);   
+                GraphWindow.AddChild(ChartPanel);
+
+                Button Chart1Button = new Button();
+                Chart1Button.Text = "Chart 1";
+                ChartPanel.AddChild(Chart1Button); 
+
+                Button Chart2Button = new Button();
+                Chart2Button.Text = "Chart 2";  
+                ChartPanel.AddChild(Chart2Button);
+
 
                 // Add Save format Selection to the graph window:
                 Button SaveFormatButton = new Button();
@@ -214,7 +230,18 @@ class GumInterface
                     ControlBox.Anchor(Anchor.BottomRight);
 
                 };
-                
+
+                //Add Exit button to the graph window:
+                Button ExitGraphButton = new Button();              
+                ExitGraphButton.Text = "Cancel";
+                ExitGraphButton.Anchor(Anchor.TopRight);
+                ChartPanel.AddChild(ExitGraphButton);
+
+                ExitGraphButton.Click += (sender, args) =>
+                {
+                    GraphWindow.RemoveFromRoot();
+                };
+
             };
 
             //Add Weather options button(opens window):
@@ -255,16 +282,73 @@ class GumInterface
                 // Logic to enable adding a sign goes here
             };
 
-            //Add Spawn Cars Control:
-            {
-                ItemsControl SpawnControl = CreateSpawnSelection();
-                StartPanel.AddChild(SpawnControl);
+            //Add Spawn Cars Button:
+            Button runButton = new Button();
+            runButton.Text = "Run simulation";
+            StartPanel.AddChild(runButton);
+
+            runButton.Click += (sender, args) => 
+            {   
+                //Add Window for controls
+                Window SpawnWindow = CreateWindow();
+                SpawnWindow.AddToRoot();
+                
+                    StackPanel SpawnPanel = new StackPanel();
+                    SpawnPanel.Spacing = 4;
+                    SpawnWindow.AddChild(SpawnPanel);
+
+                    //Create Labels and TextBoxes for Static and Dynamic Cars:
+                    Label StaticAgentLabel = new Label();
+                    StaticAgentLabel.Text = "# of static Cars";
+                    SpawnPanel.AddChild(StaticAgentLabel);
+                    TextBox StaticAgentTextBox = new TextBox();
+                    SpawnPanel.AddChild(StaticAgentTextBox);
+
+                    Label DynamicAgentLabel = new Label();
+                    DynamicAgentLabel.Text = "# of rerouting Cars";
+                    SpawnPanel.AddChild(DynamicAgentLabel);
+                    TextBox DynamicAgentTextBox = new TextBox();
+                    SpawnPanel.AddChild(DynamicAgentTextBox);
+
+                    //Create Button to Start Simulation:
+                    Button StartSimButton = new Button();   
+                    StartSimButton.Text = "Start Simulation";
+                    SpawnPanel.AddChild(StartSimButton);    
+
+                    StartSimButton.Click += (sender, args) =>
+                    {
+                        int staticCount;
+                        int dynamicCount;
+
+                        if (int.TryParse(StaticAgentTextBox.Text, out staticCount) && int.TryParse(DynamicAgentTextBox.Text, out dynamicCount))
+                        {
+                            Console.WriteLine($"Spawning {staticCount} static cars and {dynamicCount} dynamic cars");
+                            // Call your car spawning logic here using staticCount and dynamicCount
+                            CarSystems.GenerateRandomCar();
+                            SpawnWindow.RemoveFromRoot();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid input for static or dynamic car count. Please enter valid integers.");
+                        }
+                    };
+
+                    // Create Exit Button for Spawn Window:
+                    Button ExitSpawnButton = new Button(); 
+                    ExitSpawnButton.Text = "Cancel";
+                    SpawnPanel.AddChild(ExitSpawnButton);
+
+                    ExitSpawnButton.Click += (sender, args) =>
+                    {
+                        SpawnWindow.RemoveFromRoot();
+                    };
+
+
             };
             
             
-        //Seed.input
-        //Count.input(might be text)
-            //Adding an Items control
+            
+       
     }
 
     private Window CreateWindow()
