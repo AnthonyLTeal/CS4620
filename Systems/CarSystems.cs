@@ -21,6 +21,7 @@ public class CarSystems
          foreach (int entity in entities)
          {
              Car car = ComponentManager.GetEntityComponent<Car>(entity);
+             
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
 
              //destroy car if segment entity is dead
@@ -63,7 +64,8 @@ public class CarSystems
              ValidateCurrentSegment(car, entity);
              
              float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-             MoveCar(entity, 2 * dt);
+             SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
+             MoveCar(entity, 2 * dt * simulationSuper.SimSpeed);
 
          }
 
@@ -195,15 +197,15 @@ public class CarSystems
     /// and their index count puts them on the new segment, meaning their previous
     /// ID is invalid
     /// </summary>
-    public static int ValidateLastConnector(Car car, int pathSegmentID)
-    {
-        return 0;
-    }
-
-    public static int ValidateNextConnector(Car car, int pathSegmentID, int lastConnector)
-    {
-        return lastConnector;
-    }
+    // public static int ValidateLastConnector(Car car, int pathSegmentID)
+    // {
+    //     return 0;
+    // }
+    //
+    // public static int ValidateNextConnector(Car car, int pathSegmentID, int lastConnector)
+    // {
+    //     return lastConnector;
+    // }
 
     public static void ValidateDestinationSegment(Destination destination, Car car)
     {
@@ -411,24 +413,24 @@ public class CarSystems
     //     return false;
     // }
     
-    // private static bool WaitOnStopSign(int carEntity)
-    // {
-    //     Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
-    //     
-    //     if (car.OnConnector == -1)
-    //         return false;
-    //     
-    //     RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-    //     PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.OnConnector];
-    //
-    //     if (connector.SegmentEntities.Count <= 2)
-    //         return false;
-    //
-    //     if (carEntity == connector.StopQueue.Peek())
-    //         return false;
-    //
-    //     return true;
-    // }
+    private static bool WaitOnStopSign(int carEntity)
+    {
+        Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
+        
+        if (car.OnConnector == -1)
+            return false;
+        
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.OnConnector];
+    
+        if (connector.SegmentEntities.Count <= 2)
+            return false;
+    
+        if (carEntity == connector.StopQueue.Peek())
+            return false;
+    
+        return true;
+    }
 
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
     private static void MoveCar(int entity, float velocity)
@@ -442,8 +444,8 @@ public class CarSystems
             bool isOverridden = (car.OverridePath.Count > 0);
             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
             
-            // if (WaitOnStopSign(entity))
-            //     break;
+            if (WaitOnStopSign(entity))
+                break;
             
             Vector3 nextPoint = GetPathVertex(car);
             if (isOverridden)
@@ -493,11 +495,11 @@ public class CarSystems
                 //car.SegmentPath.CurrentIndex += car.SegmentPath.Direction; //we will want to skip the first segment point
                 if (car.OverridePath.Count == 0 && car.OnConnector != -1)
                 {
-                    // PathSegmentConnector connectorQueued = roadMesh.PathSegmentConnectors[car.OnConnector];
-                    // if (connectorQueued.SegmentEntities.Count() > 2)
-                    // {
-                    //     connectorQueued.StopQueue.Dequeue();
-                    // }
+                    PathSegmentConnector connectorQueued = roadMesh.PathSegmentConnectors[car.OnConnector];
+                    if (connectorQueued.SegmentEntities.Count() > 2)
+                    {
+                        connectorQueued.StopQueue.Dequeue();
+                    }
                     car.OnConnector = -1;
                 }
             }
@@ -539,9 +541,9 @@ public class CarSystems
                 car.Position = car.OverridePath.Pop();
                 Console.WriteLine("Override Length: " + car.OverridePath.Count);
                 car.OnConnector = lastConnectorID;
-                // PathSegmentConnector lastConnector = roadMesh.PathSegmentConnectors[lastConnectorID];
-                // if (lastConnector.SegmentEntities.Count > 2) 
-                //     lastConnector.StopQueue.Enqueue(entity);
+                PathSegmentConnector lastConnector = roadMesh.PathSegmentConnectors[lastConnectorID];
+                if (lastConnector.SegmentEntities.Count > 2) 
+                    lastConnector.StopQueue.Enqueue(entity);
             }
         }
     }

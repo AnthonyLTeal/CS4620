@@ -70,6 +70,8 @@ public class PathSegmentSystems
             if (connector == null)
                 continue;
             connector.DPath = CalculatePaths(connector, roadMesh);
+            
+            //Console.WriteLine($"Connector {connector.ID}: [{string.Join(", ", connector.DPath.Prevs)}]");
         }
     }
     

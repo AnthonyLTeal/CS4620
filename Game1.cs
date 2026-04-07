@@ -71,20 +71,24 @@ public class Game1 : Game
         _terrain = new Terrain(_graphics.GraphicsDevice);
         _camera = new ArcBallCamera(GraphicsDevice.Viewport.AspectRatio, MathHelper.PiOver4, new Vector3(0, 0, 0), Vector3.Up, 0.1f, 1000);
         _cameraControls = new CameraControls();
+
+        SimulationSuper simulationSuper = new SimulationSuper();
+        EntityManager.AddComponentToGlobalEntity(simulationSuper);
         
         //Assets.Effects["BasicEffect"] = new BasicEffect(GraphicsDevice);
         
         //terrain cursor needed?
-        EntityManager.AddComponentToGlobalEntity<Cursor>(cursor);
-        EntityManager.AddComponentToGlobalEntity<ArcBallCamera>(_camera);
-        EntityManager.AddComponentToGlobalEntity<Terrain>(_terrain);
-        EntityManager.AddComponentToGlobalEntity<GraphicsDevice>(GraphicsDevice);
+        //EntityManager.AddComponentToGlobalEntity(new SimulationSuper());
+        EntityManager.AddComponentToGlobalEntity(cursor);
+        EntityManager.AddComponentToGlobalEntity(_camera);
+        EntityManager.AddComponentToGlobalEntity(_terrain);
+        EntityManager.AddComponentToGlobalEntity(GraphicsDevice);
         
         CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
-        EntityManager.AddComponentToGlobalEntity<CubeMeshBatcher>(cubeMeshBatcher);
+        EntityManager.AddComponentToGlobalEntity(cubeMeshBatcher);
         
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
-        EntityManager.AddComponentToGlobalEntity<RoadMesh>(_roadMesh);
+        EntityManager.AddComponentToGlobalEntity(_roadMesh);
     }
 
     private KeyboardState oldKeyState;
