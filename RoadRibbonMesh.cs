@@ -24,6 +24,11 @@ public class RoadRibbonMesh
     private VertexBuffer _vertexBuffer;
     private IndexBuffer _indexBuffer;
     private BasicEffect _basicEffect;
+    
+    //TODO at some point it might be helpful to create a 1d texture (2d texture with height of 1) and . . .
+    //use it as a mapping for nodes or even segments (maybe 1 for each), store the color there or congestion rate
+    //then store the index to each node a vertex is connected to and the segment it belongs too and pass that
+    //to the GPU to calculate the color of the road when viewing the live congestion
 
     public RoadRibbonMesh()
     {
