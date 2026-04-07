@@ -36,6 +36,14 @@ public class RoadRibbonMesh
         //Console.WriteLine($"Index Updated: {index}");
         _vertices[index].Color = color;
         _verticesDirty = true;
+        
+        //TODO look into this
+        //can also patch the current by setting the data only partially like below rather than setting _verticesDirty and then setting the data for the entire array
+        //_roadMesh.RibbonMesh.VertexBuffer.SetData<VertexPositionColor>(
+        //    _vertices,      // The source array
+        //    startVertex,    // The index in the array to start copying from
+        //    elementCount    // The number of vertices to copy
+        //);
     }
 
     public Vector3[] GetSegmentVertices(int ribbonIndex)
