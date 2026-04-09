@@ -71,7 +71,8 @@ class GumInterface
                         ListBox SaveBox = new ListBox();
                         SavePanel.AddChild(SaveBox);
                         SaveBox.Items.Add("New File");
-                       // foreach (String file in Directory.GetFiles(@"CRoadSaves"))
+                        string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName.ToString();
+                        //foreach (String file in Directory.GetFiles(@"CRoadSaves"))
                         //{
                         //    String InputItem = (file);
                         //    SaveBox.Items.Add(InputItem);
@@ -92,7 +93,7 @@ class GumInterface
                                 }
 
                             else{    
-                                // LoadSystem.Load(SaveBox.SelectedIndex);
+                                //SaveSystem.Save(inputBox.Text);
                                 SaveWindow.RemoveFromRoot();
                                 }
                         };
@@ -225,7 +226,15 @@ class GumInterface
                             Chart1Window.AddChild(ControlBox);
                             ControlBox.Anchor(Anchor.BottomRight);
                         };
-                        
+                        //Add Exit button to the graph window:
+                        Button ExitGraphButton = new Button();
+                        ExitGraphButton.Text = "Cancel";
+                        ExitGraphButton.Anchor(Anchor.TopRight);
+                        Chart1Window.AddChild(ExitGraphButton);
+                        ExitGraphButton.Click += (sender, args) =>
+                        {
+                            Chart1Window.RemoveFromRoot();
+                        };
                 };
 
                 Button Chart2Button = new Button();
@@ -244,6 +253,15 @@ class GumInterface
                             ItemsControl ControlBox = CreateFormatSelection();
                             Chart2Window.AddChild(ControlBox);
                             ControlBox.Anchor(Anchor.BottomRight);
+                        };
+                        //Add Exit button to the graph window:
+                        Button ExitGraphButton = new Button();  
+                        ExitGraphButton.Text = "Cancel";
+                        ExitGraphButton.Anchor(Anchor.TopRight);            
+                        Chart2Window.AddChild(ExitGraphButton);
+                        ExitGraphButton.Click += (sender, args) =>
+                        {
+                            Chart2Window.RemoveFromRoot();
                         };
 
                 };
