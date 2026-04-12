@@ -103,4 +103,17 @@ public class SaveSystem
 
           return savedComponents;
      }
+
+     public static string[] ListSaveFiles()
+     {
+          string currentDir = Directory.GetCurrentDirectory();
+          string targetDir = Path.Combine(currentDir, "saves");
+
+          if (!Directory.Exists(targetDir))
+          {
+               Directory.CreateDirectory(targetDir);
+          }
+          
+          return Directory.GetFiles(targetDir);
+     }
 }

@@ -97,6 +97,7 @@ public class EntityManager
                 List<int> componentEntities = ComponentManager.ComponentRegistry[componentIndex];
                 int lastEntity = componentEntities.Last();
                 Entities[lastEntity][componentIndex] = entity[componentIndex];
+                EntityComponents[index][componentIndex] = null;
                 componentEntities[entity[i]-1] = lastEntity;
                 componentEntities.RemoveAt(componentEntities.Count - 1);
             }
