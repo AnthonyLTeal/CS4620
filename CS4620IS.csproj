@@ -25,6 +25,7 @@
         <PackageReference Include="MessagePack" Version="3.1.4" />
         <PackageReference Include="MonoGame.Framework.Compute.DesktopGL" Version="3.8.3" />
         <PackageReference Include="Nopipeline.Task" Version="2.2.0" />
+        <PackageReference Include="ScottPlot" Version="5.1.58" />
         <PackageReference Include="Gum.MonoGame" Version="2025.12.9.1" />
     </ItemGroup>
     <ItemGroup>

@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Data;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
@@ -17,7 +20,9 @@ public class CarSystems
     {
          List<int> entities = ComponentManager.GetComponent<Car>();
          List<int> entitiesToRemove = new List<int>();
-
+         //Dictionary<int, double> carDestinationTimes = new Dictionary<int, double>();
+         //List<double> finalDestinationTimes = new List<double>();
+         
          foreach (int entity in entities)
          {
              Car car = ComponentManager.GetEntityComponent<Car>(entity);
@@ -74,6 +79,7 @@ public class CarSystems
              //Console.WriteLine("Killing Entity: " + entity);
              EntityManager.RemoveEntity(entity);
          }
+         Console.WriteLine("Final Destinations Accounted For: " + finalDestinationTimes.Count);
     }
 
     private static bool PathExists(Destination destination, int segmentEntity)
@@ -437,13 +443,14 @@ public class CarSystems
     
         if (connector.SegmentEntities.Count <= 2)
             return false;
-    
+        
         if (carEntity == connector.StopQueue.Peek())
             return false;
-    
+        
         return true;
     }
-
+   
+   
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
     private static void MoveCar(int entity, float velocity)
     {
@@ -456,7 +463,11 @@ public class CarSystems
             bool isOverridden = (car.OverridePath.Count > 0);
             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
             
-            if (WaitOnStopSign(entity))
+           //if (WaitOnStopSign(entity))
+             //break;
+
+            //my new stuff
+            if (StoplightSystems.WaitOnStopLight(entity))
                 break;
             
             Vector3 nextPoint = GetPathVertex(car);
@@ -513,6 +524,7 @@ public class CarSystems
                         connectorQueued.StopQueue.Dequeue();
                     }
                     car.OnConnector = -1;
+                    car.InIntersection = false;
                 }
             }
             else

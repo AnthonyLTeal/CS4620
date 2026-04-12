@@ -52,6 +52,7 @@ public class LoadSystem
         foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
         {
             connector.DebugPosition = new VertexPositionColor(connector.Position, Color.Blue);
+            StoplightSystems.GenerateStoplights(connector.ID);
             roadMesh.InsertSegmentConnectorIntoOctree(connector);
         }
 
