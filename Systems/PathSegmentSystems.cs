@@ -32,6 +32,34 @@ public class PathSegmentSystems
 
         return vertexPositionColor;
     }
+    
+    public static void DestroySegmentConnector(int id)
+    {
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        roadMesh.PathSegmentConnectors[id] = null;
+    }
+
+    public static void DestroySegment(int entity)
+    {
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+
+        PathSegmentConnector endConnector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
+        endConnector.SegmentEntities.Remove(entity);
+        
+        PathSegmentConnector frontConnector = roadMesh.PathSegmentConnectors[(int)segment.FrontConnector];
+        frontConnector.SegmentEntities.Remove(entity);
+
+        if (endConnector.SegmentEntities.Count == 0)
+            DestroySegmentConnector((int)segment.EndConnector);
+        
+        if (frontConnector.SegmentEntities.Count == 0)
+            DestroySegmentConnector((int)segment.FrontConnector);
+
+        CalculateAllPaths();
+        EntityManager.RemoveEntity(entity);
+        
+    }
 
     public static void CalculateAllPaths()
     {
@@ -39,7 +67,70 @@ public class PathSegmentSystems
 
         foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
         {
+            if (connector == null)
+                continue;
             connector.DPath = CalculatePaths(connector, roadMesh);
+            
+            //Console.WriteLine($"Connector {connector.ID}: [{string.Join(", ", connector.DPath.Prevs)}]");
+        }
+    }
+
+    //Might want to change this in the future to a bucket based update to ensure we aren't
+    //processing too many at a time since we are changing vertex color. This could get expensive
+    //for now we use 3 congestion levels, 1, 2, 3
+    public static void SetPathColor()
+    {
+        List<int> entities = ComponentManager.GetComponent<PathSegment>();
+        foreach (int entity in entities)
+        {
+            int colorValue = 0;
+            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            
+            //Console.WriteLine($"Segment: {entity} | Entities On Segment: {segment.EntitiesOnSegment.Count}");
+            
+            if (segment.EntitiesOnSegment.Count >= 10)
+            {
+                if (segment.CurrentColorIndex != 3)
+                    colorValue = 3;
+                else continue;
+            }
+            else if (segment.EntitiesOnSegment.Count >= 5)
+            {
+                if (segment.CurrentColorIndex != 2)
+                    colorValue = 2;
+                else continue;
+            }
+            else
+            {
+                if (segment.CurrentColorIndex != 1)
+                    colorValue = 1;
+                else continue;
+            }
+
+            segment.CurrentColorIndex = colorValue;
+
+            Color color = new Color(0.35f, 0.35f, 0.35f);
+
+            if (colorValue == 2)
+            {
+                color = Color.Orange;
+            }
+            else if (colorValue == 3)
+            {
+                color = Color.Red;
+            }
+
+            RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+
+            // Console.WriteLine($"Updating Segment: {entity}");
+            // Console.WriteLine($"Color Index: {colorValue}");
+            // Console.WriteLine($"Start Point: {segment.RibbonOffset}");
+            // Console.WriteLine($"End Point: {segment.RibbonLength}");
+
+            for (int i = segment.RibbonOffset; i < segment.RibbonOffset + segment.RibbonLength; i++)
+            {
+                roadMesh.RibbonMesh.UpdateVertexColor(i, color);
+            }
         }
     }
     
@@ -83,6 +174,8 @@ public class PathSegmentSystems
                     prev[nextID] = currentID;
                     minHeap.Enqueue((nextID, newDist), newDist);
                 }
+                
+                
             }
         }
         

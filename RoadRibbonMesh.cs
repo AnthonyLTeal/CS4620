@@ -8,11 +8,14 @@ namespace CS4620IS;
 public class RoadRibbonMesh
 {
     private const int MAX_VERTICES = 50;
-    private Color DEFAULT_COLOR = new Color(0.35f, 0.35f, 0.35f); //red for testing 
+    private Color DEFAULT_COLOR = new Color(0.35f, 0.35f, 0.35f);
 
     private bool _dirty = false;
+    private bool _verticesDirty = false;
     private List<Vector3[]> _segmentVertices = new List<Vector3[]>();
     private List<int[]> _segmentIndices = new List<int[]>();
+    private int _totalVertexCount;
+    private VertexPositionColor[] _vertices;
 
     //private VertexPositionColor[] _vertices;
     //private int[] _indices;
@@ -21,11 +24,52 @@ public class RoadRibbonMesh
     private VertexBuffer _vertexBuffer;
     private IndexBuffer _indexBuffer;
     private BasicEffect _basicEffect;
+    
+    //TODO at some point it might be helpful to create a 1d texture (2d texture with height of 1) and . . .
+    //use it as a mapping for nodes or even segments (maybe 1 for each), store the color there or congestion rate
+    //then store the index to each node a vertex is connected to and the segment it belongs too and pass that
+    //to the GPU to calculate the color of the road when viewing the live congestion
 
     public RoadRibbonMesh()
     {
         GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
         _basicEffect = new BasicEffect(graphicsDevice);
+    }
+
+    public void UpdateVertexColor(int index, Color color)
+    {
+        //Console.WriteLine($"Index Updated: {index}");
+        _vertices[index].Color = color;
+        _verticesDirty = true;
+        
+        //TODO look into this
+        //can also patch the current by setting the data only partially like below rather than setting _verticesDirty and then setting the data for the entire array
+        //_roadMesh.RibbonMesh.VertexBuffer.SetData<VertexPositionColor>(
+        //    _vertices,      // The source array
+        //    startVertex,    // The index in the array to start copying from
+        //    elementCount    // The number of vertices to copy
+        //);
+    }
+
+    public Vector3[] GetSegmentVertices(int ribbonIndex)
+    {
+        return _segmentVertices[ribbonIndex];
+    }
+
+    public int GetVertexCount()
+    {
+        return _totalVertexCount;
+    }
+
+    public int GetSegmentCount()
+    {
+        return _segmentIndices.Count;
+    }
+
+    public void SetVertices()
+    {
+        _vertexBuffer.SetData(_vertices);
+        _verticesDirty = false;
     }
 
     public void Insert(Vector3[] vertices)
@@ -53,10 +97,13 @@ public class RoadRibbonMesh
         }
         _segmentIndices.Add(indices);
         _dirty = true;
+        _totalVertexCount += vertices.Length;
     }
 
     public void Update()
     {
+        if (_verticesDirty)
+            SetVertices();
         if (_dirty)
             RebuildMesh();
     }
@@ -112,6 +159,8 @@ public class RoadRibbonMesh
         _triangleCount = indices.Count / 3;
 
         _dirty = false;
+
+        _vertices = vertices.ToArray();
     }
 
     public void Draw()

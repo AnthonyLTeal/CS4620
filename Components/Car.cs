@@ -20,12 +20,13 @@ public class Car
     public Color Color;
     public float Scale = 0.25f;
     public List<Destination> Destinations;
-    public SegmentPath SegmentPath;
+    public CarPath SegmentPath;
     public Stack<Vector3> OverridePath = new Stack<Vector3>();
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
+    public List<String> Log = new List<String>();
     
-
+    [IgnoreMember]
     public int ConnectedSegment
     {
         get => connectedSegment;
@@ -49,16 +50,16 @@ public class Car
 [MessagePackObject(keyAsPropertyName: true)]
 public class Destination
 {
-    public int SegmentID;
-    public int SegmentPathIndex;
-    public Stack<int> Path;
+    public int TargetSegmentID;
+    public int TargetPathIndex;
 }
 
 [MessagePackObject(keyAsPropertyName: true)]
-public class SegmentPath
+public class CarPath
 {
     public int CurrentIndex;
-    public int BottomIndex;
-    public int TopIndex;
     public int Direction;
+    public int SegmentSize;
+    public int LastConnectorID = -1;
+    public int NextConnectorID = -1;
 }
