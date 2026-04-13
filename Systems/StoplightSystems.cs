@@ -85,6 +85,9 @@ public class StoplightSystems
         List<PathSegmentConnector> connectors = roadMesh.PathSegmentConnectors;
         for (int i = 0; i < connectors.Count; i++)
         {
+            if (connectors[i].SegmentEntities.Count < 3)
+                continue;
+
             if (connectors[i].LightTime <= connectors[i].LightTimer)
             {
                 connectors[i].CurrentLightGreen += 1;
@@ -114,10 +117,14 @@ public class StoplightSystems
 
         if (car.InIntersection)
             return false;
+
+        (int segmentOne, int segmentTwo) = connector.StoplightConnections[connector.CurrentLightGreen];
         
-        int segmentOne;
-        int segmentTwo;
-        (segmentOne, segmentTwo) = connector.StoplightConnections[connector.CurrentLightGreen];
+        // Console.WriteLine("Segment One: " + segmentOne);
+        // Console.WriteLine("Segment Two: " + segmentTwo);
+        //
+        // Console.WriteLine("Car previous Segment: " + car.PreviousSegment);
+        //
         if (segmentOne == car.PreviousSegment || segmentTwo == car.PreviousSegment) 
         {
             if (connector.LightTime - connector.LightTimer > connector.YellowTimer)

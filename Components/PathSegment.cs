@@ -36,8 +36,8 @@ public class PathSegment
         get;
         set;
     }
-    public int? endConnector = null;
-    public int? frontConnector = null;
+    private int? endConnector = null;
+    private int? frontConnector = null;
     public int ID;
     public int entityID;
     public int[] AdjacentPathSegmentEntities = new int[2];
@@ -55,7 +55,6 @@ public class PathSegment
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();
 
-    [IgnoreMember]
     public int? EndConnector
     {
         get => endConnector;
@@ -66,7 +65,6 @@ public class PathSegment
         }
     }
     
-    [IgnoreMember]
     public int? FrontConnector
     {
         get => frontConnector;
@@ -127,7 +125,7 @@ public class PathSegmentConnector
     public List<int> SegmentEntities = new List<int>();
     public DPath DPath;
     //public int Weight = 1;
-    public Queue<int> StopQueue = new Queue<int>();
+    public List<int> StopQueue = new List<int>();
     // new stuff for stoplights
     [IgnoreMember]
     public List<(int, int)> StoplightConnections;

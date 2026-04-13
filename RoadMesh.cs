@@ -1702,8 +1702,8 @@ public class RoadMesh
             PathSegmentConnector frontConnector = PathSegmentConnectors[(int)segment.FrontConnector];
             CullIntersectingPathPoints(endConnector);
             CullIntersectingPathPoints(frontConnector);
-            StoplightSystems.GenerateStoplights((int)segment.endConnector);
-            StoplightSystems.GenerateStoplights((int)segment.frontConnector);
+            StoplightSystems.GenerateStoplights((int)segment.EndConnector);
+            StoplightSystems.GenerateStoplights((int)segment.FrontConnector);
         }
 
         //third pass for inserting path points into octree (don't want to add culled points)
