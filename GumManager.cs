@@ -10,11 +10,17 @@ using Gum.Forms;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using RenderingLibrary.Graphics;
+using System.Drawing;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CS4620IS;
 
 class GumInterface
 {
+    public GraphicsDevice GraphicsDevice { get; set; }
+
     public void InitializeUI()
     {
         GumService.Default.Root.Children.Clear();
@@ -216,8 +222,17 @@ class GumInterface
                 {
                     Window Chart1Window = CreateWindow();
                     Chart1Window.AddToRoot();
+                        //Code to display chart1:
+                        SpriteRuntime ChartSprite = new SpriteRuntime();
+                        // string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;  
+                        // string graphsDir = Path.Combine(root, "Graphs");
+                        //string latestFile = Directory.GetFiles(graphsDir).OrderByDescending(f => File.GetCreationTime(f)).FirstOrDefault();
+                        ChartSprite.SourceFileName =  @"C:\\Users\\anon\\Desktop\School\CS4620 Spring 2026\CS4620 Project\CS4620\Graphs\Graph_20260409_083621.png";
+                        ChartSprite.Dock(Dock.Fill);
+                        Chart1Window.AddChild(ChartSprite);
+
                         Button SaveFormatButton = new Button();
-                        SaveFormatButton.Text = "Save Graph";
+                        SaveFormatButton.Text = "Save Graph"; 
                         SaveFormatButton.Anchor(Anchor.BottomRight);
                         Chart1Window.AddChild(SaveFormatButton);
                         SaveFormatButton.Click += (sender, args) =>
@@ -362,6 +377,7 @@ class GumInterface
                             Console.WriteLine($"Spawning {staticCount} static cars and {dynamicCount} dynamic cars");
                             // Call your car spawning logic here using staticCount and dynamicCount
                             CarSystems.GenerateRandomCar();
+                            CreateCharts();
                             SpawnWindow.RemoveFromRoot();
                         }
                         else
@@ -515,6 +531,23 @@ class GumInterface
 
         return newSlider;
     } 
+
+    private void CreateCharts()
+    {
+        ScottPlot.Plot signalPlot = new();
+        //signalPlot.Add.Signal(CarSystems.finalDestinationTimes);
+        signalPlot.Title("Times Took For Cars To Reach Destination");
+        string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+        string graphsDir = Path.Combine(root, "Graphs");
+        if (!Directory.Exists(graphsDir))
+        {
+            Directory.CreateDirectory(graphsDir);
+        }
+        string path = Path.Combine(graphsDir, $"Graph_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+        signalPlot.SavePng(path, 400, 300);
+
+        //CarSystems.finalDestinationTimes.Clear();
+    }
 
  
 

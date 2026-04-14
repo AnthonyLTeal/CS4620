@@ -12,6 +12,8 @@ using Gum.Forms;
 using Gum.Forms.Controls;
 using MonoGameGum;
 
+using System.IO;
+
 namespace CS4620IS;
 
 public class Game1 : Game
@@ -75,7 +77,7 @@ public class Game1 : Game
         ComponentManager.LoadComponentsFromNamespace("CS4620IS.Components");
         //Assets.Load(Content);
         
-        Cursor cursor = new Cursor();
+        CS4620IS.Components.Cursor cursor = new CS4620IS.Components.Cursor();
         _terrain = new Terrain(_graphics.GraphicsDevice);
         _camera = new ArcBallCamera(GraphicsDevice.Viewport.AspectRatio, MathHelper.PiOver4, new Vector3(0, 0, 0), Vector3.Up, 0.1f, 1000);
         _cameraControls = new CameraControls();
@@ -83,7 +85,7 @@ public class Game1 : Game
         //Assets.Effects["BasicEffect"] = new BasicEffect(GraphicsDevice);
         
         //terrain cursor needed?
-        EntityManager.AddComponentToGlobalEntity<Cursor>(cursor);
+        EntityManager.AddComponentToGlobalEntity<CS4620IS.Components.Cursor>(cursor);
         EntityManager.AddComponentToGlobalEntity<ArcBallCamera>(_camera);
         EntityManager.AddComponentToGlobalEntity<Terrain>(_terrain);
         EntityManager.AddComponentToGlobalEntity<GraphicsDevice>(GraphicsDevice);
@@ -140,7 +142,7 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
         _terrain.Draw(_graphics.GraphicsDevice, _camera);
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
         BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
@@ -162,4 +164,6 @@ public class Game1 : Game
         GumInterface _interface = new GumInterface();
         _interface.InitializeUI(); 
     }
+
+   
 }
