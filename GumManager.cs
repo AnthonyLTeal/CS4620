@@ -338,6 +338,9 @@ class GumInterface
             runButton.Text = "Run simulation";
             StartPanel.AddChild(runButton);
 
+            //Create Boolean to check if charts have been created:
+            //bool ChartsCreated = false;
+
             runButton.Click += (sender, args) => 
             {   
                 //Add Window for controls
@@ -394,6 +397,8 @@ class GumInterface
                     ExitSpawnButton.Click += (sender, args) =>
                     {
                         SpawnWindow.RemoveFromRoot();
+                        CreateCharts();
+                        ChartsCreated = true;
                     };
 
 
