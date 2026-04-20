@@ -31,6 +31,8 @@ public class PathSegmentConnectorSystems
         {
             segment.EndConnector = connector.ID;
         }
+        
+        GenerateStopSign(connector);
     }
 
     //TODO test this, it might not work right
@@ -107,7 +109,6 @@ public class PathSegmentConnectorSystems
     {
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
         roadMesh.PathSegmentConnectors.Add(connector);
-        GenerateStopSign(connector);
     }
 
     public static void GenerateStopSign(PathSegmentConnector connector)

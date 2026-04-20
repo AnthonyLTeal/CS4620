@@ -16,6 +16,9 @@
         <None Remove="Icon.bmp" />
         <Compile Remove="Systems\DrawSystem.cs" />
         <None Include="Systems\DrawSystem.txt" />
+        <None Update="Content\StopSignIcon.png">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico" />

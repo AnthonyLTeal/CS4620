@@ -97,6 +97,8 @@ public class Game1 : Game
         
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
         EntityManager.AddComponentToGlobalEntity(_roadMesh);
+        
+        StopSignDrawSystem.Load(GraphicsDevice, Content);
     }
 /* 
  */    private KeyboardState oldKeyState;
@@ -179,6 +181,8 @@ public class Game1 : Game
         
         CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
         cubeMeshBatcher.Draw();
+        
+        StopSignDrawSystem.Draw(_spriteBatch, GraphicsDevice);
         
         // TODO: Add your drawing code here
 
