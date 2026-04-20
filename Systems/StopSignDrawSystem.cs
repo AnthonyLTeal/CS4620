@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PlanetaryExpansion;
 
 namespace CS4620IS;
+//TODO Stop Light Animations still needed, Stop Sign/Stop Light being differentiated still needed, Z scaling still needed
 
 public class StopSignDrawSystem
 {
