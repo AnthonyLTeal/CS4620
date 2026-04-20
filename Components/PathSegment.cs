@@ -123,6 +123,7 @@ public class PathSegmentConnector
     public List<int> PointIDs = new List<int>();
     //public List<int> SegmentIDs = new List<int>();
     public List<int> SegmentEntities = new List<int>();
+    public List<Vector3> StopSignLocations = new List<Vector3>();
     public DPath DPath;
     //public int Weight = 1;
     public List<int> StopQueue = new List<int>();
