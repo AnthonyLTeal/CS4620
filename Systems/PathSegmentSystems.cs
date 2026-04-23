@@ -58,7 +58,6 @@ public class PathSegmentSystems
 
         CalculateAllPaths();
         EntityManager.RemoveEntity(entity);
-        
     }
 
     public static void CalculateAllPaths()
@@ -73,6 +72,11 @@ public class PathSegmentSystems
             
             //Console.WriteLine($"Connector {connector.ID}: [{string.Join(", ", connector.DPath.Prevs)}]");
         }
+    }
+
+    public static void UpdateCongestionCost()
+    {
+        
     }
 
     //Might want to change this in the future to a bucket based update to ensure we aren't

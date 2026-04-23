@@ -7,7 +7,7 @@ namespace CS4620IS;
 
 public struct ReroutePath
 {
-    public int Origin; //might be able to remove either Origin or PreviousNode, they may really contain the same information
+    public int Origin;
     public int IntermediaryNode;
     public int DestinationNode;
     public float HeuristicDistance;
@@ -26,7 +26,6 @@ public class RerouteSystem
         float originHeuristicDistanceOne = CheckRoute(origin, destOneId); 
         float originHeuristicDistanceTwo = CheckRoute(origin, destTwoId);
         
-        //we should CheckRoute on the destination
         float bestDistance = originHeuristicDistanceTwo;
         PathSegmentConnector targetConnector = roadMesh.PathSegmentConnectors[destTwoId];
 
@@ -38,6 +37,7 @@ public class RerouteSystem
 
         int rawDistance = targetConnector.DPath.Distances[origin];
 
+        //here we check if our bestDistance is any better than our raw distance, if not, it means there are no obstructions and we should continue to use that path
         if (Math.Abs(bestDistance - rawDistance) < 0.01f)
             return null;
         
@@ -55,22 +55,18 @@ public class RerouteSystem
 
         List<int> adjacentConnectors = GetAdjacentConnectors(previousNode);
         
-        if (adjacentConnectors.Count == 2)
+        //this section here detects if the current segment connector is an intersection and doesn't
+        if (adjacentConnectors.Count <= 2)
         {
-            if (adjacentConnectors[0] != origin || 
-                adjacentConnectors[0] != destinationNode ||
-                !ignoreNodes.Contains(adjacentConnectors[0]))
+            for (int i = 0; i < adjacentConnectors.Count; i++)
             {
-                UpdateBestPath(depth, origin, adjacentConnectors[0], destinationNode, ref bestDistance, ref bestPath, adjacentConnectors);
+                if (adjacentConnectors[i] != origin || 
+                    adjacentConnectors[i] != destinationNode ||
+                    !ignoreNodes.Contains(adjacentConnectors[i]))
+                {
+                    UpdateBestPath(depth, origin, adjacentConnectors[i], destinationNode, ref bestDistance, ref bestPath, adjacentConnectors);
+                }
             }
-            
-            if (adjacentConnectors[1] != origin || 
-                adjacentConnectors[1] != destinationNode ||
-                !ignoreNodes.Contains(adjacentConnectors[1]))
-            {
-                UpdateBestPath(depth, origin, adjacentConnectors[0], destinationNode, ref bestDistance, ref bestPath, adjacentConnectors);
-            }
-
             return;
         }
         
@@ -127,6 +123,25 @@ public class RerouteSystem
     /// </summary>
     public static float CheckRoute(int origin, int destination)
     {
-        return 0;
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        PathSegmentConnector originConnector = roadMesh.PathSegmentConnectors[origin];
+        
+        float routeCost = originConnector.DPath.Distances[destination];
+        
+        while (destination != origin)
+        {
+            PathSegmentConnector intermediateConnector = roadMesh.PathSegmentConnectors[destination];
+            foreach (int segmentEntity in intermediateConnector.SegmentEntities)
+            {
+                PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+                if (((int)segment.EndConnector == origin || (int)segment.FrontConnector == origin) &&
+                    ((int)segment.EndConnector == destination || (int)segment.FrontConnector == destination))
+                {
+                    routeCost += segment.CongestionCost;
+                }
+            }
+            destination = originConnector.DPath.Prevs[destination];
+        }
+        return routeCost;
     }
 }

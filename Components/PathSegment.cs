@@ -51,6 +51,7 @@ public class PathSegment
     public int RibbonOffset;
     //public int LastColorIndex = 1;
     public int CurrentColorIndex = 1;
+    public float CongestionCost = 0;
     
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();
