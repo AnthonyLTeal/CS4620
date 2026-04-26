@@ -70,8 +70,18 @@ public class CarSystems
              
              float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
              SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
-             MoveCar(entity, 2 * dt * simulationSuper.SimSpeed);
 
+             try
+             {
+                MoveCar(entity, 2 * dt * simulationSuper.SimSpeed);
+             }
+             catch (Exception e)
+             {
+                 //TODO there are still times where we are getting index errors in getnextvertex so killing those entities for now when it happens
+                 Console.WriteLine(e);
+                 entitiesToRemove.Add(entity);
+             }
+             
          }
 
          foreach (int entity in entitiesToRemove)
@@ -580,6 +590,16 @@ public class CarSystems
                 Vector3 p1 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, connectedSegment);
 
                 car.SegmentPath = BuildCarPath(car, car.Destinations[0], lastConnectorID, nextConnectorId);
+                
+                if (car.IsReroute)
+                {
+                    car.ReroutePath = RerouteSystem.Reroute(2, lastConnectorID, car.Destinations[0]);
+                    if (car.ReroutePath is not null)
+                    {
+                        car.SegmentPath = BuildCarPath((car, car.Destinations[0], ))
+                    }
+                } 
+                //car.SegmentPath = BuildCarPath(car, car.Destinations[0], lastConnectorID, nextConnectorId);
                 //car.SegmentPath.CurrentIndex += car.SegmentPath.Direction;
                 
                 //might need to change this

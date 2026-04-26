@@ -26,6 +26,8 @@ public class Car
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
     public bool InIntersection = false;
+    public ReroutePath? ReroutePath = null;
+    public bool IsReroute = false;
     
     public List<String> Log = new List<String>();
     
@@ -37,7 +39,7 @@ public class Car
         {
             if (value == 0)
             {
-                Console.WriteLine("ERROR: WTF");
+                Console.WriteLine("ERROR: dunno");
             }
             else
             {
