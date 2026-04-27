@@ -37,7 +37,7 @@ public class Car
         get => connectedSegment;
         set
         {
-            if (value == 0)
+            if (value == 0) 
             {
                 Console.WriteLine("ERROR: dunno");
             }

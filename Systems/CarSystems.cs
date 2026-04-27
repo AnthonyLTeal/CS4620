@@ -554,67 +554,49 @@ public class CarSystems
             if (((car.SegmentPath.CurrentIndex == 0 && car.SegmentPath.Direction == -1) || 
                 (car.SegmentPath.CurrentIndex == car.SegmentPath.SegmentSize - 1  && car.SegmentPath.Direction == 1)))
             {
-                // List<int> entities = ComponentManager.GetComponent<PathSegment>();
-                // foreach (int segmentEntity in entities)
-                // {
-                //     PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
-                //     Console.WriteLine($"Segment: {segmentEntity} | Entities On Segment: {segment.EntitiesOnSegment.Count}");
-                // }
-                
-                // Console.WriteLine($"Current Segment: {car.connectedSegment}");
-                // Console.WriteLine($"Current Segment Car Count: " + connectedSegment.EntitiesOnSegment.Count);
                 connectedSegment.EntitiesOnSegment.Remove(entity);
-                // Console.WriteLine($"Current Segment Car Count (removed): " + connectedSegment.EntitiesOnSegment.Count);
-
+                
                 int lastConnectorID = car.SegmentPath.NextConnectorID;
                 int nextConnectorId = GetNextConnectorID(car.Destinations[0], lastConnectorID);
+                
+                
+                //my thought process for this is if I set the lastConnectorID and the Destination based on the current reroute path next point
+                //then we can get a good path forward. I'm not 100% sure though, because the destination is a segment.
+                //I'm wondering if I can use a "dummy" or just ignore it entirely for this portion. I'd need to double
+                //check how I wrote that portion, but I don't wanna do that because I'm lazy
+                
+                //GetNextSegment is safe because it just checks if the car is on the current segment
+                //BuildCarPath should be safe as it's only used as a check when on an initial point
+                //GetNextSegment I think this is safe too, it just checks that we aren't getting the same segment we just left, I think we are good on all 3 of these
+                
+                //there might be some unknown bugs with this, so if I go this route, I should be willing to think in a different direction
+                if (car.IsReroute)
+                {
+                    car.ReroutePath = RerouteSystem.Reroute(2, lastConnectorID, car.Destinations[0]);
+                } 
+                
+                if (car.ReroutePath is not null)
+                {
+                    ReroutePath reroutePath = (ReroutePath)car.ReroutePath;
+                    
+                    if (reroutePath.IntermediaryNodes.Count > 0)
+                        nextConnectorId = ((ReroutePath)car.ReroutePath).IntermediaryNodes[0];
+                }
+                
                 int lastPathIndex = car.SegmentPath.CurrentIndex;
-                //PathSegment previousSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-                //previousSegment.EntitiesOnSegment.Remove(entity);
                 car.PreviousSegment = car.ConnectedSegment;
                 int nextSegmentId = GetNextSegment(car.Destinations[0], nextConnectorId, lastConnectorID);
                 car.connectedSegment = nextSegmentId;
                 PathSegment nextSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-                
-                // Console.WriteLine($"Next Segment: {car.connectedSegment}");
-                // Console.WriteLine($"Next Segment Car Count: " + nextSegment.EntitiesOnSegment.Count);
                 nextSegment.EntitiesOnSegment.Add(entity);
-                // Console.WriteLine($"Next Segment Car Count (Added): " + nextSegment.EntitiesOnSegment.Count);
-                
-                // foreach (int segmentEntity in entities)
-                // {
-                //     PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
-                //     Console.WriteLine($"Segment: {segmentEntity} | Entities On Segment: {segment.EntitiesOnSegment.Count}");
-                // }
-
                 Vector3 p1 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, connectedSegment);
-
                 car.SegmentPath = BuildCarPath(car, car.Destinations[0], lastConnectorID, nextConnectorId);
-                
-                if (car.IsReroute)
-                {
-                    car.ReroutePath = RerouteSystem.Reroute(2, lastConnectorID, car.Destinations[0]);
-                    if (car.ReroutePath is not null)
-                    {
-                        car.SegmentPath = BuildCarPath((car, car.Destinations[0], ))
-                    }
-                } 
-                //car.SegmentPath = BuildCarPath(car, car.Destinations[0], lastConnectorID, nextConnectorId);
-                //car.SegmentPath.CurrentIndex += car.SegmentPath.Direction;
-                
-                //might need to change this
-                //car.Position = nextPoint;
                 car.OnConnector = lastConnectorID;
                 PathSegment newSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-                //connectedSegment.EntitiesOnSegment.Remove(entity);
-                //newSegment.EntitiesOnSegment.Add(entity);
                 Vector3 p2 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, newSegment);
-                //Console.WriteLine("Current Path Index: " + car.SegmentPath.CurrentIndex);
-                //Console.WriteLine("Current Path Size: " + car.SegmentPath.SegmentSize);
                 Vector3 p3 = roadMesh.PathSegmentConnectors[lastConnectorID].Position;
                 BuildIntersectionPath(car, p1, p2, p3);
                 car.Position = car.OverridePath.Pop();
-                //Console.WriteLine("Override Length: " + car.OverridePath.Count);
                 car.OnConnector = lastConnectorID;
                 PathSegmentConnector lastConnector = roadMesh.PathSegmentConnectors[lastConnectorID];
                 if (lastConnector.SegmentEntities.Count > 2) 
