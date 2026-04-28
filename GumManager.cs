@@ -398,7 +398,7 @@ class GumInterface
                     {
                         SpawnWindow.RemoveFromRoot();
                         CreateCharts();
-                        ChartsCreated = true;
+                        //ChartsCreated = true;
                     };
 
 
