@@ -712,14 +712,12 @@ public class CarSystems
         carPath.LastConnectorID = lastConnectorID;
         return carPath;
     }
-
-    private static Random random = new Random();
-
+    
     /// <summary>
     /// Gets a random path point
     /// </summary>
     /// <returns>(int SegmentEntityID, int SegmentPathPointIndex)</returns>
-    public static (int, int) GetRandomPathPoint()
+    public static (int, int) GetRandomPathPoint(Random random)
     {
         List<int> segments = ComponentManager.GetComponent<PathSegment>();
         int randomSegment = random.Next(segments.Count);
@@ -790,18 +788,38 @@ public class CarSystems
         return currentVertexPos + RoadSideOffset(direction) * car.CurrentLane;
     }
 
-    public static void GenerateRandomCar()
+    public static void GenerateCars(int count = 2000, int seed = 1, float behaviorDistribution = 1)
     {
+        Random random = new Random(seed);
+        
+        for (int i = 0; i < count * behaviorDistribution; i++)
+        {
+            GenerateRandomCar(random);
+        }
 
+        for (int i = 0; i < count - (count * behaviorDistribution); i++)
+        {
+            GenerateRandomCar(random, CarBehavior.Rerouting);
+        }
+    }
+    
+    public enum CarBehavior
+    {
+        Basic,
+        Rerouting
+    }
+
+    public static void GenerateRandomCar(Random random, CarBehavior behavior = CarBehavior.Basic)
+    {
         //List<int> segments = ComponentManager.GetComponent<PathSegment>();
-        (int randomSegment, int randomPathPoint) = GetRandomPathPoint();
+        (int randomSegment, int randomPathPoint) = GetRandomPathPoint(random);
         if (randomSegment == -1)
             return;
         
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(randomSegment);
         Vector3 position = segment.Path[randomPathPoint];
 
-        (int randomSegmentDestination, int randomPathPointDestination) = GetRandomPathPoint();
+        (int randomSegmentDestination, int randomPathPointDestination) = GetRandomPathPoint(random);
         if (randomSegmentDestination == -1)
             return;
 
@@ -824,7 +842,7 @@ public class CarSystems
         }
         
         List<Destination> destinations = new List<Destination>() {destination};
-
+        
         Car car = new Car()
         {
             ConnectedSegment = segment.EntityID,
@@ -837,6 +855,12 @@ public class CarSystems
 //            InitialPathIndex = segment.TotalPathLength - 3
         };
         car.SegmentPath = BuildCarPath(car, destination);
+
+        if (behavior == CarBehavior.Rerouting)
+        {
+            car.Color = Color.Orange;
+            car.IsReroute = true;
+        }
 
         car.Position = GetInitialPosition(car);
         
