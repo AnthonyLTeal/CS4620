@@ -12,9 +12,9 @@ namespace CS4620IS;
 
 public class LoadSystem
 {
-    public static void Load()
+    public static void Load(String path)
     {
-        byte[] bytes = File.ReadAllBytes("save.dat");
+        byte[] bytes = File.ReadAllBytes(path);
         //first load EntityManager state
         //next load ComponentManager state
         //next load Components
