@@ -204,6 +204,21 @@ class GumInterface
 
             };
 
+            Button PathTypeButton = new Button();
+            PathTypeButton.Text = "Path Type: Straight";
+            StartPanel.AddChild(PathTypeButton);
+
+            PathTypeButton.Click += (sender, args) =>
+            {
+                RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                if (roadMesh.BuildType == BuildType.Curved)
+                    roadMesh.BuildType = BuildType.Straight;
+                else
+                    roadMesh.BuildType = BuildType.Curved;
+                
+                PathTypeButton.Text = "Path Type:  " + roadMesh.BuildType;
+            };
+
             //Add Graph Window Button:
             Button GraphWindowButton = new Button();
             GraphWindowButton.Text = "View Charts";
