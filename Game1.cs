@@ -148,11 +148,6 @@ public class Game1 : Game
         {
             LoadSystem.Load();
         }
-        
-        if (Keyboard.GetState().IsKeyUp(Keys.S) && oldKeyState.IsKeyDown(Keys.S) && Keyboard.GetState().IsKeyDown(Keys.LeftControl))
-        {
-            SaveSystem.Save();
-        }
 
         oldKeyState = Keyboard.GetState();
         

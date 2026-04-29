@@ -92,16 +92,17 @@ class GumInterface
 
                         SButton.Click += (sender, args) =>
                         {
-                             if(inputBox.Text == "")
-                                {
+                            if(inputBox.Text == "")
+                            {
                                 Console.WriteLine("Please Enter a file name first");
-                                }
+                            }
 
-                            else{    
+                            else
+                            {    
                                 string FileName = inputBox.Text;
                                 SaveSystem.Save();
                                 SaveWindow.RemoveFromRoot();
-                                }
+                            }
                         };
 
                         // Add Cancel Button to the Panel:
@@ -115,11 +116,6 @@ class GumInterface
                         {
                             SaveWindow.RemoveFromRoot(); 
                         };             
-
-                            
-
-
-                    
             };
 
             //Add button 2
@@ -164,7 +160,6 @@ class GumInterface
                             LoadWindow.RemoveFromRoot();
                         };
 
-
                         Button CancelButton = new Button();
                         CancelButton.Text = "Cancel";
                         LoadPanel.AddChild(CancelButton);
@@ -173,9 +168,6 @@ class GumInterface
                         {
                             LoadWindow.RemoveFromRoot();
                         };
-            
-                    
-
             };  
 
             //Add button 3 -> ExitButton
@@ -256,7 +248,6 @@ class GumInterface
                         chart1Rectangle.Anchor(Anchor.Center);
                         chart1Rectangle.AddChild(chartSprite);
                         Chart1Window.AddChild(chart1Rectangle);
-
 
                         Button SaveFormatButton = new Button();
                         SaveFormatButton.Text = "Save Graph";
@@ -407,7 +398,7 @@ class GumInterface
                     SpawnPanel.AddChild(PercentTextbox);
                     
                     Label SeedLabel = new Label();
-                    PercentLabel.Text = "Percent of cars that are basic vs reroute";
+                    SeedLabel.Text = "Seed";
                     SpawnPanel.AddChild(SeedLabel);
                     TextBox SeedTextbox = new TextBox();
                     SpawnPanel.AddChild(SeedTextbox);

@@ -32,7 +32,7 @@ public class SaveSystem
           Options = MessagePackSerializerOptions.Standard.WithResolver(resolver);
      }
 
-     public static void Save()
+     public static void Save(String path)
      {
           WorldState worldState = new WorldState();
           worldState.Entities = EntityManager.Entities;
@@ -52,7 +52,7 @@ public class SaveSystem
           worldState.PathSegmentConnectors = EntityManager.GetGlobalComponent<RoadMesh>().PathSegmentConnectors;
 
           byte[] msgpackBytes = MessagePackSerializer.Serialize(worldState, Options);
-          File.WriteAllBytes("save.dat", msgpackBytes);
+          File.WriteAllBytes(path, msgpackBytes);
      }
 
      public static List<SavedComponent> SerializeEntityComponents()
