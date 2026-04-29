@@ -73,7 +73,7 @@ public class RoadMesh
     private int? StateThreeSnappedSegmentConnector = null;
     public OctreeSuper<PathSegmentPointOctreeData> Octree;
     private PathSegmentPointOctreeData ClampedPointOctreeData = null;
-    public bool CreateEnabled = true;
+    public bool CreateEnabled = false;
     private const float PATH_WIDTH = .5f;
     private RoadRibbonMesh _ribbonMesh = new RoadRibbonMesh();
     private List<int> DeadConnectorIDs = new List<int>();

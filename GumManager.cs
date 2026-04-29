@@ -10,8 +10,13 @@ using Gum.Forms;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.IO;
+using PlanetaryExpansion;
+using RenderingLibrary.Graphics;
+//using RenderingLibrary.Graphics;
+//using System.IO.Enumeration;
 
 namespace CS4620IS;
+
 
 class GumInterface
 {
@@ -71,7 +76,8 @@ class GumInterface
                         ListBox SaveBox = new ListBox();
                         SavePanel.AddChild(SaveBox);
                         SaveBox.Items.Add("New File");
-                       // foreach (String file in Directory.GetFiles(@"CRoadSaves"))
+                        string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName.ToString();
+                        //foreach (String file in Directory.GetFiles(@"CRoadSaves"))
                         //{
                         //    String InputItem = (file);
                         //    SaveBox.Items.Add(InputItem);
@@ -92,7 +98,8 @@ class GumInterface
                                 }
 
                             else{    
-                                // LoadSystem.Load(SaveBox.SelectedIndex);
+                                string FileName = inputBox.Text;
+                                SaveSystem.Save();
                                 SaveWindow.RemoveFromRoot();
                                 }
                         };
@@ -153,6 +160,7 @@ class GumInterface
                         LButton.Click += (sender, args) =>
                         {
                             // LoadSystem.Load(ListBox.SelectedStateName);
+                            LoadSystem.Load();
                             LoadWindow.RemoveFromRoot();
                         };
 
@@ -183,14 +191,17 @@ class GumInterface
 
             //Add Road Path Button:
             Button RoadPathButton = new Button();
-            RoadPathButton.Text = "Draw Road";  
+            RoadPathButton.Text = "Draw Road False";  
             StartPanel.AddChild(RoadPathButton);
 
             RoadPathButton.Click += (sender, args) =>
             {
                 Console.WriteLine("Clicked on the road path button!");
                 // Logic to enable road path editing mode goes here
-                
+                RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                roadMesh.CreateEnabled = !roadMesh.CreateEnabled;
+                RoadPathButton.Text = "Draw Road " + roadMesh.CreateEnabled;
+
             };
 
             //Add Graph Window Button:
@@ -211,39 +222,90 @@ class GumInterface
                 Button Chart1Button = new Button();
                 Chart1Button.Text = "Chart 1";
                 ChartPanel.AddChild(Chart1Button); 
+
                 Chart1Button.Click += (sender, args) =>
                 {
                     Window Chart1Window = CreateWindow();
+                    Chart1Window.Width = 460;
+                    Chart1Window.Height = 360;
                     Chart1Window.AddToRoot();
+                        //Add the chart image to the window:
+                        SpriteRuntime chartSprite = new SpriteRuntime();
+                        // The Source file name, has to be a specific path on the user's machine at the moment.
+                        chartSprite.SourceFileName = "C:\\Users\\inter\\OneDrive\\Desktop\\Spring 2026\\CS4620 Intelligent Systems\\New folder\\CS4620\\Graphs\\Graph_20260409_083621.png";
+                        chartSprite.Dock(Dock.Fill);
+                        // Creating Rectangle for the image to sit in:
+                        RectangleRuntime chart1Rectangle = new RectangleRuntime();
+                        chart1Rectangle.Width = 400;
+                        chart1Rectangle.Height = 300;
+                        chart1Rectangle.Anchor(Anchor.Center);
+                        chart1Rectangle.AddChild(chartSprite);
+                        Chart1Window.AddChild(chart1Rectangle);
+
+
                         Button SaveFormatButton = new Button();
                         SaveFormatButton.Text = "Save Graph";
                         SaveFormatButton.Anchor(Anchor.BottomRight);
                         Chart1Window.AddChild(SaveFormatButton);
+
                         SaveFormatButton.Click += (sender, args) =>
                         { 
                             ItemsControl ControlBox = CreateFormatSelection();
                             Chart1Window.AddChild(ControlBox);
                             ControlBox.Anchor(Anchor.BottomRight);
                         };
-                        
+                        //Add Exit button to the graph window:
+                        Button ExitGraphButton = new Button();
+                        ExitGraphButton.Text = "Cancel";
+                        ExitGraphButton.Anchor(Anchor.TopRight);
+                        Chart1Window.AddChild(ExitGraphButton);
+                        ExitGraphButton.Click += (sender, args) =>
+                        {
+                            Chart1Window.RemoveFromRoot();
+                        };
                 };
 
                 Button Chart2Button = new Button();
                 Chart2Button.Text = "Chart 2";  
                 ChartPanel.AddChild(Chart2Button);
+
                 Chart2Button.Click += (sender, args) =>
                 {
                     Window Chart2Window = CreateWindow();
+                    Chart2Window.Width = 460;
+                    Chart2Window.Height = 360;
                     Chart2Window.AddToRoot();
+                        SpriteRuntime chart2Sprite = new SpriteRuntime();
+                        chart2Sprite.SourceFileName = "C:\\Users\\inter\\OneDrive\\Desktop\\Spring 2026\\CS4620 Intelligent Systems\\New folder\\CS4620\\Graphs\\Graph_20260409_083621.png";
+                        
+                        RectangleRuntime chart2Rectangle = new RectangleRuntime();
+                        chart2Rectangle.Width = 400;
+                        chart2Rectangle.Height = 300;
+                        chart2Rectangle.Anchor(Anchor.Center);
+                        chart2Rectangle.AddChild(chart2Sprite);
+                        Chart2Window.AddChild(chart2Rectangle);
+
                         Button SaveFormatButton = new Button();
                         SaveFormatButton.Text = "Save Graph";
                         SaveFormatButton.Anchor(Anchor.BottomRight);
                         Chart2Window.AddChild(SaveFormatButton);
+
                         SaveFormatButton.Click += (sender, args) =>
                         { 
                             ItemsControl ControlBox = CreateFormatSelection();
                             Chart2Window.AddChild(ControlBox);
                             ControlBox.Anchor(Anchor.BottomRight);
+                        };
+
+                        //Add Exit button to the graph window:
+                        Button ExitGraphButton = new Button();  
+                        ExitGraphButton.Text = "Cancel";
+                        ExitGraphButton.Anchor(Anchor.TopRight);            
+                        Chart2Window.AddChild(ExitGraphButton);
+
+                        ExitGraphButton.Click += (sender, args) =>
+                        {
+                            Chart2Window.RemoveFromRoot();
                         };
 
                 };
@@ -300,7 +362,7 @@ class GumInterface
                 // Logic to enable adding a sign goes here
             };
 
-            //Add Spawn Cars Button:
+            //Add Button to run simulation :
             Button runButton = new Button();
             runButton.Text = "Run simulation";
             StartPanel.AddChild(runButton);
@@ -317,33 +379,44 @@ class GumInterface
                     SpawnWindow.AddChild(SpawnPanel);
 
                     //Create Labels and TextBoxes for Static and Dynamic Cars:
-                    Label StaticAgentLabel = new Label();
-                    StaticAgentLabel.Text = "# of static Cars";
-                    SpawnPanel.AddChild(StaticAgentLabel);
-                    TextBox StaticAgentTextBox = new TextBox();
-                    SpawnPanel.AddChild(StaticAgentTextBox);
+                    Label CarCountLabel = new Label();
+                    CarCountLabel.Text = "Total cars";
+                    SpawnPanel.AddChild(CarCountLabel);
+                    TextBox CarCountTextbox = new TextBox();
+                    SpawnPanel.AddChild(CarCountTextbox);
 
-                    Label DynamicAgentLabel = new Label();
-                    DynamicAgentLabel.Text = "# of rerouting Cars";
-                    SpawnPanel.AddChild(DynamicAgentLabel);
-                    TextBox DynamicAgentTextBox = new TextBox();
-                    SpawnPanel.AddChild(DynamicAgentTextBox);
-
+                    Label PercentLabel = new Label();
+                    PercentLabel.Text = "Percent of cars that are basic vs reroute";
+                    SpawnPanel.AddChild(PercentLabel);
+                    TextBox PercentTextbox = new TextBox();
+                    SpawnPanel.AddChild(PercentTextbox);
+                    
+                    Label SeedLabel = new Label();
+                    PercentLabel.Text = "Percent of cars that are basic vs reroute";
+                    SpawnPanel.AddChild(SeedLabel);
+                    TextBox SeedTextbox = new TextBox();
+                    SpawnPanel.AddChild(SeedTextbox);
+                    
                     //Create Button to Start Simulation:
                     Button StartSimButton = new Button();   
                     StartSimButton.Text = "Start Simulation";
                     SpawnPanel.AddChild(StartSimButton);    
-
+                
+ 
                     StartSimButton.Click += (sender, args) =>
                     {
-                        int staticCount;
-                        int dynamicCount;
-
-                        if (int.TryParse(StaticAgentTextBox.Text, out staticCount) && int.TryParse(DynamicAgentTextBox.Text, out dynamicCount))
+                        int totalCount;
+                        int distributionPercent;
+                        int seed;
+ 
+                        if (int.TryParse(CarCountTextbox.Text, out totalCount) && 
+                            int.TryParse(PercentTextbox.Text, out distributionPercent) &&
+                            int.TryParse(SeedTextbox.Text, out seed))
                         {
-                            Console.WriteLine($"Spawning {staticCount} static cars and {dynamicCount} dynamic cars");
+                            Console.WriteLine($"Spawning {totalCount} static cars and {distributionPercent} dynamic cars");
                             // Call your car spawning logic here using staticCount and dynamicCount
                             //CarSystems.GenerateRandomCar();
+                            CarSystems.GenerateCars(totalCount, seed, distributionPercent * .01f);
                             SpawnWindow.RemoveFromRoot();
                         }
                         else
@@ -360,6 +433,8 @@ class GumInterface
                     ExitSpawnButton.Click += (sender, args) =>
                     {
                         SpawnWindow.RemoveFromRoot();
+                        //CreateCharts();
+                        //ChartsCreated = true;
                     };
 
 
@@ -483,6 +558,7 @@ class GumInterface
     
     private Slider CreateSlider()
     {
+        
         Slider newSlider = new Slider();
         newSlider.AddToRoot();
         newSlider.Maximum = 30;
