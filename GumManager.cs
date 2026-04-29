@@ -92,6 +92,10 @@ class GumInterface
 
                         SButton.Click += (sender, args) =>
                         {
+                            if (!Directory.Exists("saves"))
+                            {
+                                Directory.CreateDirectory("saves");
+                            }
                             if(inputBox.Text == "")
                             {
                                 Console.WriteLine("Please Enter a file name first");
