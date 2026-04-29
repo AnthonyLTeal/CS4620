@@ -578,9 +578,12 @@ public class CarSystems
                 if (car.ReroutePath is not null)
                 {
                     ReroutePath reroutePath = (ReroutePath)car.ReroutePath;
-                    
+
                     if (reroutePath.IntermediaryNodes.Count > 0)
+                    {
                         nextConnectorId = ((ReroutePath)car.ReroutePath).IntermediaryNodes[0];
+                        Console.WriteLine("Car is rerouting");
+                    }
                 }
                 
                 int lastPathIndex = car.SegmentPath.CurrentIndex;
@@ -856,10 +859,17 @@ public class CarSystems
         };
         car.SegmentPath = BuildCarPath(car, destination);
 
+        SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
+
         if (behavior == CarBehavior.Rerouting)
         {
-            car.Color = Color.Orange;
+            car.Color = Color.HotPink;
             car.IsReroute = true;
+            simulationSuper.RerouteGroup.Add(car);
+        }
+        else
+        {
+            simulationSuper.ControlGroup.Add(car);
         }
 
         car.Position = GetInitialPosition(car);

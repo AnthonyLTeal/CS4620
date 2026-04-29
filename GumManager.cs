@@ -324,7 +324,7 @@ class GumInterface
                         {
                             Console.WriteLine($"Spawning {staticCount} static cars and {dynamicCount} dynamic cars");
                             // Call your car spawning logic here using staticCount and dynamicCount
-                            CarSystems.GenerateRandomCar();
+                            //CarSystems.GenerateRandomCar();
                             SpawnWindow.RemoveFromRoot();
                         }
                         else
@@ -377,9 +377,7 @@ class GumInterface
         return NewWindow; 
         
     }
-
-
-
+    
     private ItemsControl CreateFormatSelection()
     {
         ItemsControl NewControl = new ItemsControl();
@@ -451,7 +449,7 @@ class GumInterface
             {
                 Console.WriteLine($"Spawning {spawnCount} cars with seed {spawnSeed}");
                 // Call your car spawning logic here using spawnCount and spawnSeed
-                CarSystems.GenerateRandomCar();
+                //CarSystems.GenerateRandomCar();
             }
             else
             {
