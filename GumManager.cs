@@ -135,43 +135,48 @@ class GumInterface
                 LoadWindow.AddToRoot();
 
 
-                    StackPanel LoadPanel = new StackPanel();
-                    LoadPanel.Anchor(Anchor.Center);
-                    LoadPanel.Spacing = 4;
-                    LoadWindow.AddChild(LoadPanel);
+                StackPanel LoadPanel = new StackPanel();
+                LoadPanel.Anchor(Anchor.Center);
+                LoadPanel.Spacing = 4;
+                LoadWindow.AddChild(LoadPanel);
 
-                        Label LoadLabel = new Label();
-                        LoadLabel.Text = "Select which road system to open";
-                        LoadPanel.AddChild(LoadLabel);
+                Label LoadLabel = new Label();
+                LoadLabel.Text = "Select which road system to open";
+                LoadPanel.AddChild(LoadLabel);
+                
+                if (!Directory.Exists("saves"))
+                {
+                    Directory.CreateDirectory("saves");
+                }
 
-                        //Creating a List Box to view files
-                        ListBox LoadBox = new ListBox();
-                        LoadPanel.AddChild(LoadBox);
-                        for(int i = 0; i < 20; i++)
-                        {
-                            String InputItem = ("File");
-                            LoadBox.Items.Add(InputItem);
-                        }
+                //Creating a List Box to view files
+                ListBox LoadBox = new ListBox();
+                LoadPanel.AddChild(LoadBox);
+                
+                foreach (var fileName in Directory.EnumerateFiles("saves"))
+                {
+                    LoadBox.Items.Add(Path.GetFileNameWithoutExtension(fileName));
+                }
 
-                        //Create a Button to load once file is selected from listBox:
-                        Button LButton = new Button();
-                        LButton.Text = "Load";
-                        LoadPanel.AddChild(LButton);
-                        LButton.Click += (sender, args) =>
-                        {
-                            // LoadSystem.Load(ListBox.SelectedStateName);
-                            LoadSystem.Load();
-                            LoadWindow.RemoveFromRoot();
-                        };
+                //Create a Button to load once file is selected from listBox:
+                Button LButton = new Button();
+                LButton.Text = "Load";
+                LoadPanel.AddChild(LButton);
+                LButton.Click += (sender, args) =>
+                {
+                    // LoadSystem.Load(ListBox.SelectedStateName);
+                    LoadSystem.Load("saves/" + LoadBox.SelectedObject + ".ism");
+                    LoadWindow.RemoveFromRoot();
+                };
 
-                        Button CancelButton = new Button();
-                        CancelButton.Text = "Cancel";
-                        LoadPanel.AddChild(CancelButton);
+                Button CancelButton = new Button();
+                CancelButton.Text = "Cancel";
+                LoadPanel.AddChild(CancelButton);
 
-                        CancelButton.Click += (sender, args) =>
-                        {
-                            LoadWindow.RemoveFromRoot();
-                        };
+                CancelButton.Click += (sender, args) =>
+                {
+                    LoadWindow.RemoveFromRoot();
+                };
             };  
 
             //Add button 3 -> ExitButton

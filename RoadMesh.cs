@@ -113,6 +113,11 @@ public class RoadMesh
         Reset();
         PathSegmentConnectors = new List<PathSegmentConnector>();
     }
+    
+    public void RebuildMesh()
+    {
+        _ribbonMesh.RebuildMesh();
+    }
 
     private bool meshGenerated = false;
 

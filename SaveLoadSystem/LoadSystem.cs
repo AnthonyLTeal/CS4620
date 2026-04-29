@@ -36,15 +36,14 @@ public class LoadSystem
         EntityManager.SetLastEntityGenFromLoad(worldState.EntityGen);
         
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+
+        bool previousRoadMeshState = roadMesh.CreateEnabled;
+        
+        roadMesh.CreateEnabled = true;
         
         List<int> segments = ComponentManager.GetComponent<PathSegment>();
         
         roadMesh.PathSegmentConnectors = worldState.PathSegmentConnectors;
-
-        // foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
-        // {
-        //     Console.WriteLine("Connector: " + connector.ID);
-        // }
 
         foreach (int segmentEntity in segments)
         {
@@ -52,26 +51,18 @@ public class LoadSystem
             roadMesh.GenerateRibbonMesh(segment);
             segment.DebugPoints = PathSegmentSystems.GenerateRoadOutline(segment.Path, true);
             roadMesh.InsertSegmentPathPointsIntoOctree(segment);
-            // Console.WriteLine("End Connector: " + segment.EndConnector);
-            // Console.WriteLine("Front Connector: " + segment.FrontConnector);
         }
 
         foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
         {
             connector.DebugPosition = new VertexPositionColor(connector.Position, Color.Blue);
-            //StoplightSystems.GenerateStoplights(connector.ID);
             roadMesh.InsertSegmentConnectorIntoOctree(connector);
             StoplightSystems.GenerateStoplights(connector.ID);
-            // for (int i = 0; i < connector.StoplightConnections.Count; i++)
-            // {
-            //     int a;
-            //     int b;
-            //     (a, b) = connector.StoplightConnections[i];
-            //     Console.WriteLine($"Connector StopLights: {a} : {b}");
-            // }
         }
-        
-        
+
+        roadMesh.RebuildMesh();
+        //this is the problem right here I am talking about gemini
+        roadMesh.CreateEnabled = previousRoadMeshState;
 
         //This probably doesn't need to be saved and should be rebuilt correctly just by using AddComponentToEntity 
         //worldState.ComponentRegistery = ComponentManager.ComponentRegistry; 

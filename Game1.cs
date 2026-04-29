@@ -144,11 +144,6 @@ public class Game1 : Game
             PathSegmentSystems.DestroySegment(1);
         }
 
-        if (Keyboard.GetState().IsKeyUp(Keys.L) && oldKeyState.IsKeyDown(Keys.L))
-        {
-            LoadSystem.Load();
-        }
-
         oldKeyState = Keyboard.GetState();
         
         CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
