@@ -10,17 +10,15 @@ using Gum.Forms;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using RenderingLibrary.Graphics;
-using System.Drawing;
-using Microsoft.Xna.Framework.Graphics;
+//using RenderingLibrary.Graphics;
+//using System.IO.Enumeration;
 
 namespace CS4620IS;
 
+
 class GumInterface
 {
-    public GraphicsDevice GraphicsDevice { get; set; }
-
     public void InitializeUI()
     {
         GumService.Default.Root.Children.Clear();
@@ -99,7 +97,8 @@ class GumInterface
                                 }
 
                             else{    
-                                //SaveSystem.Save(inputBox.Text);
+                                string FileName = inputBox.Text;
+                                SaveSystem.Save();
                                 SaveWindow.RemoveFromRoot();
                                 }
                         };
@@ -160,6 +159,7 @@ class GumInterface
                         LButton.Click += (sender, args) =>
                         {
                             // LoadSystem.Load(ListBox.SelectedStateName);
+                            LoadSystem.Load();
                             LoadWindow.RemoveFromRoot();
                         };
 
@@ -197,6 +197,9 @@ class GumInterface
             {
                 Console.WriteLine("Clicked on the road path button!");
                 // Logic to enable road path editing mode goes here
+                // RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+                
+
                 
             };
 
@@ -218,23 +221,32 @@ class GumInterface
                 Button Chart1Button = new Button();
                 Chart1Button.Text = "Chart 1";
                 ChartPanel.AddChild(Chart1Button); 
+
                 Chart1Button.Click += (sender, args) =>
                 {
                     Window Chart1Window = CreateWindow();
+                    Chart1Window.Width = 460;
+                    Chart1Window.Height = 360;
                     Chart1Window.AddToRoot();
-                        //Code to display chart1:
-                        SpriteRuntime ChartSprite = new SpriteRuntime();
-                        // string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;  
-                        // string graphsDir = Path.Combine(root, "Graphs");
-                        //string latestFile = Directory.GetFiles(graphsDir).OrderByDescending(f => File.GetCreationTime(f)).FirstOrDefault();
-                        ChartSprite.SourceFileName =  @"C:\\Users\\anon\\Desktop\School\CS4620 Spring 2026\CS4620 Project\CS4620\Graphs\Graph_20260409_083621.png";
-                        ChartSprite.Dock(Dock.Fill);
-                        Chart1Window.AddChild(ChartSprite);
+                        //Add the chart image to the window:
+                        SpriteRuntime chartSprite = new SpriteRuntime();
+                        // The Source file name, has to be a specific path on the user's machine at the moment.
+                        chartSprite.SourceFileName = "C:\\Users\\inter\\OneDrive\\Desktop\\Spring 2026\\CS4620 Intelligent Systems\\New folder\\CS4620\\Graphs\\Graph_20260409_083621.png";
+                        chartSprite.Dock(Dock.Fill);
+                        // Creating Rectangle for the image to sit in:
+                        RectangleRuntime chart1Rectangle = new RectangleRuntime();
+                        chart1Rectangle.Width = 400;
+                        chart1Rectangle.Height = 300;
+                        chart1Rectangle.Anchor(Anchor.Center);
+                        chart1Rectangle.AddChild(chartSprite);
+                        Chart1Window.AddChild(chart1Rectangle);
+
 
                         Button SaveFormatButton = new Button();
-                        SaveFormatButton.Text = "Save Graph"; 
+                        SaveFormatButton.Text = "Save Graph";
                         SaveFormatButton.Anchor(Anchor.BottomRight);
                         Chart1Window.AddChild(SaveFormatButton);
+
                         SaveFormatButton.Click += (sender, args) =>
                         { 
                             ItemsControl ControlBox = CreateFormatSelection();
@@ -255,25 +267,41 @@ class GumInterface
                 Button Chart2Button = new Button();
                 Chart2Button.Text = "Chart 2";  
                 ChartPanel.AddChild(Chart2Button);
+
                 Chart2Button.Click += (sender, args) =>
                 {
                     Window Chart2Window = CreateWindow();
+                    Chart2Window.Width = 460;
+                    Chart2Window.Height = 360;
                     Chart2Window.AddToRoot();
+                        SpriteRuntime chart2Sprite = new SpriteRuntime();
+                        chart2Sprite.SourceFileName = "C:\\Users\\inter\\OneDrive\\Desktop\\Spring 2026\\CS4620 Intelligent Systems\\New folder\\CS4620\\Graphs\\Graph_20260409_083621.png";
+                        
+                        RectangleRuntime chart2Rectangle = new RectangleRuntime();
+                        chart2Rectangle.Width = 400;
+                        chart2Rectangle.Height = 300;
+                        chart2Rectangle.Anchor(Anchor.Center);
+                        chart2Rectangle.AddChild(chart2Sprite);
+                        Chart2Window.AddChild(chart2Rectangle);
+
                         Button SaveFormatButton = new Button();
                         SaveFormatButton.Text = "Save Graph";
                         SaveFormatButton.Anchor(Anchor.BottomRight);
                         Chart2Window.AddChild(SaveFormatButton);
+
                         SaveFormatButton.Click += (sender, args) =>
                         { 
                             ItemsControl ControlBox = CreateFormatSelection();
                             Chart2Window.AddChild(ControlBox);
                             ControlBox.Anchor(Anchor.BottomRight);
                         };
+
                         //Add Exit button to the graph window:
                         Button ExitGraphButton = new Button();  
                         ExitGraphButton.Text = "Cancel";
                         ExitGraphButton.Anchor(Anchor.TopRight);            
                         Chart2Window.AddChild(ExitGraphButton);
+
                         ExitGraphButton.Click += (sender, args) =>
                         {
                             Chart2Window.RemoveFromRoot();
@@ -333,13 +361,10 @@ class GumInterface
                 // Logic to enable adding a sign goes here
             };
 
-            //Add Spawn Cars Button:
+            //Add Button to run simulation :
             Button runButton = new Button();
             runButton.Text = "Run simulation";
             StartPanel.AddChild(runButton);
-
-            //Create Boolean to check if charts have been created:
-            //bool ChartsCreated = false;
 
             runButton.Click += (sender, args) => 
             {   
@@ -380,7 +405,6 @@ class GumInterface
                             Console.WriteLine($"Spawning {staticCount} static cars and {dynamicCount} dynamic cars");
                             // Call your car spawning logic here using staticCount and dynamicCount
                             CarSystems.GenerateRandomCar();
-                            CreateCharts();
                             SpawnWindow.RemoveFromRoot();
                         }
                         else
@@ -397,7 +421,7 @@ class GumInterface
                     ExitSpawnButton.Click += (sender, args) =>
                     {
                         SpawnWindow.RemoveFromRoot();
-                        CreateCharts();
+                        //CreateCharts();
                         //ChartsCreated = true;
                     };
 
@@ -522,6 +546,7 @@ class GumInterface
     
     private Slider CreateSlider()
     {
+        
         Slider newSlider = new Slider();
         newSlider.AddToRoot();
         newSlider.Maximum = 30;
@@ -536,23 +561,6 @@ class GumInterface
 
         return newSlider;
     } 
-
-    private void CreateCharts()
-    {
-        ScottPlot.Plot signalPlot = new();
-        //signalPlot.Add.Signal(CarSystems.finalDestinationTimes);
-        signalPlot.Title("Times Took For Cars To Reach Destination");
-        string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-        string graphsDir = Path.Combine(root, "Graphs");
-        if (!Directory.Exists(graphsDir))
-        {
-            Directory.CreateDirectory(graphsDir);
-        }
-        string path = Path.Combine(graphsDir, $"Graph_{DateTime.Now:yyyyMMdd_HHmmss}.png");
-        signalPlot.SavePng(path, 400, 300);
-
-        //CarSystems.finalDestinationTimes.Clear();
-    }
 
  
 
