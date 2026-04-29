@@ -100,7 +100,7 @@ class GumInterface
                             else
                             {    
                                 string FileName = inputBox.Text;
-                                SaveSystem.Save();
+                                SaveSystem.Save("saves/" +  FileName + ".ism");
                                 SaveWindow.RemoveFromRoot();
                             }
                         };
