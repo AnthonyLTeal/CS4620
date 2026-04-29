@@ -11,6 +11,9 @@ using PlanetaryExpansion;
 using Gum.Forms;
 using Gum.Forms.Controls;
 using MonoGameGum;
+//Added to create and view graphs
+using System.IO;
+using ScottPlot;
 
 namespace CS4620IS;
 
@@ -75,7 +78,7 @@ public class Game1 : Game
         ComponentManager.LoadComponentsFromNamespace("CS4620IS.Components");
         //Assets.Load(Content);
         
-        Cursor cursor = new Cursor();
+        CS4620IS.Components.Cursor cursor = new CS4620IS.Components.Cursor();
         _terrain = new Terrain(_graphics.GraphicsDevice);
         _camera = new ArcBallCamera(GraphicsDevice.Viewport.AspectRatio, MathHelper.PiOver4, new Vector3(0, 0, 0), Vector3.Up, 0.1f, 1000);
         _cameraControls = new CameraControls();
@@ -173,7 +176,7 @@ public class Game1 : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
         _terrain.Draw(_graphics.GraphicsDevice, _camera);
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
         //BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
@@ -195,4 +198,24 @@ public class Game1 : Game
         GumInterface _interface = new GumInterface();
         _interface.InitializeUI(); 
     }
+
+   public void createGraphs()
+    {
+    //graph stuff testing
+    /*
+    ScottPlot.Plot signalPlot = new();
+    signalPlot.Add.Signal(CarSystems.finalDestinationTimes);
+    signalPlot.Title("Times Took For Cars To Reach Destination");
+    string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+    string graphsDir = Path.Combine(root, "Graphs");
+    Directory.CreateDirectory(graphsDir);
+    string path = Path.Combine(graphsDir, "firstrun.png");
+    signalPlot.XLabel("Car");
+    signalPlot.YLabel("Destination Time (In Seconds");
+    signalPlot.SavePng(path, 400, 300);
+    CarSystems.finalDestinationTimes.Clear();
+    */
+    }
+    
+   
 }
