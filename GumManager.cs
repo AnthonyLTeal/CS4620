@@ -48,78 +48,77 @@ class GumInterface
                 SaveWindow.Height = 400;
                 SaveWindow.AddToRoot();
                     // Add a Panel to the window 
-                    StackPanel SavePanel = new StackPanel();
-                    SavePanel.Spacing = 3;
-                    //SavePanel.Dock(Dock.Fill);
-                    SavePanel.Anchor(Anchor.Center);
-                    SaveWindow.AddChild(SavePanel);
+                StackPanel SavePanel = new StackPanel();
+                SavePanel.Spacing = 3;
+                //SavePanel.Dock(Dock.Fill);
+                SavePanel.Anchor(Anchor.Center);
+                SaveWindow.AddChild(SavePanel);
 
-                        //Add Label to Panel
-                        Label SaveLabel = new Label();
-                        SaveLabel.Text = "File Name: ";
-                        //SaveLabel.Anchor(Anchor.Center);
-                        //SaveLabel.Anchor(Anchor.Top);
-                        SavePanel.AddChild(SaveLabel);
+                //Add Label to Panel
+                Label SaveLabel = new Label();
+                SaveLabel.Text = "File Name: ";
+                //SaveLabel.Anchor(Anchor.Center);
+                //SaveLabel.Anchor(Anchor.Top);
+                SavePanel.AddChild(SaveLabel);
 
-                        // Add Textbox to the panel
-                        TextBox inputBox = new TextBox();
-                        inputBox.Text = "";
-                        //inputBox.Anchor(Anchor.Center);
-                        //inputBox.Anchor(Anchor.Top);
-                        SavePanel.AddChild(inputBox);   
-                        
-                        Label FileLabel = new Label();
-                        FileLabel.Text = "Select file to save";
-                        SavePanel.AddChild(FileLabel);
+                // Add Textbox to the panel
+                TextBox inputBox = new TextBox();
+                inputBox.Text = "";
+                //inputBox.Anchor(Anchor.Center);
+                //inputBox.Anchor(Anchor.Top);
+                SavePanel.AddChild(inputBox);   
+                
+                Label FileLabel = new Label();
+                FileLabel.Text = "Select file to save";
+                SavePanel.AddChild(FileLabel);
 
-                        //Create a ListBox with all of the file information
-                        ListBox SaveBox = new ListBox();
-                        SavePanel.AddChild(SaveBox);
-                        SaveBox.Items.Add("New File");
-                        string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName.ToString();
-                        //foreach (String file in Directory.GetFiles(@"CRoadSaves"))
-                        //{
-                        //    String InputItem = (file);
-                        //    SaveBox.Items.Add(InputItem);
-                        //}
-            
+                //Create a ListBox with all of the file information
+                ListBox SaveBox = new ListBox();
+                SavePanel.AddChild(SaveBox);
 
-                        // Add Button to Save Road Data:
-                        Button SButton = new Button();
-                        SButton.Text = "Save File";
-                        //SButton.Anchor(Anchor.Center);
-                        SavePanel.AddChild(SButton);
+                // Add Button to Save Road Data:
+                Button SButton = new Button();
+                SButton.Text = "Save File";
+                //SButton.Anchor(Anchor.Center);
+                SavePanel.AddChild(SButton);
+                
+                if (!Directory.Exists("saves"))
+                {
+                    Directory.CreateDirectory("saves");
+                }
+        
+                foreach (var fileName in Directory.EnumerateFiles("saves"))
+                {
+                    SaveBox.Items.Add(Path.GetFileNameWithoutExtension(fileName));
+                }
 
-                        SButton.Click += (sender, args) =>
-                        {
-                            if (!Directory.Exists("saves"))
-                            {
-                                Directory.CreateDirectory("saves");
-                            }
-                            if(inputBox.Text == "")
-                            {
-                                Console.WriteLine("Please Enter a file name first");
-                            }
+                SaveBox.ItemClicked += (sender, args) =>
+                {
+                    if (SaveBox.SelectedObject != null)
+                        inputBox.Text = SaveBox.SelectedObject.ToString();
+                };
 
-                            else
-                            {    
-                                string FileName = inputBox.Text;
-                                SaveSystem.Save("saves/" +  FileName + ".ism");
-                                SaveWindow.RemoveFromRoot();
-                            }
-                        };
+                SButton.Click += (sender, args) =>
+                {
+                    if(inputBox.Text == "")
+                        return;
+                    
+                    string fileName = inputBox.Text;
+                    SaveSystem.Save("saves/" +  fileName + ".ism");
+                    SaveWindow.RemoveFromRoot();
+                };
 
-                        // Add Cancel Button to the Panel:
-                        Button CloseWindowButton = new Button();
-                        //CloseWindowButton.Anchor(Anchor.Bottom);
-                        //CloseWindowButton.Anchor(Anchor.Center);
-                        CloseWindowButton.Text = "Cancel";
-                        SavePanel.AddChild(CloseWindowButton);
-            
-                        CloseWindowButton.Click += (sender, args) =>
-                        {
-                            SaveWindow.RemoveFromRoot(); 
-                        };             
+                // Add Cancel Button to the Panel:
+                Button CloseWindowButton = new Button();
+                //CloseWindowButton.Anchor(Anchor.Bottom);
+                //CloseWindowButton.Anchor(Anchor.Center);
+                CloseWindowButton.Text = "Cancel";
+                SavePanel.AddChild(CloseWindowButton);
+    
+                CloseWindowButton.Click += (sender, args) =>
+                {
+                    SaveWindow.RemoveFromRoot(); 
+                };             
             };
 
             //Add button 2
