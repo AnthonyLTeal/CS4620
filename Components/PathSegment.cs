@@ -36,8 +36,8 @@ public class PathSegment
         get;
         set;
     }
-    public int? EndConnector = null;
-    public int? FrontConnector = null;
+    private int? endConnector = null;
+    private int? frontConnector = null;
     public int ID;
     public int entityID;
     public int[] AdjacentPathSegmentEntities = new int[2];
@@ -45,10 +45,36 @@ public class PathSegment
     public bool IsLaneRuler = true;
     public int Weight = 1;
     public int Speed = 1;
-    public HashSet<int> EntitiesOnSegment = new HashSet<int>();
+    public List<int> EntitiesOnSegment = new List<int>();
+    public int SlicedParent;
+    public int RibbonLength;
+    public int RibbonOffset;
+    //public int LastColorIndex = 1;
+    public int CurrentColorIndex = 1;
+    public float CongestionCost = 0;
     
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();
+
+    public int? EndConnector
+    {
+        get => endConnector;
+        set
+        {
+            endConnector = value;
+            //StoplightSystems.GenerateStoplights((int)value);
+        }
+    }
+    
+    public int? FrontConnector
+    {
+        get => frontConnector;
+        set
+        {
+            frontConnector = value;
+            //StoplightSystems.GenerateStoplights((int)value);
+        }
+    }
 
     public int EntityID
     {
@@ -100,7 +126,14 @@ public class PathSegmentConnector
     public List<int> SegmentEntities = new List<int>();
     public DPath DPath;
     //public int Weight = 1;
-    public Queue<int> StopQueue = new Queue<int>();
+    public List<int> StopQueue = new List<int>();
+    // new stuff for stoplights
+    [IgnoreMember]
+    public List<(int, int)> StoplightConnections;
+    public int CurrentLightGreen = 0;
+    public double LightTimer = 0;
+    public double LightTime = 10000;
+    public double YellowTimer = 3000;
     //public List<int> CarEntities = new List<int>(20);
 
     public Vector3 Position

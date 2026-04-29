@@ -15,25 +15,31 @@ public class Car
 {
     public int GroupID;
     public int connectedSegment;
+    public int PreviousSegment;
     public int InitialPathIndex;
     public Vector3 Position;
     public Color Color;
     public float Scale = 0.25f;
     public List<Destination> Destinations;
-    public SegmentPath SegmentPath;
+    public CarPath SegmentPath;
     public Stack<Vector3> OverridePath = new Stack<Vector3>();
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
+    public bool InIntersection = false;
+    public ReroutePath? ReroutePath = null;
+    public bool IsReroute = false;
     
-
+    public List<String> Log = new List<String>();
+    
+    [IgnoreMember]
     public int ConnectedSegment
     {
         get => connectedSegment;
         set
         {
-            if (value == 0)
+            if (value == 0) 
             {
-                Console.WriteLine("ERROR: WTF");
+                Console.WriteLine("ERROR: dunno");
             }
             else
             {
@@ -49,16 +55,16 @@ public class Car
 [MessagePackObject(keyAsPropertyName: true)]
 public class Destination
 {
-    public int SegmentID;
-    public int SegmentPathIndex;
-    public Stack<int> Path;
+    public int TargetSegmentID;
+    public int TargetPathIndex;
 }
 
 [MessagePackObject(keyAsPropertyName: true)]
-public class SegmentPath
+public class CarPath
 {
     public int CurrentIndex;
-    public int BottomIndex;
-    public int TopIndex;
     public int Direction;
+    public int SegmentSize;
+    public int LastConnectorID = -1;
+    public int NextConnectorID = -1;
 }

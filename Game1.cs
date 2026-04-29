@@ -82,20 +82,24 @@ public class Game1 : Game
         _terrain = new Terrain(_graphics.GraphicsDevice);
         _camera = new ArcBallCamera(GraphicsDevice.Viewport.AspectRatio, MathHelper.PiOver4, new Vector3(0, 0, 0), Vector3.Up, 0.1f, 1000);
         _cameraControls = new CameraControls();
+
+        SimulationSuper simulationSuper = new SimulationSuper();
+        EntityManager.AddComponentToGlobalEntity(simulationSuper);
         
         //Assets.Effects["BasicEffect"] = new BasicEffect(GraphicsDevice);
         
         //terrain cursor needed?
-        EntityManager.AddComponentToGlobalEntity<CS4620IS.Components.Cursor>(cursor);
-        EntityManager.AddComponentToGlobalEntity<ArcBallCamera>(_camera);
-        EntityManager.AddComponentToGlobalEntity<Terrain>(_terrain);
-        EntityManager.AddComponentToGlobalEntity<GraphicsDevice>(GraphicsDevice);
+        //EntityManager.AddComponentToGlobalEntity(new SimulationSuper());
+        EntityManager.AddComponentToGlobalEntity(cursor);
+        EntityManager.AddComponentToGlobalEntity(_camera);
+        EntityManager.AddComponentToGlobalEntity(_terrain);
+        EntityManager.AddComponentToGlobalEntity(GraphicsDevice);
         
         CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
-        EntityManager.AddComponentToGlobalEntity<CubeMeshBatcher>(cubeMeshBatcher);
+        EntityManager.AddComponentToGlobalEntity(cubeMeshBatcher);
         
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
-        EntityManager.AddComponentToGlobalEntity<RoadMesh>(_roadMesh);
+        EntityManager.AddComponentToGlobalEntity(_roadMesh);
     }
 /* 
  */    private KeyboardState oldKeyState;
@@ -107,20 +111,45 @@ public class Game1 : Game
         
         
         //TESTING - just a test for the car generation, should be more systematic
-        if (Keyboard.GetState().IsKeyDown(Keys.P))
+        if (Keyboard.GetState().IsKeyUp(Keys.P) && oldKeyState.IsKeyDown(Keys.P)) 
+        //if (oldKeyState.IsKeyDown(Keys.P))
         {
             //List<int> carEntities = ComponentManager.GetComponent<Car>();
             //Console.WriteLine(carEntities.Count);
             //if (carEntities.Count == 0)
-            CarSystems.GenerateRandomCar();
+            //CarSystems.GenerateRandomCar();
+            CarSystems.GenerateCars(1000, 1, .8f);
         }
         
+        if (Keyboard.GetState().IsKeyUp(Keys.C) && oldKeyState.IsKeyDown(Keys.C))
+        {
+            List<int> carComponents = ComponentManager.GetComponent<Car>();
+            for (int i = carComponents.Count - 1; i >= 0; i--)
+            {
+                EntityManager.RemoveEntity(carComponents[i]);
+            }
+            
+            List<int> pathSegmentComponents = ComponentManager.GetComponent<PathSegment>();
+            for (int i = pathSegmentComponents.Count - 1; i >= 0; i--)
+            {
+                EntityManager.RemoveEntity(pathSegmentComponents[i]);
+            }
+
+            RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+            roadMesh.DestroyAll();
+        }
+
+        if (Keyboard.GetState().IsKeyUp(Keys.X) && oldKeyState.IsKeyDown(Keys.X))
+        {
+            PathSegmentSystems.DestroySegment(1);
+        }
+
         if (Keyboard.GetState().IsKeyUp(Keys.L) && oldKeyState.IsKeyDown(Keys.L))
         {
             LoadSystem.Load();
         }
         
-        if (Keyboard.GetState().IsKeyUp(Keys.S) && oldKeyState.IsKeyDown(Keys.S))
+        if (Keyboard.GetState().IsKeyUp(Keys.S) && oldKeyState.IsKeyDown(Keys.S) && Keyboard.GetState().IsKeyDown(Keys.LeftControl))
         {
             SaveSystem.Save();
         }
@@ -134,6 +163,10 @@ public class Game1 : Game
         CursorSystem.Update(gameTime);
         _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
         CarSystems.BasicBehavior(gameTime);
+        //new stuff for stoplights
+        StoplightSystems.ChangeRedGreen(gameTime);
+    
+        PathSegmentSystems.SetPathColor();
 
         // TODO: Add your update logic here
 
@@ -146,7 +179,7 @@ public class Game1 : Game
         GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
         _terrain.Draw(_graphics.GraphicsDevice, _camera);
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
-        BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
+        //BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
         
         CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
         cubeMeshBatcher.Draw();

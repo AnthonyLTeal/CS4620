@@ -116,17 +116,9 @@ class GumInterface
             CloseWindowButton.Text = "Cancel";
             SavePanel.AddChild(CloseWindowButton);
 
-<<<<<<< HEAD
-                    ExitSpawnButton.Click += (sender, args) =>
-                    {
-                        SpawnWindow.RemoveFromRoot();
-                        //CreateCharts();
-                        //ChartsCreated = true;
-=======
             CloseWindowButton.Click += (sender, args) =>
                 {
                         SaveWindow.RemoveFromRoot();
->>>>>>> e12fa5ad35519d291b0ccbfc14b360e879d20273
                     };
 
 
@@ -361,7 +353,18 @@ class GumInterface
 
         };
 
-        //Add Weather options button(opens window):
+                        if (int.TryParse(StaticAgentTextBox.Text, out staticCount) && int.TryParse(DynamicAgentTextBox.Text, out dynamicCount))
+                        {
+                            Console.WriteLine($"Spawning {staticCount} static cars and {dynamicCount} dynamic cars");
+                            // Call your car spawning logic here using staticCount and dynamicCount
+                            //CarSystems.GenerateRandomCar();
+                            SpawnWindow.RemoveFromRoot();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid input for static or dynamic car count. Please enter valid integers.");
+                        }
+                    };
 
         Button WeatherButton = new Button();
         WeatherButton.Text = "Weather options";
@@ -513,9 +516,7 @@ class GumInterface
         return NewWindow;
 
     }
-
-
-
+    
     private ItemsControl CreateFormatSelection()
     {
         ItemsControl NewControl = new ItemsControl();
@@ -587,7 +588,7 @@ class GumInterface
             {
                 Console.WriteLine($"Spawning {spawnCount} cars with seed {spawnSeed}");
                 // Call your car spawning logic here using spawnCount and spawnSeed
-                CarSystems.GenerateRandomCar();
+                //CarSystems.GenerateRandomCar();
             }
             else
             {
