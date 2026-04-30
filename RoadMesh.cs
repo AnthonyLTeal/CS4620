@@ -1508,7 +1508,10 @@ public class RoadMesh
                 }
             }
             PendingP3 = selectedPoint;
-            PendingP2 = (PendingP1 + PendingP3) / 2;
+            if (BuildType == BuildType.Straight)
+            {
+                PendingP2 = (PendingP1 + PendingP3) / 2;
+            }
         }
     }
 
@@ -2072,6 +2075,8 @@ public class RoadMesh
         // } else if (PendingP1 != cursor.Location) {
         // }
     }
+    
+    private MouseState previousMouseState = Mouse.GetState();
 
     public void Update(GraphicsDevice graphicsDevice, Terrain terrain, ArcBallCamera camera, KeyboardState keyState)
     {
@@ -2093,15 +2098,16 @@ public class RoadMesh
         
         StateThreeUpdate(cursor);
 
-        if (spacePressed == false && keyState.IsKeyDown(Keys.Space))
+        if (Mouse.GetState().LeftButton == ButtonState.Released && previousMouseState.LeftButton == ButtonState.Pressed)
         {
-            spacePressed = true;
             if (cursor.Location != null)
             {
                 SelectPoint((Vector3)cursor.Location + new Vector3(0,0.1f,0), graphicsDevice, terrain, camera);
-                //SelectPointStraight((Vector3)terrainCursor.brushLocation, graphicsDevice, terrain, camera);
             }
-        }
+        } 
+        
+        if (Mouse.GetState().RightButton == ButtonState.Released && previousMouseState.RightButton == ButtonState.Pressed)
+            Reset();
 
         OutlineMeshUpdate(cursor, graphicsDevice, terrain, camera);
 
@@ -2173,6 +2179,7 @@ public class RoadMesh
         // }
         //
         // previousBrushLocation = cursor.Location;
+        previousMouseState = Mouse.GetState();
     }
 
     public RoadRibbonMesh RibbonMesh

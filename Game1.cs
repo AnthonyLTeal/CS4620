@@ -101,30 +101,23 @@ public class Game1 : Game
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
         EntityManager.AddComponentToGlobalEntity(_roadMesh);
     }
-/* 
- */    private KeyboardState oldKeyState;
+    
+    private KeyboardState oldKeyState;
     protected override void Update(GameTime gameTime)
     {
+        GumService.Default.Update(gameTime);
+
+        var visualOver = GumService.Default.Cursor.WindowOver;
+        var control = visualOver?.FormsControlAsObject as FrameworkElement;
+        
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-        
-        
-        //TESTING - just a test for the car generation, should be more systematic
-        if (Keyboard.GetState().IsKeyUp(Keys.P) && oldKeyState.IsKeyDown(Keys.P)) 
-        //if (oldKeyState.IsKeyDown(Keys.P))
-        {
-            //List<int> carEntities = ComponentManager.GetComponent<Car>();
-            //Console.WriteLine(carEntities.Count);
-            //if (carEntities.Count == 0)
-            //CarSystems.GenerateRandomCar();
-            CarSystems.GenerateCars(1000, 1, .8f);
-        }
-        
-        if (Keyboard.GetState().IsKeyUp(Keys.X) && oldKeyState.IsKeyDown(Keys.X))
-        {
-            PathSegmentSystems.DestroySegment(1);
-        }
+        //
+        // if (Keyboard.GetState().IsKeyUp(Keys.X) && oldKeyState.IsKeyDown(Keys.X))
+        // {
+        //     PathSegmentSystems.DestroySegment(1);
+        // }
 
         oldKeyState = Keyboard.GetState();
         
@@ -133,7 +126,11 @@ public class Game1 : Game
         
         _cameraControls.Update(gameTime, Keyboard.GetState(), Mouse.GetState(), _camera);
         CursorSystem.Update(gameTime);
-        _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
+
+        if (control == null)
+        {
+            _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
+        }
         CarSystems.BasicBehavior(gameTime);
         //new stuff for stoplights
         StoplightSystems.ChangeRedGreen(gameTime);
