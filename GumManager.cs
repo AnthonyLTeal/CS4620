@@ -24,6 +24,8 @@ class GumInterface
     {
         GumService.Default.Root.Children.Clear();
         CreateStartPanel();
+        SimulationSystems.Clear();
+        SimulationSystems.SetSpeed(2);
     }
 
     private void CreateStartPanel()
@@ -217,6 +219,15 @@ class GumInterface
             PathTypeButton.Text = "Path Type:  " + roadMesh.BuildType;
         };
 
+        Button ClearButton = new Button();
+        ClearButton.Text = "Clear Simulation";
+        StartPanel.AddChild(ClearButton);
+        ClearButton.Click += (sender, args) =>
+        {
+            Console.WriteLine("Clicked on the clear simulation button!");
+            SimulationSystems.Clear();
+        };
+
         //Add Graph Window Button:
         Button GraphWindowButton = new Button();
         GraphWindowButton.Text = "View Charts";
@@ -336,43 +347,7 @@ class GumInterface
 
         };
 
-        //Add Weather options button(opens window):
 
-        Button WeatherButton = new Button();
-        WeatherButton.Text = "Weather options";
-        //StartPanel.AddChild(WeatherButton);
-
-        WeatherButton.Click += (sender, args) =>
-        {
-            Window WeatherWindow = CreateWindow();
-            WeatherWindow.AddToRoot();
-            StackPanel WeatherPanel = new StackPanel();
-            WeatherPanel.Spacing = 4;
-            WeatherPanel.Anchor(Anchor.Center);
-            WeatherWindow.AddChild(WeatherPanel);
-            WeatherPanel.AddChild(new Label { Text = "Weather Options" });
-
-            //Create Slider for Rain Intensity:
-            WeatherPanel.AddChild(new Label { Text = "Rain Intensity" });
-            Slider RainSlider = CreateSlider(); ;
-            WeatherPanel.AddChild(RainSlider);
-
-            //Create Slider for Snow Intensity:
-            WeatherPanel.AddChild(new Label { Text = "Snow Intensity" });
-            Slider SnowSlider = CreateSlider();
-            WeatherPanel.AddChild(SnowSlider);
-        };
-
-        //Button to Add A Sign: 
-        Button AddSignButton = new Button();
-        AddSignButton.Text = "Add Sign";
-        //StartPanel.AddChild(AddSignButton);
-
-        AddSignButton.Click += (sender, args) =>
-        {
-            Console.WriteLine("Clicked on the add sign button!");
-            // Logic to enable adding a sign goes here
-        };
 
         //Add Button to run simulation :
         Button runButton = new Button();
@@ -414,7 +389,6 @@ class GumInterface
             StartSimButton.Text = "Start Simulation";
             SpawnPanel.AddChild(StartSimButton);
 
-
             StartSimButton.Click += (sender, args) =>
                 {
                     int totalCount;
@@ -425,7 +399,7 @@ class GumInterface
                         int.TryParse(PercentTextbox.Text, out distributionPercent) &&
                         int.TryParse(SeedTextbox.Text, out seed))
                     {
-                        Console.WriteLine($"Spawning {totalCount} static cars and {distributionPercent} dynamic cars");
+                        Console.WriteLine($"Spawning {totalCount} static cars and {distributionPercent}% of them are dynamic cars");
                         // Call your car spawning logic here using staticCount and dynamicCount
                         //CarSystems.GenerateRandomCar();
                         CarSystems.GenerateCars(totalCount, seed, distributionPercent * .01f);
@@ -445,16 +419,95 @@ class GumInterface
             ExitSpawnButton.Click += (sender, args) =>
                 {
                     SpawnWindow.RemoveFromRoot();
-                    //CreateCharts();
-                    //ChartsCreated = true;
                 };
-
-
         };
 
+        ColoredRectangleRuntime SpeedRectangle = new ColoredRectangleRuntime();
+        SpeedRectangle.Color = Microsoft.Xna.Framework.Color.DarkGray;
+        SpeedRectangle.Width = 127;
+        SpeedRectangle.Height = 100;
+        StartPanel.AddChild(SpeedRectangle);
 
+        StackPanel RectangleStackPanel = new StackPanel();
+        RectangleStackPanel.Spacing = 4;    
+        RectangleStackPanel.Dock(Dock.Fill);
+        SpeedRectangle.AddChild(RectangleStackPanel);
 
+        Label SpeedLabel = new Label();
+        SpeedLabel.Text = " Simulation \n Speed: ";
+        RectangleStackPanel.AddChild(SpeedLabel);
 
+        StackPanel SpeedPanel = new StackPanel();
+        SpeedPanel.Spacing = 4;
+        RectangleStackPanel.AddChild(SpeedPanel);
+        SpeedPanel.Orientation = Orientation.Horizontal;
+
+        Button Speed1Button = new Button();
+        Speed1Button.Text = "1x";
+        Speed1Button.Width = 30;
+        Speed1Button.Height = 15;
+        SpeedPanel.AddChild(Speed1Button);
+        Speed1Button.Click += (sender, args) =>
+        {
+            SimulationSystems.SetSpeed(1);
+        };
+
+        Button Speed2Button = new Button();
+        Speed2Button.Text = "2x";
+        Speed2Button.Width = 30;
+        Speed2Button.Height = 15;
+        SpeedPanel.AddChild(Speed2Button);
+        Speed2Button.Click += (sender, args) =>
+        {
+            SimulationSystems.SetSpeed(2);
+        };
+
+        Button Speed4Button = new Button();
+        Speed4Button.Text = "4x";
+        Speed4Button.Width = 30;
+        Speed4Button.Height = 15;
+        SpeedPanel.AddChild(Speed4Button);
+        Speed4Button.Click += (sender, args) =>
+        {
+            SimulationSystems.SetSpeed(4);
+        };
+
+        //Weather Button Doesn't do anything right now, maybe we'll add some later or delete it.
+        Button WeatherButton = new Button();
+        WeatherButton.Text = "Weather options";
+        //StartPanel.AddChild(WeatherButton);
+
+        WeatherButton.Click += (sender, args) =>
+        {
+            Window WeatherWindow = CreateWindow();
+            WeatherWindow.AddToRoot();
+            StackPanel WeatherPanel = new StackPanel();
+            WeatherPanel.Spacing = 4;
+            WeatherPanel.Anchor(Anchor.Center);
+            WeatherWindow.AddChild(WeatherPanel);
+            WeatherPanel.AddChild(new Label { Text = "Weather Options" });
+
+            //Create Slider for Rain Intensity:
+            WeatherPanel.AddChild(new Label { Text = "Rain Intensity" });
+            Slider RainSlider = CreateSlider(); ;
+            WeatherPanel.AddChild(RainSlider);
+
+            //Create Slider for Snow Intensity:
+            WeatherPanel.AddChild(new Label { Text = "Snow Intensity" });
+            Slider SnowSlider = CreateSlider();
+            WeatherPanel.AddChild(SnowSlider);
+
+            //Button to Add A Sign: Also doesn't do anything right now, but we can add functionality later or delete it.
+            Button AddSignButton = new Button();
+            AddSignButton.Text = "Add Sign";
+            //StartPanel.AddChild(AddSignButton);
+
+            AddSignButton.Click += (sender, args) =>
+            {
+                Console.WriteLine("Clicked on the add sign button!");
+                // Logic to enable adding a sign goes here
+            };
+        };
     }
 
     private Window CreateWindow()
@@ -483,8 +536,6 @@ class GumInterface
         return NewWindow;
 
     }
-
-
 
     private ItemsControl CreateFormatSelection()
     {
