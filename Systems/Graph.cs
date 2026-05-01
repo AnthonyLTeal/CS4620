@@ -174,6 +174,7 @@ public class Graph
     
         //resetting the cars for each simulation
        simulationSuper.ControlGroup.Clear();
+       simulationSuper.RerouteGroup.Clear();
        return pathsList;
    } 
 }
