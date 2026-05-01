@@ -28,6 +28,8 @@ public class CarSystems
              Car car = ComponentManager.GetEntityComponent<Car>(entity);
              
              PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+             
+             
 
              //destroy car if segment entity is dead
              if (connectedSegment is null)
@@ -70,7 +72,20 @@ public class CarSystems
              
              float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
              SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
-             MoveCar(entity, 2 * dt * simulationSuper.SimSpeed);
+             
+             //Anthony, this is how I am adding the cars to the control group for the graphs right now.
+             //You will want to update this to however you have it work with Matthew's buttons to get the cars into
+             //the two bins.
+             if (!simulationSuper.ControlGroup.Contains(car))
+             {
+                 simulationSuper.ControlGroup.Add(car);
+             }
+
+             car.AliveTime += gameTime.ElapsedGameTime.TotalSeconds;
+             //-------------------------------------------------------
+             //also updated movecar to work with gametime so that the time spent at waiting at intersections or behind cars works
+             MoveCar(entity, 2 * dt * simulationSuper.SimSpeed, gameTime);
+             // ------------------------------------------------------
 
          }
 
@@ -460,7 +475,7 @@ public class CarSystems
    
    
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
-    private static void MoveCar(int entity, float velocity)
+    private static void MoveCar(int entity, float velocity, GameTime gameTime)
     {
         Car car = ComponentManager.GetEntityComponent<Car>(entity);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
@@ -472,11 +487,18 @@ public class CarSystems
             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
             
            //if (WaitOnStopSign(entity))
+           //if you uncomment this and use it, uncomment the line below (it needs to be there for the graphs to be accurate
+           //car.SignDelayTime += gameTime.ElapsedGameTime.TotalSeconds
              //break;
 
             //my new stuff
             if (StoplightSystems.WaitOnStopLight(entity))
+            {
+                //new for graphs ----------------------------------------
+                car.WaitTime += gameTime.ElapsedGameTime.TotalSeconds;
+                //-------------------------------------------------------
                 break;
+            }
             
             Vector3 nextPoint = GetPathVertex(car);
             if (isOverridden)
@@ -492,8 +514,12 @@ public class CarSystems
             if (distanceTo > remaining)
             {
                 if (WaitOnTraffic(entity, remaining, direction))
+                {
+                    //new for graphs --------------------------------------------
+                    car.WaitTime += gameTime.ElapsedGameTime.TotalSeconds;
+                    //-----------------------------------------------------------
                     return;
-                
+                }
                 car.Position += direction * remaining;
                 car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
                 return;
@@ -515,7 +541,12 @@ public class CarSystems
             // Console.WriteLine("Current Segment: " + car.connectedSegment);
             // Console.WriteLine("Current Point Index: " + car.SegmentPath.CurrentIndex);
             if (WaitOnTraffic(entity, remaining, direction))
+            {
+                //new for graphs -------------------------------------------
+                car.WaitTime += gameTime.ElapsedGameTime.TotalSeconds;
+                //----------------------------------------------------------
                 return;
+            }
 
             if (isOverridden) //if overidden, car is traveling through an intersection/connector, but not necessarily an intersection
             {

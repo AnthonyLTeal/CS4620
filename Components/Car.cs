@@ -26,7 +26,12 @@ public class Car
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
     public bool InIntersection = false;
-    
+    //graph things
+    public double AliveTime = 0.0;
+    public double WaitTime = 0.0;
+    //public double SignDelayTime;
+    //public double ReroutingDelayTime;
+    //------------------------------------------
     public List<String> Log = new List<String>();
     
     [IgnoreMember]
