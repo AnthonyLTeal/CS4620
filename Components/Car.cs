@@ -28,9 +28,9 @@ public class Car
     public bool InIntersection = false;
     //graph things
     public double AliveTime = 0.0;
-    public double CarDelayTime;
-    public double SignDelayTime;
-    public double ReroutingDelayTime;
+    public double WaitTime = 0.0;
+    //public double SignDelayTime;
+    //public double ReroutingDelayTime;
     //------------------------------------------
     public List<String> Log = new List<String>();
     

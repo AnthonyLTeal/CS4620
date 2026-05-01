@@ -72,7 +72,10 @@ public class CarSystems
              
              float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
              SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
-             //new things for the graphs
+             
+             //Anthony, this is how I am adding the cars to the control group for the graphs right now.
+             //You will want to update this to however you have it work with Matthew's buttons to get the cars into
+             //the two bins.
              if (!simulationSuper.ControlGroup.Contains(car))
              {
                  simulationSuper.ControlGroup.Add(car);
@@ -80,7 +83,7 @@ public class CarSystems
 
              car.AliveTime += gameTime.ElapsedGameTime.TotalSeconds;
              //-------------------------------------------------------
-             //also updated movecar to work with gametime so that the time spent at intersections or behind cars works
+             //also updated movecar to work with gametime so that the time spent at waiting at intersections or behind cars works
              MoveCar(entity, 2 * dt * simulationSuper.SimSpeed, gameTime);
              // ------------------------------------------------------
 
@@ -492,7 +495,7 @@ public class CarSystems
             if (StoplightSystems.WaitOnStopLight(entity))
             {
                 //new for graphs ----------------------------------------
-                car.SignDelayTime += gameTime.ElapsedGameTime.TotalSeconds;
+                car.WaitTime += gameTime.ElapsedGameTime.TotalSeconds;
                 //-------------------------------------------------------
                 break;
             }
@@ -513,7 +516,7 @@ public class CarSystems
                 if (WaitOnTraffic(entity, remaining, direction))
                 {
                     //new for graphs --------------------------------------------
-                    car.CarDelayTime += gameTime.ElapsedGameTime.TotalSeconds;
+                    car.WaitTime += gameTime.ElapsedGameTime.TotalSeconds;
                     //-----------------------------------------------------------
                     return;
                 }
@@ -540,7 +543,7 @@ public class CarSystems
             if (WaitOnTraffic(entity, remaining, direction))
             {
                 //new for graphs -------------------------------------------
-                car.CarDelayTime += gameTime.ElapsedGameTime.TotalSeconds;
+                car.WaitTime += gameTime.ElapsedGameTime.TotalSeconds;
                 //----------------------------------------------------------
                 return;
             }
