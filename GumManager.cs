@@ -10,6 +10,8 @@ using Gum.Forms;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Xna.Framework.Graphics;
+
 
 namespace CS4620IS;
 
@@ -207,19 +209,27 @@ class GumInterface
                 ChartPanel.Spacing = 20;
                 ChartPanel.Anchor(Anchor.Center);   
                 GraphWindow.AddChild(ChartPanel);
+                // 2. Create the Image (Sprite)
+                 
 
                 Button Chart1Button = new Button();
-                Chart1Button.Text = "Chart 1";
+                Chart1Button.Text = "Total Completion Time For All Groups";
                 ChartPanel.AddChild(Chart1Button); 
 
                 Button Chart2Button = new Button();
-                Chart2Button.Text = "Chart 2";  
+                Chart2Button.Text = "Car Time Spent Waiting Behind Other Cars";  
                 ChartPanel.AddChild(Chart2Button);
 
-
+                Button Chart3Button = new Button();
+                Chart3Button.Text = "Car Time Spent Waiting At Intersection";
+                ChartPanel.AddChild(Chart3Button);
+                
+                //add 2 more buttons for the other 2 graphs I don't have yet
+                
+                
                 // Add Save format Selection to the graph window:
                 Button SaveFormatButton = new Button();
-                SaveFormatButton.Text = "Save Graph";
+                SaveFormatButton.Text = "Save Graphs As";
                 SaveFormatButton.Anchor(Anchor.BottomRight);
                 GraphWindow.AddChild(SaveFormatButton);
 
@@ -477,9 +487,7 @@ class GumInterface
         }; 
 
         return newSlider;
-    } 
-
- 
+    }
 
     /* 
      //Add a colored rectangle
@@ -513,5 +521,7 @@ class GumInterface
                StartPanel.AddChild(ControlBox);
 
             };
+            
 */
+
 }
