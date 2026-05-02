@@ -76,7 +76,15 @@ public class PathSegmentSystems
 
     public static void UpdateCongestionCost()
     {
+        List<int> entities = ComponentManager.GetComponent<PathSegment>();
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
         
+        //what is a good congestion heuristic?
+        //do we keep an average of the cars and see how long they spend on the segment on average?
+        //I think so, this might be the easiest thing to do.
+        //or we can keep a decaying list, check the last 10 cars that left the segment, and their times
+        //we use that as an average time
+        //every 5 seconds we can remove the 
     }
 
     //Might want to change this in the future to a bucket based update to ensure we aren't

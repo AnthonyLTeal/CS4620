@@ -453,23 +453,23 @@ class GumInterface
         };
 
         Button Speed2Button = new Button();
-        Speed2Button.Text = "2x";
+        Speed2Button.Text = "5x";
         Speed2Button.Width = 30;
         Speed2Button.Height = 15;
         SpeedPanel.AddChild(Speed2Button);
         Speed2Button.Click += (sender, args) =>
         {
-            SimulationSystems.SetSpeed(2);
+            SimulationSystems.SetSpeed(5);
         };
 
         Button Speed4Button = new Button();
-        Speed4Button.Text = "4x";
+        Speed4Button.Text = "10x";
         Speed4Button.Width = 30;
         Speed4Button.Height = 15;
         SpeedPanel.AddChild(Speed4Button);
         Speed4Button.Click += (sender, args) =>
         {
-            SimulationSystems.SetSpeed(4);
+            SimulationSystems.SetSpeed(10);
         };
 
         //Weather Button Doesn't do anything right now, maybe we'll add some later or delete it.

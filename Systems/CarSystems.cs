@@ -584,6 +584,8 @@ public class CarSystems
                         nextConnectorId = ((ReroutePath)car.ReroutePath).IntermediaryNodes[0];
                         Console.WriteLine("Car is rerouting");
                     }
+                    
+                    car.ReroutePath = null;
                 }
                 
                 int lastPathIndex = car.SegmentPath.CurrentIndex;
