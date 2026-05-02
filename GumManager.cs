@@ -12,8 +12,6 @@ using System.Collections.Generic;
 using System.IO;
 using PlanetaryExpansion;
 using RenderingLibrary.Graphics;
-//using RenderingLibrary.Graphics;
-//using System.IO.Enumeration;
 
 namespace CS4620IS;
 
@@ -36,7 +34,7 @@ class GumInterface
         StartPanel.Anchor(Anchor.TopLeft);
         StartPanel.AddToRoot();
 
-        //1. Save System
+    //1. Save System
         Window SaveWindow = CreateWindow();
         SaveWindow.Height = 400;
         SaveWindow.AddToRoot();
@@ -118,7 +116,7 @@ class GumInterface
             SaveWindow.IsVisible = false; ;
         };
 
-        //2. Load System
+    //2. Load System
         Window LoadWindow = CreateWindow();
         LoadWindow.Height = 350;
         LoadWindow.AddToRoot();
@@ -175,7 +173,7 @@ class GumInterface
             LoadWindow.IsVisible = true;
         };
 
-        //3. Add button 3 -> ExitButton
+    //3. Add button 3 -> ExitButton
         Button ExitButton = new Button();
         ExitButton.Text = "Exit";
         StartPanel.AddChild(ExitButton);
@@ -185,7 +183,7 @@ class GumInterface
             Environment.Exit(0);
         };
 
-        // 4. Add Road Path Button:
+    // 4. Add Road Path Button:
         Button RoadPathButton = new Button();
         RoadPathButton.Text = "Draw Road False";
         StartPanel.AddChild(RoadPathButton);
@@ -199,6 +197,7 @@ class GumInterface
 
         };
 
+    //5. Road Path Type
         Button PathTypeButton = new Button();
         PathTypeButton.Text = "Path Type: Straight";
         StartPanel.AddChild(PathTypeButton);
@@ -223,7 +222,7 @@ class GumInterface
             SimulationSystems.Clear();
         };
 
-        // 5. Chart viewing and selection:
+    // 6. Chart viewing and selection:
         Window GraphWindow = CreateWindow();
         GraphWindow.AddToRoot();
         GraphWindow.IsVisible = false;
@@ -356,7 +355,7 @@ class GumInterface
             GraphWindow.IsVisible = false;
         };
 
-        //6. Running the Simulation:
+    //7. Running the Simulation:
         //Add Window for controls
         Window SpawnWindow = CreateWindow();
         SpawnWindow.AddToRoot();
@@ -435,7 +434,7 @@ class GumInterface
             SpawnWindow.IsVisible = true;
         };
 
-        // 7. Selecting the Speed
+    // 8. Selecting the Speed
         ColoredRectangleRuntime SpeedRectangle = new ColoredRectangleRuntime();
         SpeedRectangle.Color = Microsoft.Xna.Framework.Color.DarkGray;
         SpeedRectangle.Width = 127;
@@ -486,7 +485,7 @@ class GumInterface
             SimulationSystems.SetSpeed(4);
         };
 
-        // 7. Weather --> Doesn't do anything right now, maybe we'll add some later or delete it.
+    // 9. Weather --> Doesn't do anything right now, maybe we'll add some later or delete it.
         Window WeatherWindow = CreateWindow();
         WeatherWindow.AddToRoot();
         WeatherWindow.IsVisible = false;
@@ -514,7 +513,7 @@ class GumInterface
             WeatherWindow.IsVisible = true;
         };
 
-        //Button to Add A Sign: Also doesn't do anything right now, but we can add functionality later or delete it.
+    // 10. Adding Signs: Also doesn't do anything right now, but we can add functionality later or delete it.
         Button AddSignButton = new Button();
         AddSignButton.Text = "Add Sign";
         //StartPanel.AddChild(AddSignButton);
@@ -551,5 +550,4 @@ class GumInterface
         };
         return newSlider;
     }
-
 }
