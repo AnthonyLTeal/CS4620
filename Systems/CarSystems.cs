@@ -572,6 +572,7 @@ public class CarSystems
                     lastConnectorID = (int)connectedSegment.FrontConnector;
                 
                 int nextConnectorId = GetNextConnectorID(car.Destinations[0], lastConnectorID);
+                //Console.WriteLine("nextConnectorID before Reroute: " + nextConnectorId);
                 
                 
                 //my thought process for this is if I set the lastConnectorID and the Destination based on the current reroute path next point
@@ -593,9 +594,9 @@ public class CarSystems
                 {
                     ReroutePath reroutePath = (ReroutePath)car.ReroutePath;
 
-                    if (reroutePath.IntermediaryNodes.Count > 0)
+                    if (reroutePath.IntermediaryNodes.Count > 1)
                     {
-                        nextConnectorId = ((ReroutePath)car.ReroutePath).IntermediaryNodes[0];
+                        nextConnectorId = ((ReroutePath)car.ReroutePath).IntermediaryNodes[1];
                         Console.WriteLine("\nCar is rerouting");
                         Console.WriteLine("lastConnectorID: " + lastConnectorID);
                         Console.WriteLine("nextConnectorId: " + nextConnectorId);
@@ -603,8 +604,11 @@ public class CarSystems
                         Console.WriteLine("Current Segment Front Connector: " + connectedSegment.FrontConnector);
                     }
                     
-                    car.ReroutePath = null;
+                    //Console.WriteLine("nextConnectorId: " + nextConnectorId);
+                    
                 }
+                
+                //Console.WriteLine("nextConnectorId: " + nextConnectorId);
                 
                 int lastPathIndex = car.SegmentPath.CurrentIndex;
                 car.PreviousSegment = car.ConnectedSegment;
