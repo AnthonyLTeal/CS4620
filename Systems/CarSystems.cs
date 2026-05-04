@@ -71,16 +71,16 @@ public class CarSystems
              float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
              SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
 
-             try
-             {
-                MoveCar(entity, 2 * dt * simulationSuper.SimSpeed);
-             }
-             catch (Exception e)
-             {
-                 //TODO there are still times where we are getting index errors in getnextvertex so killing those entities for now when it happens
-                 Console.WriteLine(e);
-                 entitiesToRemove.Add(entity);
-             }
+             // try
+             // {
+                MoveCar(entity, dt * simulationSuper.SimSpeed);
+             // }
+             // catch (Exception e)
+             // {
+             //     //TODO there are still times where we are getting index errors in getnextvertex so killing those entities for now when it happens
+             //     Console.WriteLine(e);
+             //     entitiesToRemove.Add(entity);
+             // }
              
          }
 
@@ -382,6 +382,9 @@ public class CarSystems
             foreach (int targetCarEntity in segment.EntitiesOnSegment) //wait on path on segment only?
             {
                 Car targetCar = ComponentManager.GetEntityComponent<Car>(targetCarEntity);
+
+                if (targetCar == null)
+                    continue;
                 
                 if (car.OnConnector != -1 && targetCar.OnConnector != -1)
                 {
@@ -470,12 +473,14 @@ public class CarSystems
    
    
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
-    private static void MoveCar(int entity, float velocity)
+    private static void MoveCar(int entity, float virtualDt)
     {
         Car car = ComponentManager.GetEntityComponent<Car>(entity);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
 
-        float remaining = velocity;
+        car.TimeOnSegment += virtualDt;
+        
+        float remaining = 2 * virtualDt;
         while (remaining > 0.000001f)
         {
             bool isOverridden = (car.OverridePath.Count > 0);
@@ -554,9 +559,18 @@ public class CarSystems
             if (((car.SegmentPath.CurrentIndex == 0 && car.SegmentPath.Direction == -1) || 
                 (car.SegmentPath.CurrentIndex == car.SegmentPath.SegmentSize - 1  && car.SegmentPath.Direction == 1)))
             {
+                car.TimeOnSegment = 0;
+                
                 connectedSegment.EntitiesOnSegment.Remove(entity);
                 
-                int lastConnectorID = car.SegmentPath.NextConnectorID;
+                //TODO bug here, I think the lastConnectorID might be wrong for reroute paths, we have to actually check it against the current segments 2 connectors to see which one we just left or something I don't know
+                //int lastConnectorID = car.SegmentPath.NextConnectorID;
+
+                //this might work
+                int lastConnectorID = (int)connectedSegment.EndConnector;
+                if (car.SegmentPath.Direction == -1)
+                    lastConnectorID = (int)connectedSegment.FrontConnector;
+                
                 int nextConnectorId = GetNextConnectorID(car.Destinations[0], lastConnectorID);
                 
                 
@@ -582,7 +596,11 @@ public class CarSystems
                     if (reroutePath.IntermediaryNodes.Count > 0)
                     {
                         nextConnectorId = ((ReroutePath)car.ReroutePath).IntermediaryNodes[0];
-                        Console.WriteLine("Car is rerouting");
+                        Console.WriteLine("\nCar is rerouting");
+                        Console.WriteLine("lastConnectorID: " + lastConnectorID);
+                        Console.WriteLine("nextConnectorId: " + nextConnectorId);
+                        Console.WriteLine("Current Segment End Connector: " + connectedSegment.EndConnector);
+                        Console.WriteLine("Current Segment Front Connector: " + connectedSegment.FrontConnector);
                     }
                     
                     car.ReroutePath = null;

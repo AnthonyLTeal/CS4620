@@ -85,7 +85,7 @@ public class StoplightSystems
         List<PathSegmentConnector> connectors = roadMesh.PathSegmentConnectors;
         for (int i = 0; i < connectors.Count; i++)
         {
-            Console.WriteLine("Light TIME: " +  connectors[i].LightTime);
+            //Console.WriteLine("Light TIME: " +  connectors[i].LightTime);
             if (connectors[i].SegmentEntities.Count < 3)
                 continue;
 

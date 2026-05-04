@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using MessagePack;
 using PlanetaryExpansion;
 
@@ -52,6 +53,10 @@ public class PathSegment
     //public int LastColorIndex = 1;
     public int CurrentColorIndex = 1;
     public float CongestionCost = 0;
+    public Queue<float> SquaredTimes = new Queue<float>(Enumerable.Repeat(0f, 10));
+    public int MaxCarTimes = 10;
+    public float AverageSquaredTimer = 0;
+    public float AverageSquaredTimeMax = 2.0f;
     
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();

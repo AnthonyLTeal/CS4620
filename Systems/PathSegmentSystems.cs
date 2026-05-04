@@ -74,17 +74,84 @@ public class PathSegmentSystems
         }
     }
 
-    public static void UpdateCongestionCost()
+    public static void UpdateCongestionCost(float virtualDt)
     {
         List<int> entities = ComponentManager.GetComponent<PathSegment>();
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+
+        foreach (int entity in entities)
+        {
+            PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+
+            pathSegment.AverageSquaredTimer += virtualDt;
+            
+            // if (pathSegment.EntitiesOnSegment.Count == 0 && MathF.Abs(pathSegment.CongestionCost) > 0.0001)
+            // {
+            //     continue;
+            // }
+            
+            if (pathSegment.AverageSquaredTimer >= pathSegment.AverageSquaredTimeMax)
+            {
+                float squaredSum = 0;
+                int nullCars = 0;
+
+                foreach (int carEntity in pathSegment.EntitiesOnSegment)
+                {
+                    Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
+                    if (car == null)
+                    {
+                        //might be better to do a reverse for loop and forcibly remove them
+                        nullCars += 1;
+                        continue;
+                    }
+
+                    squaredSum += car.TimeOnSegment * car.TimeOnSegment;
+                }
+
+                int divisor = 1;
+
+                if (pathSegment.EntitiesOnSegment.Count - nullCars > 0)
+                    divisor = (pathSegment.EntitiesOnSegment.Count - nullCars);
+                
+                pathSegment.SquaredTimes.Enqueue(squaredSum/divisor);
+                pathSegment.SquaredTimes.Dequeue();
+                
+                pathSegment.AverageSquaredTimer = 0;
+
+                float totalSquaredTime = 0;
+                foreach (int squaredTime in pathSegment.SquaredTimes)
+                {
+                    totalSquaredTime += squaredTime;
+                }
+
+                float sqrtTime = totalSquaredTime / 10 * 0.1f;
+                float estimatedTime = GetEstimatedTimeToTravel(pathSegment);
+                
+                //Console.WriteLine("sqrtTime: " + sqrtTime);
+                //Console.WriteLine("estimatedTime: " +  estimatedTime);
+
+                if (sqrtTime > estimatedTime)
+                    pathSegment.CongestionCost = sqrtTime - estimatedTime;
+                else
+                    pathSegment.CongestionCost = 0;
+
+                //need a threshold or something
+            }
+        }
+    }
+
+    public static float GetEstimatedTimeToTravel(PathSegment segment)
+    {
+        float distance = 0;
+        for (int i = 0; i < segment.Path.Length - 2; i++)
+        {
+            distance += Vector3.Distance(segment.Path[i], segment.Path[i + 1]);
+        }
         
-        //what is a good congestion heuristic?
-        //do we keep an average of the cars and see how long they spend on the segment on average?
-        //I think so, this might be the easiest thing to do.
-        //or we can keep a decaying list, check the last 10 cars that left the segment, and their times
-        //we use that as an average time
-        //every 5 seconds we can remove the 
+        SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
+        float speed = 2 * simulationSuper.SimSpeed;
+        float estimatedTravelTime =  distance / speed;
+
+        return estimatedTravelTime;
     }
 
     //Might want to change this in the future to a bucket based update to ensure we aren't

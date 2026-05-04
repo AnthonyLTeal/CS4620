@@ -106,6 +106,12 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         GumService.Default.Update(gameTime);
+        
+        float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        
+        SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
+        
+        PathSegmentSystems.UpdateCongestionCost(dt * simulationSuper.SimSpeed);
 
         var visualOver = GumService.Default.Cursor.WindowOver;
         var control = visualOver?.FormsControlAsObject as FrameworkElement;
@@ -140,7 +146,6 @@ public class Game1 : Game
         // TODO: Add your update logic here
 
         base.Update(gameTime);
-        GumService.Default.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)

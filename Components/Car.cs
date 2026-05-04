@@ -28,6 +28,7 @@ public class Car
     public bool InIntersection = false;
     public ReroutePath? ReroutePath = null;
     public bool IsReroute = false;
+    public float TimeOnSegment = 0;
     
     public List<String> Log = new List<String>();
     
