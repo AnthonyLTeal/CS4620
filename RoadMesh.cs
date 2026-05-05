@@ -654,7 +654,7 @@ public class RoadMesh
     public void AddEndConnectorToNewPath(PathSegment segment)
     {
         PathSegmentConnector connector = new PathSegmentConnector();
-        connector.Position = segment.Path[^1] + new Vector3(0, 0.1f, 0);
+        connector.Position = segment.Path[^1];
         //EntityManager.AddEntity();
         //EntityManager.AddComponentToEntity<PathSegmentConnector>(EntityManager.LastAddedEntity, connector);
         PathSegmentConnectors.Add(connector);
@@ -670,7 +670,7 @@ public class RoadMesh
     public void AddBeginConnectorToNewPath(PathSegment segment)
     {
         PathSegmentConnector connector = new PathSegmentConnector();
-        connector.Position = segment.Path[0] + new Vector3(0, 0.1f, 0);
+        connector.Position = segment.Path[0];
         //EntityManager.AddEntity();
         //EntityManager.AddComponentToEntity<PathSegmentConnector>(EntityManager.LastAddedEntity, connector);
         PathSegmentConnectors.Add(connector);

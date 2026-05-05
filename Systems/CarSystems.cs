@@ -131,10 +131,16 @@ public class CarSystems
     private static Vector3 GetPathVertex(Car car)
     {
         PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-        Vector3 currentVertexPos = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, pathSegment);;
+        Console.WriteLine($"Segment Path Current Index: {car.SegmentPath.CurrentIndex}");
+        Console.WriteLine($"Segment Size: {pathSegment.Path.Length}");
+        Vector3 currentVertexPos = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, pathSegment);
         Vector3 nextVertexPos = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, pathSegment);
+        Console.WriteLine($"CurrentVertexPos: {currentVertexPos.X}, {currentVertexPos.Y}, {currentVertexPos.Z}");
+        Console.WriteLine($"NextVertexPos: {nextVertexPos.X}, {nextVertexPos.Y}, {nextVertexPos.Z}");
         //RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
         Vector3 direction = Vector3.Normalize(nextVertexPos - currentVertexPos);
+        Console.WriteLine($"Direction: {direction.X}, {direction.Y}, {direction.Z}" );
+        Console.WriteLine();
         return nextVertexPos + RoadSideOffset(direction) * car.CurrentLane;
     }
 
@@ -146,14 +152,26 @@ public class CarSystems
         Vector3 p2Offset = Vector3.Cross(p2Dir, Vector3.Up);
         Vector3 p1Offset = Vector3.Cross(p1Dir, Vector3.Up);
         
-        float turnSign = MathF.Sign(Vector3.Cross(p1Dir, p2Dir).Y);
-        
-        Vector3 tangent = Vector3.Normalize(p1Dir - p2Dir);
+        Vector3 diff = p1Dir - p2Dir;
+        Vector3 tangent;
 
-        if (turnSign > 0)
-            tangent = -tangent;
+        // If diff is practically zero, the car is going straight.
+        if (diff.LengthSquared() < 0.0001f) 
+        {
+            // For a straight line, the lane offset doesn't need a complex corner tangent.
+            // It just uses the exact same lane offset it had coming in.
+            tangent = -p1Offset; 
+        }
+        else
+        {
+            // The car is turning, proceed with normal corner tangent math
+            tangent = Vector3.Normalize(diff);
+            float turnSign = MathF.Sign(Vector3.Cross(p1Dir, p2Dir).Y);
+            if (turnSign > 0)
+                tangent = -tangent;
+        }
         
-        bool isLeftTurn = turnSign > 0;
+        // bool isLeftTurn = turnSign > 0;
 
         // PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         //
@@ -519,8 +537,21 @@ public class CarSystems
             bool finalSegment = (car.connectedSegment == car.Destinations[0].TargetSegmentID);
             if (car.SegmentPath.CurrentIndex == car.Destinations[0].TargetPathIndex && finalSegment)
             {
+                int previousDestinationIndex = car.Destinations[0].TargetPathIndex;
                 car.Destinations.RemoveAt(0);
-                connectedSegment.EntitiesOnSegment.Remove(entity);
+                if (car.Destinations.Count <= 0)
+                {
+                    connectedSegment.EntitiesOnSegment.Remove(entity);
+                }
+                else
+                {
+                    //I think we can just treat it like a new car
+                    int previousDir = car.SegmentPath.Direction;
+                    car.InitialPathIndex = car.SegmentPath.CurrentIndex;
+                    car.SegmentPath = BuildCarPath(car, car.Destinations[0]);
+                    //car.SegmentPath.LastConnectorID = previousDestinationIndex;
+                    //car.Position = GetPathVertex(car);
+                }
                 return;
             }
             
@@ -564,13 +595,13 @@ public class CarSystems
                 connectedSegment.EntitiesOnSegment.Remove(entity);
                 
                 //TODO bug here, I think the lastConnectorID might be wrong for reroute paths, we have to actually check it against the current segments 2 connectors to see which one we just left or something I don't know
-                //int lastConnectorID = car.SegmentPath.NextConnectorID;
+                int lastConnectorID = car.SegmentPath.NextConnectorID;
 
                 //this might work
-                int lastConnectorID = (int)connectedSegment.EndConnector;
-                if (car.SegmentPath.Direction == -1)
-                    lastConnectorID = (int)connectedSegment.FrontConnector;
-                
+                // int lastConnectorID = (int)connectedSegment.EndConnector;
+                // if (car.SegmentPath.Direction == -1)
+                //     lastConnectorID = (int)connectedSegment.FrontConnector;
+                //
                 int nextConnectorId = GetNextConnectorID(car.Destinations[0], lastConnectorID);
                 //Console.WriteLine("nextConnectorID before Reroute: " + nextConnectorId);
                 
@@ -836,7 +867,7 @@ public class CarSystems
         Rerouting
     }
 
-    public static void GenerateRandomCar(Random random, CarBehavior behavior = CarBehavior.Basic)
+    public static void GenerateRandomCar(Random random, CarBehavior behavior = CarBehavior.Basic, int destinationCount = 100)
     {
         //List<int> segments = ComponentManager.GetComponent<PathSegment>();
         (int randomSegment, int randomPathPoint) = GetRandomPathPoint(random);
@@ -869,6 +900,24 @@ public class CarSystems
         }
         
         List<Destination> destinations = new List<Destination>() {destination};
+
+        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        if (segmentEntities.Count > 4)
+        {
+            int lastSegment = -1;
+            while (destinations.Count < destinationCount)
+            {
+                (int randomSegmentDest, int randomPathPointDest) = GetRandomPathPoint(random);
+                if (randomSegmentDest == lastSegment)
+                    continue;
+                
+                destinations.Add(new Destination()
+                {
+                    TargetSegmentID = randomSegmentDest,
+                    TargetPathIndex = randomPathPointDest + 1
+                });
+            }   
+        }
         
         Car car = new Car()
         {
