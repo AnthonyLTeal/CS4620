@@ -11,36 +11,68 @@ namespace CS4620IS;
 public class StopSignDrawSystem
 {
     private static Texture2D stopSign;
+    private static Texture2D stopLight;
 
     public static void Load(GraphicsDevice graphicsDevice, ContentManager content)
     {
         stopSign = ImageLoader.LoadImage(graphicsDevice, "StopSignIcon.png", content);
+        stopLight = ImageLoader.LoadImage(graphicsDevice, "WhiteCircle.png", content);
+    }
+
+    public static void DrawLight(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice, int segmentId, PathSegmentConnector connector, int greenIndex)
+    {
+        ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
+        Vector2 origin = new Vector2(stopSign.Width / 2, stopSign.Height / 2);
+        float scale = 0.25f;
+        
+        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentId);
+
+        int index = 0;
+        if (connector.ID == segment.EndConnector)
+            index = segment.Path.Length - 1;
+        
+        Vector3 position = segment.Path[index];
+        
+        Vector3 screenPos = graphicsDevice.Viewport.Project(position, camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
+
+        if (screenPos.X < 0 || screenPos.Y < 0 || screenPos.X > graphicsDevice.Viewport.Width ||
+            screenPos.Y > graphicsDevice.Viewport.Height)
+            return;
+
+        Color color = Color.Red;
+        if (greenIndex == connector.CurrentLightGreen)
+            color = Color.Yellow;
+        
+        if (connector.LightTime - connector.LightTimer > connector.YellowTimer && greenIndex == connector.CurrentLightGreen)
+            color = Color.Green;
+        
+        Vector2 pos = new Vector2(screenPos.X, screenPos.Y);
+        
+        spriteBatch.Draw(stopLight, pos, null, color, 0, origin, scale, SpriteEffects.None, 0f);
     }
     
     public static void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice)
     {
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-        ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
-        Vector2 origin = new Vector2(stopSign.Width / 2, stopSign.Height / 2);
-        float scale = 0.25f;
-        
         spriteBatch.Begin();
 
         foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
         {
-            foreach (Vector3 position in connector.StopSignLocations)
+            for (int i = 0; i < connector.StoplightConnections.Count; i++)
             {
-                Vector3 screenPos = graphicsDevice.Viewport.Project(position, camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
+                (int, int) lightConnection = connector.StoplightConnections[i];
 
-                if (screenPos.X < 0 || screenPos.Y < 0 || screenPos.X > graphicsDevice.Viewport.Width ||
-                    screenPos.Y > graphicsDevice.Viewport.Height)
-                    continue;
+                (int segmentOne, int segmentTwo) = lightConnection;
+                if (segmentOne != -1)
+                {
+                    DrawLight(spriteBatch, graphicsDevice, segmentOne, connector, i);
+                }
                 
-                Vector2 pos = new Vector2(screenPos.X, screenPos.Y);
-                
-                spriteBatch.Draw(stopSign, pos, null, Color.White, 0, origin, scale, SpriteEffects.None, 0f);
+                if (segmentTwo != -1)
+                {
+                    DrawLight(spriteBatch, graphicsDevice, segmentTwo, connector, i);
+                }
             }
-            //Vector2 texturePos = new Vector2(screenPos.X, screenPos.Y)
         }
         
         spriteBatch.End();
