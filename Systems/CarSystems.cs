@@ -539,6 +539,7 @@ public class CarSystems
             {
                 int previousDestinationIndex = car.Destinations[0].TargetPathIndex;
                 car.Destinations.RemoveAt(0);
+                SimulationSystems.IncrementDestinations(car.IsReroute);
                 if (car.Destinations.Count <= 0)
                 {
                     connectedSegment.EntitiesOnSegment.Remove(entity);
@@ -938,11 +939,6 @@ public class CarSystems
         {
             car.Color = Color.HotPink;
             car.IsReroute = true;
-            simulationSuper.RerouteGroup.Add(car);
-        }
-        else
-        {
-            simulationSuper.ControlGroup.Add(car);
         }
 
         car.Position = GetInitialPosition(car);
