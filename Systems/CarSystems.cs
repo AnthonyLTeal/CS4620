@@ -16,7 +16,7 @@ namespace CS4620IS;
 
 public class CarSystems
 {
-    public static void BasicBehavior(GameTime gameTime)
+    public static void BasicBehavior(float virtualDt)
     {
          List<int> entities = ComponentManager.GetComponent<Car>();
          List<int> entitiesToRemove = new List<int>();
@@ -68,12 +68,11 @@ public class CarSystems
              ValidateDestinationSegment(car.Destinations[0], car);
              ValidateCurrentSegment(car, entity);
              
-             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
              SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
 
              // try
              // {
-                MoveCar(entity, dt * simulationSuper.SimSpeed);
+                MoveCar(entity, virtualDt);
              // }
              // catch (Exception e)
              // {
@@ -131,16 +130,16 @@ public class CarSystems
     private static Vector3 GetPathVertex(Car car)
     {
         PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
-        Console.WriteLine($"Segment Path Current Index: {car.SegmentPath.CurrentIndex}");
-        Console.WriteLine($"Segment Size: {pathSegment.Path.Length}");
+        //Console.WriteLine($"Segment Path Current Index: {car.SegmentPath.CurrentIndex}");
+        //Console.WriteLine($"Segment Size: {pathSegment.Path.Length}");
         Vector3 currentVertexPos = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, pathSegment);
         Vector3 nextVertexPos = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, pathSegment);
-        Console.WriteLine($"CurrentVertexPos: {currentVertexPos.X}, {currentVertexPos.Y}, {currentVertexPos.Z}");
-        Console.WriteLine($"NextVertexPos: {nextVertexPos.X}, {nextVertexPos.Y}, {nextVertexPos.Z}");
+        //Console.WriteLine($"CurrentVertexPos: {currentVertexPos.X}, {currentVertexPos.Y}, {currentVertexPos.Z}");
+        //Console.WriteLine($"NextVertexPos: {nextVertexPos.X}, {nextVertexPos.Y}, {nextVertexPos.Z}");
         //RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
         Vector3 direction = Vector3.Normalize(nextVertexPos - currentVertexPos);
-        Console.WriteLine($"Direction: {direction.X}, {direction.Y}, {direction.Z}" );
-        Console.WriteLine();
+        //Console.WriteLine($"Direction: {direction.X}, {direction.Y}, {direction.Z}" );
+        //Console.WriteLine();
         return nextVertexPos + RoadSideOffset(direction) * car.CurrentLane;
     }
 
@@ -547,11 +546,17 @@ public class CarSystems
                 else
                 {
                     //I think we can just treat it like a new car
-                    int previousDir = car.SegmentPath.Direction;
+                    //int previousDir = car.SegmentPath.Direction;
                     car.InitialPathIndex = car.SegmentPath.CurrentIndex;
                     car.SegmentPath = BuildCarPath(car, car.Destinations[0]);
-                    //car.SegmentPath.LastConnectorID = previousDestinationIndex;
-                    //car.Position = GetPathVertex(car);
+                    car.Position = GetInitialPosition(car);
+
+                    // if (previousDir != car.SegmentPath.Direction)
+                    // {
+                    //     //BuildIntersectionPath(car, car.Position, GetInitialPosition(car), connectedSegment.Path[car.InitialPathIndex]);
+                    //     //car.OnConnector = -1;
+                    // }
+
                 }
                 return;
             }
@@ -650,7 +655,6 @@ public class CarSystems
                 nextSegment.EntitiesOnSegment.Add(entity);
                 Vector3 p1 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, connectedSegment);
                 car.SegmentPath = BuildCarPath(car, car.Destinations[0], lastConnectorID, nextConnectorId);
-                car.OnConnector = lastConnectorID;
                 PathSegment newSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
                 Vector3 p2 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, newSegment);
                 Vector3 p3 = roadMesh.PathSegmentConnectors[lastConnectorID].Position;
@@ -781,9 +785,11 @@ public class CarSystems
         List<int> segments = ComponentManager.GetComponent<PathSegment>();
         int randomSegment = random.Next(segments.Count);
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segments[randomSegment]);
+        
         if (segment.Path.Length < 3)
             return (-1, -1);
-        int randomPathPoint = random.Next(1, segment.Path.Length - 2); //don't let it be the last or the first point on a path, this is the start of an intersection
+        int randomPathPoint = random.Next(1, segment.Path.Length - 1); //don't let it be the last or the first point on a path, this is the start of an intersection
+        
         return (segment.EntityID, randomPathPoint);
     }
 
@@ -885,7 +891,7 @@ public class CarSystems
         Destination destination = new Destination()
         {
             TargetSegmentID = randomSegmentDestination, //SegmentID = randomSegmentDestination,
-            TargetPathIndex = randomPathPointDestination + 1
+            TargetPathIndex = randomPathPointDestination
 //            TargetPathIndex = 0
         };
 
@@ -915,7 +921,7 @@ public class CarSystems
                 destinations.Add(new Destination()
                 {
                     TargetSegmentID = randomSegmentDest,
-                    TargetPathIndex = randomPathPointDest + 1
+                    TargetPathIndex = randomPathPointDest
                 });
             }   
         }
@@ -928,7 +934,7 @@ public class CarSystems
             Color = Color.LightGreen,
             Rotation = Matrix.Identity,
             Destinations = destinations,
-            InitialPathIndex = randomPathPoint + 1
+            InitialPathIndex = randomPathPoint
 //            InitialPathIndex = segment.TotalPathLength - 3
         };
         car.SegmentPath = BuildCarPath(car, destination);

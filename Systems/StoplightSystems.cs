@@ -56,6 +56,7 @@ public class StoplightSystems
                 float dotProduct = Vector3.Dot(mainDirection, nextDirection);
                 potentialConnections.Enqueue((segmentOneEntity, segmentTwoEntity), dotProduct);
             }
+            
         }
 
         while (segments.Count > 1)
@@ -77,9 +78,19 @@ public class StoplightSystems
         {
             stoplightConnections.Add((-1, segments[0]));
         }
+
+        int counter = 0;
+        foreach (var light in stoplightConnections)
+        {
+            counter++;
+            (int x, int y) = light;
+            Console.WriteLine($"Stop Light: 0: {x}, 1: {y}");
+        }
+        
+        //Console.WriteLine("Stop Light Count:  " + stoplightConnections.Count + "\n");
     }
 
-    public static void ChangeRedGreen(GameTime gametime)
+    public static void ChangeRedGreen(float virtualDT)
     {
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
         List<PathSegmentConnector> connectors = roadMesh.PathSegmentConnectors;
@@ -89,7 +100,7 @@ public class StoplightSystems
             if (connectors[i].SegmentEntities.Count < 3)
                 continue;
 
-            if (connectors[i].LightTime <= connectors[i].LightTimer)
+            if (connectors[i].LightTimer > connectors[i].LightTime)
             {
                 connectors[i].CurrentLightGreen += 1;
                 if (connectors[i].CurrentLightGreen >= connectors[i].StoplightConnections.Count)
@@ -98,13 +109,13 @@ public class StoplightSystems
                 } 
                 connectors[i].LightTimer = 0;
             }
-
-            if (connectors[i].LightTime > connectors[i].LightTimer)
+            else
             {
-                connectors[i].LightTimer += gametime.ElapsedGameTime.TotalMilliseconds;
+                connectors[i].LightTimer += virtualDT * 1000;
             }
         }
     }
+    
     public static bool WaitOnStopLight(int carEntity)
     {
         Car car = ComponentManager.GetEntityComponent<Car>(carEntity);

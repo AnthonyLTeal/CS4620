@@ -110,8 +110,9 @@ public class Game1 : Game
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         
         SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
+        float virtualDt = dt * simulationSuper.SimSpeed;
         
-        PathSegmentSystems.UpdateCongestionCost(dt * simulationSuper.SimSpeed);
+        PathSegmentSystems.UpdateCongestionCost(virtualDt);
 
         var visualOver = GumService.Default.Cursor.WindowOver;
         var control = visualOver?.FormsControlAsObject as FrameworkElement;
@@ -137,9 +138,9 @@ public class Game1 : Game
         {
             _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
         }
-        CarSystems.BasicBehavior(gameTime);
+        CarSystems.BasicBehavior(virtualDt);
         //new stuff for stoplights
-        StoplightSystems.ChangeRedGreen(gameTime);
+        StoplightSystems.ChangeRedGreen(virtualDt);
     
         PathSegmentSystems.SetPathColor();
 

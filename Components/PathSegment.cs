@@ -57,6 +57,7 @@ public class PathSegment
     public int MaxCarTimes = 10;
     public float AverageSquaredTimer = 0;
     public float AverageSquaredTimeMax = 2.0f;
+    public float EstimatedTravelTime;
     
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();
@@ -110,9 +111,10 @@ public class PathSegment
             _path = value;
             DebugPoints = PathSegmentSystems.GenerateRoadOutline(value, IsLaneRuler);
             RoadMesh.CreatePathHitBoxes(this);
+            EstimatedTravelTime = PathSegmentSystems.GetEstimatedTimeToTravel(this);
             //TODO uncomment the following 2 lines to build perpendiculars when roadmesh is fixed
             //if (IsLaneRuler)
-                //Perpendiculars = RoadMesh.GeneratePerpendiculars(_path);
+            //Perpendiculars = RoadMesh.GeneratePerpendiculars(_path);
         }
     }
 }

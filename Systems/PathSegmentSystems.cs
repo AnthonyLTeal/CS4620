@@ -126,8 +126,8 @@ public class PathSegmentSystems
                 float sqrtTime = totalSquaredTime / 10 * 0.1f;
                 float estimatedTime = GetEstimatedTimeToTravel(pathSegment);
                 
-                //Console.WriteLine("sqrtTime: " + sqrtTime);
-                //Console.WriteLine("estimatedTime: " +  estimatedTime);
+                Console.WriteLine("\nsqrtTime: " + sqrtTime);
+                Console.WriteLine("estimatedTime: " +  estimatedTime);
 
                 if (sqrtTime > estimatedTime)
                     pathSegment.CongestionCost = sqrtTime - estimatedTime;
@@ -167,13 +167,13 @@ public class PathSegmentSystems
             
             //Console.WriteLine($"Segment: {entity} | Entities On Segment: {segment.EntitiesOnSegment.Count}");
             
-            if (segment.EntitiesOnSegment.Count >= 10)
+            if (segment.CongestionCost >= 3 * segment.EstimatedTravelTime)
             {
                 if (segment.CurrentColorIndex != 3)
                     colorValue = 3;
                 else continue;
             }
-            else if (segment.EntitiesOnSegment.Count >= 5)
+            else if (segment.CongestionCost >= 2 * segment.EstimatedTravelTime)
             {
                 if (segment.CurrentColorIndex != 2)
                     colorValue = 2;
