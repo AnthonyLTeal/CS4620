@@ -126,8 +126,8 @@ public class PathSegmentSystems
                 float sqrtTime = totalSquaredTime / 10 * 0.1f;
                 float estimatedTime = GetEstimatedTimeToTravel(pathSegment);
                 
-                Console.WriteLine("\nsqrtTime: " + sqrtTime);
-                Console.WriteLine("estimatedTime: " +  estimatedTime);
+                //Console.WriteLine("\nsqrtTime: " + sqrtTime);
+                //Console.WriteLine("estimatedTime: " +  estimatedTime);
 
                 if (sqrtTime > estimatedTime)
                     pathSegment.CongestionCost = sqrtTime - estimatedTime;

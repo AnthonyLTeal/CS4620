@@ -20,7 +20,7 @@ public class Car
     public Vector3 Position;
     public Color Color;
     public float Scale = 0.25f;
-    public List<Destination> Destinations;
+    public Queue<Destination> Destinations;
     public CarPath SegmentPath;
     public Stack<Vector3> OverridePath = new Stack<Vector3>();
     public float CurrentLane = 1 * -0.2f;

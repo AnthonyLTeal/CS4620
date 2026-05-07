@@ -140,6 +140,7 @@ public class RoadRibbonMesh
             vertexOffset = vertices.Count;
         }
         
+        _vertexBuffer?.Dispose();
         _vertexBuffer = new VertexBuffer(
             graphicsDevice,
             typeof(VertexPositionColor),
@@ -148,6 +149,7 @@ public class RoadRibbonMesh
         
         _vertexBuffer.SetData(vertices.ToArray());
         
+        _indexBuffer?.Dispose();
         _indexBuffer = new IndexBuffer(
             graphicsDevice,
             IndexElementSize.ThirtyTwoBits,

@@ -39,7 +39,7 @@ public class CarSystems
              //destroy if destination entity is dead
              if (car.Destinations.Count > 0)
              {
-                 PathSegment destinationSegment = ComponentManager.GetEntityComponent<PathSegment>((car.Destinations[0].TargetSegmentID));
+                 PathSegment destinationSegment = ComponentManager.GetEntityComponent<PathSegment>((car.Destinations.Peek().TargetSegmentID));
 
                  if (destinationSegment is null)
                  {
@@ -48,7 +48,7 @@ public class CarSystems
                  }
              }
              
-             if (car.Destinations.Count > 0 && !PathExists(car.Destinations[0], car.ConnectedSegment))
+             if (car.Destinations.Count > 0 && !PathExists(car.Destinations.Peek(), car.ConnectedSegment))
              {
                  Console.WriteLine("No valid path");
                  car.Destinations.Clear();
@@ -65,7 +65,7 @@ public class CarSystems
                  continue;
              }
 
-             ValidateDestinationSegment(car.Destinations[0], car);
+             ValidateDestinationSegment(car.Destinations.Peek(), car);
              ValidateCurrentSegment(car, entity);
              
              SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
@@ -95,6 +95,8 @@ public class CarSystems
                  
                  connector.StopQueue.Remove(entity);
              }
+             
+             Console.WriteLine("Removing entity for some unknown reason");
              EntityManager.RemoveEntity(entity);
          }
     }
@@ -288,8 +290,8 @@ public class CarSystems
         if (car.SegmentPath.SegmentSize != segment.Path.Count())
         {
             car.Log.Add("-----------------------------------");
-            car.Log.Add("Target Destination Segment: " + car.Destinations[0].TargetSegmentID);
-            car.Log.Add("Target Destination Index: " + car.Destinations[0].TargetPathIndex);
+            car.Log.Add("Target Destination Segment: " + car.Destinations.Peek().TargetSegmentID);
+            car.Log.Add("Target Destination Index: " + car.Destinations.Peek().TargetPathIndex);
             car.Log.Add("Previous Connected Segment:" + car.connectedSegment);
             car.Log.Add("Previous Connected Segment Size: " + car.SegmentPath.SegmentSize);
             car.Log.Add("Previous Direction: " + car.SegmentPath.Direction);
@@ -357,7 +359,7 @@ public class CarSystems
             car.Log.Add("New Car Initial Index: " + car.InitialPathIndex);
             car.Log.Add("New Car Connected Segment:" + car.connectedSegment);
 
-            car.SegmentPath = BuildCarPath(car, car.Destinations[0]);
+            car.SegmentPath = BuildCarPath(car, car.Destinations.Peek());
             car.Log.Add("Direction: " + car.SegmentPath.Direction);
             car.Log.Add("New Connected Segment Size: " + car.SegmentPath.SegmentSize);
 
@@ -421,7 +423,7 @@ public class CarSystems
         
         //I think we just check the next path destination to see if we are hitting a connector
         //if (car.Destinations[0].Path.Count > 0)
-        if (car.Destinations[0].TargetPathIndex != car.ConnectedSegment)
+        if (car.Destinations.Peek().TargetPathIndex != car.ConnectedSegment)
         {
             int connectorID = GetNextConnectorIDWithDir(car.ConnectedSegment, car.SegmentPath.Direction);
             PathSegmentConnector connector = roadMesh.PathSegmentConnectors[connectorID];
@@ -507,8 +509,8 @@ public class CarSystems
              //break;
 
             //my new stuff
-            if (StoplightSystems.WaitOnStopLight(entity))
-                break;
+            //if (StoplightSystems.WaitOnStopLight(entity))
+            //    break;
             
             Vector3 nextPoint = GetPathVertex(car);
             if (isOverridden)
@@ -533,11 +535,12 @@ public class CarSystems
 
             remaining -= distanceTo;
             
-            bool finalSegment = (car.connectedSegment == car.Destinations[0].TargetSegmentID);
-            if (car.SegmentPath.CurrentIndex == car.Destinations[0].TargetPathIndex && finalSegment)
+            bool finalSegment = (car.connectedSegment == car.Destinations.Peek().TargetSegmentID);
+            if (car.SegmentPath.CurrentIndex == car.Destinations.Peek().TargetPathIndex && finalSegment)
             {
-                int previousDestinationIndex = car.Destinations[0].TargetPathIndex;
-                car.Destinations.RemoveAt(0);
+                int previousDestinationIndex = car.Destinations.Peek().TargetPathIndex;
+                Destination recycledDest = car.Destinations.Dequeue();
+                car.Destinations.Enqueue(recycledDest);
                 SimulationSystems.IncrementDestinations(car.IsReroute);
                 if (car.Destinations.Count <= 0)
                 {
@@ -548,7 +551,7 @@ public class CarSystems
                     //I think we can just treat it like a new car
                     //int previousDir = car.SegmentPath.Direction;
                     car.InitialPathIndex = car.SegmentPath.CurrentIndex;
-                    car.SegmentPath = BuildCarPath(car, car.Destinations[0]);
+                    car.SegmentPath = BuildCarPath(car, car.Destinations.Peek());
                     car.Position = GetInitialPosition(car);
 
                     // if (previousDir != car.SegmentPath.Direction)
@@ -608,7 +611,7 @@ public class CarSystems
                 // if (car.SegmentPath.Direction == -1)
                 //     lastConnectorID = (int)connectedSegment.FrontConnector;
                 //
-                int nextConnectorId = GetNextConnectorID(car.Destinations[0], lastConnectorID);
+                int nextConnectorId = GetNextConnectorID(car.Destinations.Peek(), lastConnectorID);
                 //Console.WriteLine("nextConnectorID before Reroute: " + nextConnectorId);
                 
                 
@@ -624,7 +627,7 @@ public class CarSystems
                 //there might be some unknown bugs with this, so if I go this route, I should be willing to think in a different direction
                 if (car.IsReroute)
                 {
-                    car.ReroutePath = RerouteSystem.Reroute(2, lastConnectorID, car.Destinations[0]);
+                    car.ReroutePath = RerouteSystem.Reroute(2, lastConnectorID, car.Destinations.Peek());
                 } 
                 
                 if (car.ReroutePath is not null)
@@ -649,12 +652,12 @@ public class CarSystems
                 
                 int lastPathIndex = car.SegmentPath.CurrentIndex;
                 car.PreviousSegment = car.ConnectedSegment;
-                int nextSegmentId = GetNextSegment(car.Destinations[0], nextConnectorId, lastConnectorID);
+                int nextSegmentId = GetNextSegment(car.Destinations.Peek(), nextConnectorId, lastConnectorID);
                 car.connectedSegment = nextSegmentId;
                 PathSegment nextSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
                 nextSegment.EntitiesOnSegment.Add(entity);
                 Vector3 p1 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, connectedSegment);
-                car.SegmentPath = BuildCarPath(car, car.Destinations[0], lastConnectorID, nextConnectorId);
+                car.SegmentPath = BuildCarPath(car, car.Destinations.Peek(), lastConnectorID, nextConnectorId);
                 PathSegment newSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
                 Vector3 p2 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, newSegment);
                 Vector3 p3 = roadMesh.PathSegmentConnectors[lastConnectorID].Position;
@@ -713,7 +716,7 @@ public class CarSystems
         //Console.WriteLine("Next Connector: " + nextConnectorID);
         
         int nextConnector;
-        if (lastConnectorID == -1 && car.Destinations[0].TargetSegmentID != car.connectedSegment) //new car target on different segment
+        if (lastConnectorID == -1 && car.Destinations.Peek().TargetSegmentID != car.connectedSegment) //new car target on different segment
         {
             nextConnector = GetInitialConnector(connectedSegment, destination);
             //Console.WriteLine("Next Connector From Initial: " + nextConnector);
@@ -728,10 +731,10 @@ public class CarSystems
             return carPath;
         }
 
-        if (lastConnectorID == -1 && car.Destinations[0].TargetSegmentID == car.connectedSegment) //new car target on same segment
+        if (lastConnectorID == -1 && car.Destinations.Peek().TargetSegmentID == car.connectedSegment) //new car target on same segment
         {
             carPath.CurrentIndex = car.InitialPathIndex;
-            if (car.InitialPathIndex > car.Destinations[0].TargetPathIndex)
+            if (car.InitialPathIndex > car.Destinations.Peek().TargetPathIndex)
                 carPath.Direction = -1;
             else
                 carPath.Direction = 1;
@@ -740,7 +743,7 @@ public class CarSystems
             return carPath;
         }
 
-        if (car.Destinations[0].TargetSegmentID == car.connectedSegment) //from connector to final segment
+        if (car.Destinations.Peek().TargetSegmentID == car.connectedSegment) //from connector to final segment
         {
             //Console.WriteLine("Final Segment");
             if (lastConnectorID == connectedSegment.EndConnector)
@@ -905,8 +908,8 @@ public class CarSystems
             //EntityManager.RemoveEntity(newCarEntity);
             return;
         }
-        
-        List<Destination> destinations = new List<Destination>() {destination};
+
+        Queue<Destination> destinations = new Queue<Destination>();
 
         List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
         if (segmentEntities.Count > 4)
@@ -918,7 +921,7 @@ public class CarSystems
                 if (randomSegmentDest == lastSegment)
                     continue;
                 
-                destinations.Add(new Destination()
+                destinations.Enqueue(new Destination()
                 {
                     TargetSegmentID = randomSegmentDest,
                     TargetPathIndex = randomPathPointDest
