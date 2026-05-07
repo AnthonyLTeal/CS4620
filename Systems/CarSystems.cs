@@ -395,7 +395,7 @@ public class CarSystems
         if (car.WaitTimer >= MaxStallTime)
         {
             car.WaitTimer = 0;
-            car.StuckCooldown = 5;
+            car.StuckCooldown = 0.5f;
             return false;
         }
 
@@ -417,6 +417,11 @@ public class CarSystems
                 foreach (var targetCarEntity in segment.EntitiesOnSegment)
                 {
                     Car targetCar = ComponentManager.GetEntityComponent<Car>(targetCarEntity);
+                    
+                    //don't even go to WillIntersect, just ignore from here
+                    if (MathF.Abs(targetCar.SegmentPath.CurrentIndex - car.SegmentPath.CurrentIndex) > 2)
+                        continue;
+                    
                     if (car.SegmentPath.Direction == targetCar.SegmentPath.Direction)
                     {
                         //need to check if the next path is blocked
