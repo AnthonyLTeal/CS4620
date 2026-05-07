@@ -12,6 +12,7 @@ public class StopSignDrawSystem
 {
     private static Texture2D stopSign;
     private static Texture2D stopLight;
+    private static float referenceDistance = 20 ;
 
     public static void Load(GraphicsDevice graphicsDevice, ContentManager content)
     {
@@ -38,6 +39,9 @@ public class StopSignDrawSystem
         if (screenPos.X < 0 || screenPos.Y < 0 || screenPos.X > graphicsDevice.Viewport.Width ||
             screenPos.Y > graphicsDevice.Viewport.Height)
             return;
+        
+        float distance = Vector3.Distance(position, camera.Position);
+        float finalScale = scale * referenceDistance / distance;
 
         Color color = Color.Red;
         if (greenIndex == connector.CurrentLightGreen)
@@ -48,7 +52,7 @@ public class StopSignDrawSystem
         
         Vector2 pos = new Vector2(screenPos.X, screenPos.Y);
         
-        spriteBatch.Draw(stopLight, pos, null, color, 0, origin, scale, SpriteEffects.None, 0f);
+        spriteBatch.Draw(stopLight, pos, null, color, 0, origin, finalScale, SpriteEffects.None, 0f);
     }
     
     public static void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice)
