@@ -127,7 +127,7 @@ public class StoplightSystems
         
         if (connector.SegmentEntities.Count <= 2) {return false;}
 
-        if (car.InIntersection)
+        if (car.IgnoreYellow)
             return false;
 
         (int segmentOne, int segmentTwo) = connector.StoplightConnections[connector.CurrentLightGreen];
@@ -141,7 +141,7 @@ public class StoplightSystems
         {
             if (connector.LightTime - connector.LightTimer > connector.YellowTimer)
             {
-                car.InIntersection = true;
+                car.IgnoreYellow = true;
                 return false;
             }
         }

@@ -16,6 +16,7 @@ namespace CS4620IS;
 
 public class CarSystems
 {
+    public const float MaxStallTime = 10.0f; //in seconds
     public static void BasicBehavior(float virtualDt)
     {
          List<int> entities = ComponentManager.GetComponent<Car>();
@@ -380,19 +381,55 @@ public class CarSystems
     //TODO WaitOnTraffic isn't complete
     //For cars that are on a connector, before they've left a connector, they should check that the road ahead isn't backed up
     //not just wait on the intersection
-    private static bool WaitOnTraffic(int entity, float velocity, Vector3 direction)
+    private static bool WaitOnTraffic(int entity, float velocity, Vector3 direction, float virtualDt)
     {
         Car car = ComponentManager.GetEntityComponent<Car>(entity);
         PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
     
         //Vector3 predPosition = car.Position + velocity * direction;
+
+        //here we check if the car is "stuck" or hasn't moved in 10 seconds. This is reset every time the car moves
+        //if the car is stuck in traffic, they will still creep forward slowly every once in a while so this should
+        //help with complete stalls
+        if (car.WaitTimer >= MaxStallTime)
+        {
+            car.WaitTimer = 0;
+            car.StuckCooldown = 5;
+            return false;
+        }
+
+        if (car.StuckCooldown > 0)
+        {
+            car.StuckCooldown -= virtualDt;
+            return false;
+        }
     
         if (car.OnConnector != -1)
         {
             PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.OnConnector];
-            if (connector.SegmentEntities.Count > 2) //no need to wait on traffic if we are waiting on stop queue
+            
+            if (connector.SegmentEntities.Count > 2)
+            {
+                if (car.InIntersection)
+                    return false;
+                
+                foreach (var targetCarEntity in segment.EntitiesOnSegment)
+                {
+                    Car targetCar = ComponentManager.GetEntityComponent<Car>(targetCarEntity);
+                    if (car.SegmentPath.Direction == targetCar.SegmentPath.Direction)
+                    {
+                        //need to check if the next path is blocked
+                        PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+                        int currentIndex = car.SegmentPath.CurrentIndex;
+                        Vector3 point = connectedSegment.Path[currentIndex];
+
+                        if (targetCar.OnConnector == -1 && SphereIntersection.WillIntersect(point, targetCar.Position))
+                            return true;
+                    }
+                }
                 return false;
+            } 
         }
         
         // if (car.OnConnector == -1)
@@ -497,6 +534,8 @@ public class CarSystems
         Car car = ComponentManager.GetEntityComponent<Car>(entity);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
 
+        car.WaitTimer += virtualDt;
+
         car.TimeOnSegment += virtualDt;
         
         float remaining = 2 * virtualDt;
@@ -509,8 +548,8 @@ public class CarSystems
              //break;
 
             //my new stuff
-            //if (StoplightSystems.WaitOnStopLight(entity))
-            //    break;
+            if (StoplightSystems.WaitOnStopLight(entity))
+                break;
             
             Vector3 nextPoint = GetPathVertex(car);
             if (isOverridden)
@@ -525,11 +564,19 @@ public class CarSystems
             
             if (distanceTo > remaining)
             {
-                if (WaitOnTraffic(entity, remaining, direction))
+                if (WaitOnTraffic(entity, remaining, direction, virtualDt))
                     return;
                 
                 car.Position += direction * remaining;
                 car.Rotation = Matrix.CreateWorld(Vector3.Zero, direction, Vector3.Up);
+                car.WaitTimer = 0;
+                
+                if (isOverridden && car.OnConnector != -1)
+                {
+                    PathSegmentConnector previousConnector = roadMesh.PathSegmentConnectors[car.OnConnector];
+                    if (previousConnector.SegmentEntities.Count > 2)
+                        car.InIntersection = true;
+                }
                 return;
             }
 
@@ -538,7 +585,6 @@ public class CarSystems
             bool finalSegment = (car.connectedSegment == car.Destinations.Peek().TargetSegmentID);
             if (car.SegmentPath.CurrentIndex == car.Destinations.Peek().TargetPathIndex && finalSegment)
             {
-                int previousDestinationIndex = car.Destinations.Peek().TargetPathIndex;
                 Destination recycledDest = car.Destinations.Dequeue();
                 car.Destinations.Enqueue(recycledDest);
                 SimulationSystems.IncrementDestinations(car.IsReroute);
@@ -548,18 +594,9 @@ public class CarSystems
                 }
                 else
                 {
-                    //I think we can just treat it like a new car
-                    //int previousDir = car.SegmentPath.Direction;
                     car.InitialPathIndex = car.SegmentPath.CurrentIndex;
                     car.SegmentPath = BuildCarPath(car, car.Destinations.Peek());
                     car.Position = GetInitialPosition(car);
-
-                    // if (previousDir != car.SegmentPath.Direction)
-                    // {
-                    //     //BuildIntersectionPath(car, car.Position, GetInitialPosition(car), connectedSegment.Path[car.InitialPathIndex]);
-                    //     //car.OnConnector = -1;
-                    // }
-
                 }
                 return;
             }
@@ -569,7 +606,7 @@ public class CarSystems
             //
             // Console.WriteLine("Current Segment: " + car.connectedSegment);
             // Console.WriteLine("Current Point Index: " + car.SegmentPath.CurrentIndex);
-            if (WaitOnTraffic(entity, remaining, direction))
+            if (WaitOnTraffic(entity, remaining, direction, virtualDt))
                 return;
 
             if (isOverridden) //if overidden, car is traveling through an intersection/connector, but not necessarily an intersection
@@ -587,7 +624,7 @@ public class CarSystems
                         connectorQueued.StopQueue.Remove(entity);
                     }
                     car.OnConnector = -1;
-                    car.InIntersection = false;
+                    car.IgnoreYellow = false;
                 }
             }
             else
@@ -665,8 +702,11 @@ public class CarSystems
                 car.Position = car.OverridePath.Pop();
                 car.OnConnector = lastConnectorID;
                 PathSegmentConnector lastConnector = roadMesh.PathSegmentConnectors[lastConnectorID];
-                if (lastConnector.SegmentEntities.Count > 2) 
+                if (lastConnector.SegmentEntities.Count > 2)
+                {
+                    car.InIntersection = false;
                     lastConnector.StopQueue.Add(entity);
+                } 
             }
         }
     }

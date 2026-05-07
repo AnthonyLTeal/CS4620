@@ -25,10 +25,13 @@ public class Car
     public Stack<Vector3> OverridePath = new Stack<Vector3>();
     public float CurrentLane = 1 * -0.2f;
     public int OnConnector = -1;
-    public bool InIntersection = false;
+    public bool IgnoreYellow = false;
     public ReroutePath? ReroutePath = null;
     public bool IsReroute = false;
     public float TimeOnSegment = 0;
+    public float WaitTimer = 0;
+    public float StuckCooldown = 0;
+    public bool InIntersection = false;
     
     public List<String> Log = new List<String>();
     
