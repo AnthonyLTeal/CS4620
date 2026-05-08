@@ -19,16 +19,16 @@ public class CarSystems
     public const float MaxStallTime = 10.0f; //in seconds
     public static void BasicBehavior(float virtualDt)
     {
-         List<int> entities = ComponentManager.GetComponent<Car>();
+         List<int> entities = ComponentManager.GetComponents<Car>();
          List<int> entitiesToRemove = new List<int>();
          //Dictionary<int, double> carDestinationTimes = new Dictionary<int, double>();
          //List<double> finalDestinationTimes = new List<double>();
          
          foreach (int entity in entities)
          {
-             Car car = ComponentManager.GetEntityComponent<Car>(entity);
+             Car car = ComponentManager.GetComponent<Car>(entity);
              
-             PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+             PathSegment connectedSegment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
 
              //destroy car if segment entity is dead
              if (connectedSegment is null)
@@ -40,7 +40,7 @@ public class CarSystems
              //destroy if destination entity is dead
              if (car.Destinations.Count > 0)
              {
-                 PathSegment destinationSegment = ComponentManager.GetEntityComponent<PathSegment>((car.Destinations.Peek().TargetSegmentID));
+                 PathSegment destinationSegment = ComponentManager.GetComponent<PathSegment>((car.Destinations.Peek().TargetSegmentID));
 
                  if (destinationSegment is null)
                  {
@@ -87,7 +87,7 @@ public class CarSystems
          foreach (int entity in entitiesToRemove)
          {
              //Console.WriteLine("Killing Entity: " + entity);
-             Car car = ComponentManager.GetEntityComponent<Car>(entity);
+             Car car = ComponentManager.GetComponent<Car>(entity);
              // Check if the car is currently waiting at a connector
              if (car.OnConnector != -1)
              {
@@ -104,8 +104,8 @@ public class CarSystems
 
     private static bool PathExists(Destination destination, int segmentEntity)
     {
-        PathSegment segmentOne = ComponentManager.GetEntityComponent<PathSegment>(destination.TargetSegmentID);
-        PathSegment segmentTwo = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+        PathSegment segmentOne = ComponentManager.GetComponent<PathSegment>(destination.TargetSegmentID);
+        PathSegment segmentTwo = ComponentManager.GetComponent<PathSegment>(segmentEntity);
 
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
 
@@ -132,7 +132,7 @@ public class CarSystems
 
     private static Vector3 GetPathVertex(Car car)
     {
-        PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+        PathSegment pathSegment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
         //Console.WriteLine($"Segment Path Current Index: {car.SegmentPath.CurrentIndex}");
         //Console.WriteLine($"Segment Size: {pathSegment.Path.Length}");
         Vector3 currentVertexPos = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, pathSegment);
@@ -224,7 +224,7 @@ public class CarSystems
     private static int GetNextConnectorID(Destination destination, int lastConnectorId)
     {
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-        PathSegment targetSegment = ComponentManager.GetEntityComponent<PathSegment>(destination.TargetSegmentID);
+        PathSegment targetSegment = ComponentManager.GetComponent<PathSegment>(destination.TargetSegmentID);
 
         if (targetSegment.FrontConnector == lastConnectorId || targetSegment.EndConnector == lastConnectorId)
             return -1;
@@ -238,7 +238,7 @@ public class CarSystems
 
     private static int GetNextConnectorIDWithDir(int currentSegment, int dir)
     {
-        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(currentSegment);
+        PathSegment segment = ComponentManager.GetComponent<PathSegment>(currentSegment);
 
         if (dir == -1)
             return (int)segment.FrontConnector;
@@ -268,7 +268,7 @@ public class CarSystems
         //point of intersection as well (just before or after), then it will set it to the first index of the new
         //segment always. We don't always want this, if it's negative direction, we'd want to set it to the 
         //old segment at the last point, but this might not be needed when cars go to buildings directly
-        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(destination.TargetSegmentID);
+        PathSegment segment = ComponentManager.GetComponent<PathSegment>(destination.TargetSegmentID);
         if (destination.TargetPathIndex >= segment.Path.Length)
         {
             car.Log.Add("Previous Destination Segment ID: " + destination.TargetSegmentID);
@@ -286,7 +286,7 @@ public class CarSystems
 
     public static void ValidateCurrentSegment(Car car, int entity)
     {
-        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+        PathSegment segment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
         
         if (car.SegmentPath.SegmentSize != segment.Path.Count())
         {
@@ -383,8 +383,8 @@ public class CarSystems
     //not just wait on the intersection
     private static bool WaitOnTraffic(int entity, float velocity, Vector3 direction, float virtualDt)
     {
-        Car car = ComponentManager.GetEntityComponent<Car>(entity);
-        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+        Car car = ComponentManager.GetComponent<Car>(entity);
+        PathSegment segment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
     
         //Vector3 predPosition = car.Position + velocity * direction;
@@ -416,7 +416,7 @@ public class CarSystems
                 
                 foreach (var targetCarEntity in segment.EntitiesOnSegment)
                 {
-                    Car targetCar = ComponentManager.GetEntityComponent<Car>(targetCarEntity);
+                    Car targetCar = ComponentManager.GetComponent<Car>(targetCarEntity);
                     
                     //don't even go to WillIntersect, just ignore from here
                     if (MathF.Abs(targetCar.SegmentPath.CurrentIndex - car.SegmentPath.CurrentIndex) > 2)
@@ -425,7 +425,7 @@ public class CarSystems
                     if (car.SegmentPath.Direction == targetCar.SegmentPath.Direction)
                     {
                         //need to check if the next path is blocked
-                        PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+                        PathSegment connectedSegment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
                         int currentIndex = car.SegmentPath.CurrentIndex;
                         Vector3 point = connectedSegment.Path[currentIndex];
 
@@ -442,7 +442,7 @@ public class CarSystems
         {
             foreach (int targetCarEntity in segment.EntitiesOnSegment) //wait on path on segment only?
             {
-                Car targetCar = ComponentManager.GetEntityComponent<Car>(targetCarEntity);
+                Car targetCar = ComponentManager.GetComponent<Car>(targetCarEntity);
 
                 if (targetCar == null)
                     continue;
@@ -474,7 +474,7 @@ public class CarSystems
             {
                 foreach (int targetCarEntity in connector.StopQueue)
                 {
-                    Car targetCar = ComponentManager.GetEntityComponent<Car>(targetCarEntity);
+                    Car targetCar = ComponentManager.GetComponent<Car>(targetCarEntity);
                     // if (targetCar.SegmentPath.Direction != car.SegmentPath.Direction)
                     //     continue;
                     if (targetCarEntity == entity)
@@ -491,11 +491,11 @@ public class CarSystems
                     if (nextSegmentEntity == car.ConnectedSegment)
                         continue;
             
-                    PathSegment nextSegment = ComponentManager.GetEntityComponent<PathSegment>(nextSegmentEntity);
+                    PathSegment nextSegment = ComponentManager.GetComponent<PathSegment>(nextSegmentEntity);
                 
                     foreach (int targetCarEntity in nextSegment.EntitiesOnSegment)
                     {
-                        Car targetCar = ComponentManager.GetEntityComponent<Car>(targetCarEntity);
+                        Car targetCar = ComponentManager.GetComponent<Car>(targetCarEntity);
                         // if (targetCar.SegmentPath.Direction != car.SegmentPath.Direction)
                         //     continue;
                         if (targetCarEntity == entity)
@@ -515,7 +515,7 @@ public class CarSystems
     
     private static bool WaitOnStopSign(int carEntity)
     {
-        Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
+        Car car = ComponentManager.GetComponent<Car>(carEntity);
         
         if (car.OnConnector == -1)
             return false;
@@ -536,7 +536,7 @@ public class CarSystems
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
     private static void MoveCar(int entity, float virtualDt)
     {
-        Car car = ComponentManager.GetEntityComponent<Car>(entity);
+        Car car = ComponentManager.GetComponent<Car>(entity);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
 
         car.WaitTimer += virtualDt;
@@ -547,7 +547,7 @@ public class CarSystems
         while (remaining > 0.000001f)
         {
             bool isOverridden = (car.OverridePath.Count > 0);
-            PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+            PathSegment connectedSegment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
             
            //if (WaitOnStopSign(entity))
              //break;
@@ -696,11 +696,11 @@ public class CarSystems
                 car.PreviousSegment = car.ConnectedSegment;
                 int nextSegmentId = GetNextSegment(car.Destinations.Peek(), nextConnectorId, lastConnectorID);
                 car.connectedSegment = nextSegmentId;
-                PathSegment nextSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+                PathSegment nextSegment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
                 nextSegment.EntitiesOnSegment.Add(entity);
                 Vector3 p1 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, connectedSegment);
                 car.SegmentPath = BuildCarPath(car, car.Destinations.Peek(), lastConnectorID, nextConnectorId);
-                PathSegment newSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+                PathSegment newSegment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
                 Vector3 p2 = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, newSegment);
                 Vector3 p3 = roadMesh.PathSegmentConnectors[lastConnectorID].Position;
                 BuildIntersectionPath(car, p1, p2, p3);
@@ -731,7 +731,7 @@ public class CarSystems
             if (segmentEntity == destination.TargetSegmentID)
                 return segmentEntity;
             
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(segmentEntity);
             if ((segment.EndConnector == nextConnectorID && segment.FrontConnector == lastConnectorID) ||
                 (segment.EndConnector == lastConnectorID && segment.FrontConnector == nextConnectorID))
             {
@@ -755,7 +755,7 @@ public class CarSystems
     private static CarPath BuildCarPath(Car car,  Destination destination, int lastConnectorID = -1, int nextConnectorID = -1)
     {
         CarPath carPath = new CarPath();
-        PathSegment connectedSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+        PathSegment connectedSegment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
         carPath.SegmentSize = connectedSegment.Path.Length;
         
         //Console.WriteLine("Next Connector: " + nextConnectorID);
@@ -830,9 +830,9 @@ public class CarSystems
     /// <returns>(int SegmentEntityID, int SegmentPathPointIndex)</returns>
     public static (int, int) GetRandomPathPoint(Random random)
     {
-        List<int> segments = ComponentManager.GetComponent<PathSegment>();
+        List<int> segments = ComponentManager.GetComponents<PathSegment>();
         int randomSegment = random.Next(segments.Count);
-        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segments[randomSegment]);
+        PathSegment segment = ComponentManager.GetComponent<PathSegment>(segments[randomSegment]);
         
         if (segment.Path.Length < 3)
             return (-1, -1);
@@ -844,7 +844,7 @@ public class CarSystems
     public static int GetInitialConnector(PathSegment currentSegment, Destination destination)
     {
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-        PathSegment destSegment = ComponentManager.GetEntityComponent<PathSegment>(destination.TargetSegmentID);
+        PathSegment destSegment = ComponentManager.GetComponent<PathSegment>(destination.TargetSegmentID);
 
         //just added these lines for readability
         int destFront = (int)destSegment.FrontConnector;
@@ -893,7 +893,7 @@ public class CarSystems
 
     public static Vector3 GetInitialPosition(Car car)
     {
-        PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(car.ConnectedSegment);
+        PathSegment pathSegment = ComponentManager.GetComponent<PathSegment>(car.ConnectedSegment);
         Vector3 currentVertexPos = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex, pathSegment);;
         Vector3 nextVertexPos = GetPathVertexFromIndex(car.SegmentPath.CurrentIndex + car.SegmentPath.Direction, pathSegment);
         //RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
@@ -929,7 +929,7 @@ public class CarSystems
         if (randomSegment == -1)
             return;
         
-        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(randomSegment);
+        PathSegment segment = ComponentManager.GetComponent<PathSegment>(randomSegment);
         Vector3 position = segment.Path[randomPathPoint];
 
         (int randomSegmentDestination, int randomPathPointDestination) = GetRandomPathPoint(random);
@@ -956,7 +956,7 @@ public class CarSystems
 
         Queue<Destination> destinations = new Queue<Destination>();
 
-        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        List<int> segmentEntities = ComponentManager.GetComponents<PathSegment>();
         if (segmentEntities.Count > 4)
         {
             int lastSegment = -1;

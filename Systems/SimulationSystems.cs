@@ -13,13 +13,13 @@ public class SimulationSystems
 
     public static void Clear()
     {
-        List<int> carComponents = ComponentManager.GetComponent<Car>();
+        List<int> carComponents = ComponentManager.GetComponents<Car>();
         for (int i = carComponents.Count - 1; i >= 0; i--)
         {
             EntityManager.RemoveEntity(carComponents[i]);
         }
         
-        List<int> pathSegmentComponents = ComponentManager.GetComponent<PathSegment>();
+        List<int> pathSegmentComponents = ComponentManager.GetComponents<PathSegment>();
         for (int i = pathSegmentComponents.Count - 1; i >= 0; i--)
         {
             EntityManager.RemoveEntity(pathSegmentComponents[i]);
@@ -53,7 +53,7 @@ public class SimulationSystems
         //create new simulation metrics object and fill lists
         
         //clear cars next
-        List<int> carComponents = ComponentManager.GetComponent<Car>();
+        List<int> carComponents = ComponentManager.GetComponents<Car>();
         for (int i = carComponents.Count - 1; i >= 0; i--)
         {
             EntityManager.RemoveEntity(carComponents[i]);
@@ -66,13 +66,13 @@ public class SimulationSystems
     public static void CaptureCurrentAverageCongestion()
     {
         SimulationSuper simSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
-        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        List<int> segmentEntities = ComponentManager.GetComponents<PathSegment>();
 
         float totalCongestion = 0;
         
         foreach (int segmentEntity in segmentEntities)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(segmentEntity);
             totalCongestion += segment.CongestionCost;
         }
         

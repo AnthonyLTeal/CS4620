@@ -8,8 +8,9 @@ namespace CS4620IS;
 
 public class EntityManager
 {
-    public static List<int[]> Entities = new List<int[]>(); //stores an indices that tell where the entities components are in the corresponding component list
-    public static List<object[]> EntityComponents = new List<object[]>(); //stores the components themselves
+    private static readonly int _maxEntities = 10000;
+    private static int entityCount = 0;
+    public static int[][] Entities = new int[_maxEntities][]; //stores indices that tell where the entities components are in the corresponding component list
     public static bool Reserved = false;
     public static List<int> DeadEntities = new List<int>();
     private static int lastAddedEntity = 0;
@@ -19,18 +20,15 @@ public class EntityManager
     {
         if (DeadEntities.Count == 0)
         {
-            Entities.Add(new int[ComponentManager.TotalComponents]);
-            EntityComponents.Add(new object[ComponentManager.TotalComponents]);
-            lastAddedEntity = Entities.Count - 1;
+            lastAddedEntity = entityCount;
+            entityCount += 1;
             entityGen.Add(0);
         } else {
-            //TODO need to change DeadEntities to a stack for faster operation
-            Entities[DeadEntities[0]] = new int[ComponentManager.TotalComponents];
-            EntityComponents[DeadEntities[0]] = (new object[ComponentManager.TotalComponents]);
-            lastAddedEntity = DeadEntities[0];
+            //TODO need to change DeadEntities to a stack/queue for faster operation
+            lastAddedEntity = entityGen[DeadEntities[0]];
             DeadEntities.RemoveAt(0);
         }
-        AddComponentToEntity<EntityID>(lastAddedEntity, new EntityID() { ID = lastAddedEntity});
+        ComponentManager.AddComponent(lastAddedEntity, new EntityID() { ID = lastAddedEntity});
         return lastAddedEntity;
     }
 
@@ -38,7 +36,7 @@ public class EntityManager
     {
         if (DeadEntities.Count == 0)
         {
-            return Entities.Count;
+            return entityCount;
         }
 
         return DeadEntities[0];
@@ -50,38 +48,39 @@ public class EntityManager
     /// </summary>
     /// <param name="component">Component to add to global entity</param>
     /// <typeparam name="T">The type of component being added</typeparam>
-    public static void AddComponentToGlobalEntity<T>(T component)
-    {
-        AddComponentToEntity<T>(0, component);
-    }
+    // public static void AddComponentToGlobalEntity<T>(T component)
+    // {
+    //     AddComponentToEntity<T>(0, component);
+    // }
 
-    public static void AddComponentToEntity<T>(int entity, T component)
-    {
-        ReserveZero();
-        List<int> cRegister = ComponentManager.ComponentRegistry[ComponentManager.ComponentIDs[typeof(T)]];
-        cRegister.Add(entity);
-        EntityComponents[entity][ComponentManager.GetComponentID<T>()] = component;
-        Entities[entity][ComponentManager.GetComponentID<T>()] = cRegister.Count;
-    }
+    // public static void AddComponentToEntity<T>(int entity, T component)
+    // {
+    //     ReserveZero();
+    //     List<int> cRegister = ComponentManager.ComponentRegistry[ComponentManager.ComponentIDs[typeof(T)]];
+    //     cRegister.Add(entity);
+    //     EntityComponents[entity][ComponentManager.GetComponentID<T>()] = component;
+    //     Entities[entity][ComponentManager.GetComponentID<T>()] = cRegister.Count;
+    // }
+    //
+    // public static void AddComponentToEntity(int entity, object component, Type t)
+    // {
+    //     ReserveZero();
+    //     List<int> cRegister = ComponentManager.ComponentRegistry[ComponentManager.ComponentIDs[t]];
+    //     cRegister.Add(entity);
+    //     EntityComponents[entity][ComponentManager.GetComponentID(t)] = component;
+    //     Entities[entity][ComponentManager.GetComponentID(t)] = cRegister.Count;
+    // }
     
-    public static void AddComponentToEntity(int entity, object component, Type t)
-    {
-        ReserveZero();
-        List<int> cRegister = ComponentManager.ComponentRegistry[ComponentManager.ComponentIDs[t]];
-        cRegister.Add(entity);
-        EntityComponents[entity][ComponentManager.GetComponentID(t)] = component;
-        Entities[entity][ComponentManager.GetComponentID(t)] = cRegister.Count;
-    }
-    
-    private static void ReserveZero()
-    {
-        if (Reserved) { return; }
-        Entities.Add(new int[ComponentManager.TotalComponents]);
-        EntityComponents.Add(new object[ComponentManager.TotalComponents]);
-        entityGen.Add(0);
-        lastAddedEntity = Entities.Count - 1;
-        Reserved = true;
-    }
+    // private static void ReserveZero()
+    // {
+    //     if (Reserved) { return; }
+    //
+    //     AddEntity();
+    //     entityGen.Add(0);
+    //     
+    //     lastAddedEntity = Entities.Count - 1;
+    //     Reserved = true;
+    // }
 
     public static void RemoveEntity(int index)
     {
@@ -110,7 +109,7 @@ public class EntityManager
     public static T GetGlobalComponent<T>()
     {
         int componentID = ComponentManager.GetComponentID<T>();
-        T globalComponent = (T)EntityComponents[0][componentID];
+        T globalComponent = ComponentManager.GetComponent<T>(0);
         return globalComponent;
     }
 

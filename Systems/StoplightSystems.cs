@@ -34,7 +34,7 @@ public class StoplightSystems
         for (int i = 0; i < connector.SegmentEntities.Count; i++)
         {
             int segmentOneEntity = connector.SegmentEntities[i];
-            PathSegment segmentOne = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
+            PathSegment segmentOne = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[i]);
             segments.Add(segmentOneEntity);
             if (connector.SegmentEntities.Count <= 2)
                 continue;
@@ -47,7 +47,7 @@ public class StoplightSystems
             for (int j = i + 1; j < connector.SegmentEntities.Count; j++)
             {
                 int segmentTwoEntity = connector.SegmentEntities[j];
-                PathSegment segmentTwo = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[j]);
+                PathSegment segmentTwo = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[j]);
                 
                 Vector3 p2 = segmentTwo.Path[0];
                 if (segmentTwo.EndConnector == connector.ID) 
@@ -118,7 +118,7 @@ public class StoplightSystems
     
     public static bool WaitOnStopLight(int carEntity)
     {
-        Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
+        Car car = ComponentManager.GetComponent<Car>(carEntity);
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
         
         if (car.OnConnector == -1) {return false;}

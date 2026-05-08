@@ -86,7 +86,7 @@ public class RoadMesh
         basicEffect = new BasicEffect(graphicsDevice);
         game = _game;
 
-        Terrain terrain = EntityManager.GetGlobalComponent<Terrain>();        
+        Terrain terrain = ComponentManager.GetGlobalComponent<Terrain>();        
         Octree = new OctreeSuper<PathSegmentPointOctreeData>(terrain.Scale * 2, 4, terrain.WorldCenter);
         _ribbonMesh = new RoadRibbonMesh();
         //Octree = new OctreeSuper<PathSegmentOctreeData>(100, 4, terrain.WorldCenter);
@@ -107,7 +107,7 @@ public class RoadMesh
 
     public void DestroyAll()
     {
-        Terrain terrain = EntityManager.GetGlobalComponent<Terrain>();        
+        Terrain terrain = ComponentManager.GetGlobalComponent<Terrain>();        
         Octree = new OctreeSuper<PathSegmentPointOctreeData>(terrain.Scale * 2, 4, terrain.WorldCenter);
         _ribbonMesh = new RoadRibbonMesh();
         Reset();
@@ -374,8 +374,8 @@ public class RoadMesh
         {
             for (int j = i + 1; j < connector.SegmentEntities.Count; j++)
             {
-                PathSegment segmentOne = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
-                PathSegment segmentTwo = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[j]);
+                PathSegment segmentOne = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[i]);
+                PathSegment segmentTwo = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[j]);
     
                 bool segmentOneEnd = segmentOne.EndConnector == connector.ID;
                 bool segmentTwoEnd = segmentTwo.EndConnector == connector.ID;
@@ -448,7 +448,7 @@ public class RoadMesh
         connector.DebugPoints = new List<VertexPositionColor>();
         for (int i = 0; i < connector.SegmentEntities.Count; i++)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[i]);
             connector.DebugPoints.Add(new VertexPositionColor(segment.Path[connector.PointIDs[i]], Color.Blue));
         }
     }
@@ -588,7 +588,7 @@ public class RoadMesh
             }
 
             //TODO need to refactor this function to decouple it from the class and use ECS
-            List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+            List<int> segmentEntities = ComponentManager.GetComponents<PathSegment>();
 
             PathSegment newSegment = new PathSegment()
             {
@@ -598,8 +598,8 @@ public class RoadMesh
             };
 
             segments.Add(newSegment);
-            int segmentEntity = EntityManager.AddEntity();
-            EntityManager.AddComponentToEntity(segmentEntity, newSegment);
+            int segmentEntity = ComponentManager.AddEntity();
+            ComponentManager.AddComponent(segmentEntity, newSegment);
             Console.WriteLine("Segment Entity: " + segmentEntity);
             newSegment.EntityID = segmentEntity;
             //Console.WriteLine("New Entity: " + segmentEntity);
@@ -844,7 +844,7 @@ public class RoadMesh
         {
             int componentID = ComponentManager.GetComponentID<PathSegment>();
             int nextSegmentID = segment.AdjacentPathSegmentEntities[0];
-            PathSegment nextSegment = (PathSegment)EntityManager.EntityComponents[nextSegmentID][componentID];
+            PathSegment nextSegment = ComponentManager.GetComponent<PathSegment>(nextSegmentID);//(PathSegment)EntityManager.EntityComponents[nextSegmentID][componentID];
             return GetOuterMostSegment(nextSegment, segment);
         }
         if (segment.AdjacentPathSegmentEntities[1] != 0 && segment.AdjacentPathSegmentEntities[1] != previousSegment.EntityID)
@@ -999,7 +999,7 @@ public class RoadMesh
             
             for (int i = 0; i < pathSegmentConnector.SegmentEntities.Count; i++)
             {
-                PathSegment currentRulerSegment = ComponentManager.GetEntityComponent<PathSegment>(pathSegmentConnector.SegmentEntities[i]);
+                PathSegment currentRulerSegment = ComponentManager.GetComponent<PathSegment>(pathSegmentConnector.SegmentEntities[i]);
 
                 if (currentRulerSegment == sourceRulerSegment)
                     continue;
@@ -1194,10 +1194,10 @@ public class RoadMesh
 
         //TODO optimize this
         //Could put points in an octree or something
-        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        List<int> segmentEntities = ComponentManager.GetComponents<PathSegment>();
         foreach (int entity in segmentEntities)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(entity);
             float closestPoint = 100;
 
             for (int i = 0; i < segment.Path.Length; i++)
@@ -1721,11 +1721,11 @@ public class RoadMesh
             GenerateRibbonMesh(segment);
         }
 
-        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        List<int> segmentEntities = ComponentManager.GetComponents<PathSegment>();
         
         foreach (int entity in segmentEntities)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(entity);
             if (segment.EndConnector == null)
             {
                 Console.WriteLine($"Segment {segment.ID} missing end connector");
@@ -1794,7 +1794,7 @@ public class RoadMesh
     private List<PathSegment> GenerateParallelPath(List<PathSegment> rulerSegments, int pathOffset, float pathWidth, bool leftOfCenter, List<PathSegment> previousPath = null)
     {
         int directionMod = leftOfCenter == true ? -1 : 1;
-        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        List<int> segmentEntities = ComponentManager.GetComponents<PathSegment>();
         List<PathSegment> newSegments = new List<PathSegment>(); 
         for (int i = 0; i < rulerSegments.Count; i++)
         {

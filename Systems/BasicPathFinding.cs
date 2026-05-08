@@ -10,11 +10,11 @@ public class BasicPathFinding
     public static void Basic()
     {
         // int pathSegmentComponentID = ComponentManager.GetComponentID<PathSegment>(); 
-        List<int> pathSegments = ComponentManager.GetComponent<PathSegment>();
+        List<int> pathSegments = ComponentManager.GetComponents<PathSegment>();
 
         foreach (var entity in pathSegments)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(entity);
             //CalculatePerfectPath(segment)
         }
     }

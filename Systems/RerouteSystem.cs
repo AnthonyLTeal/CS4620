@@ -20,7 +20,7 @@ public class RerouteSystem
     public static ReroutePath? Reroute(int depth, int origin, Destination destination)
     {
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-        PathSegment targetSegment = ComponentManager.GetEntityComponent<PathSegment>(destination.TargetSegmentID);
+        PathSegment targetSegment = ComponentManager.GetComponent<PathSegment>(destination.TargetSegmentID);
 
         int destOneId = (int)targetSegment.EndConnector;
         int destTwoId = (int)targetSegment.FrontConnector;
@@ -114,7 +114,7 @@ public class RerouteSystem
 
         foreach (int segmentEntity in connector.SegmentEntities)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(segmentEntity);
             if ((int)segment.EndConnector == connectorId)
                 adjacentConnectors.Add((int)segment.FrontConnector);
             else
@@ -139,7 +139,7 @@ public class RerouteSystem
             PathSegmentConnector intermediateConnector = roadMesh.PathSegmentConnectors[destination];
             foreach (int segmentEntity in intermediateConnector.SegmentEntities)
             {
-                PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+                PathSegment segment = ComponentManager.GetComponent<PathSegment>(segmentEntity);
                 if (((int)segment.EndConnector == origin || (int)segment.FrontConnector == origin) &&
                     ((int)segment.EndConnector == destination || (int)segment.FrontConnector == destination))
                 {

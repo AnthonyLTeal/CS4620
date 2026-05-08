@@ -59,6 +59,7 @@ public class Game1 : Game
         Window.AllowUserResizing = true;
         base.Initialize();
         InitializeGum(); // Added to Initialize UI
+        ComponentManager.ReserveZero();
         SaveSystem.RegisterFormatters();
         
     }

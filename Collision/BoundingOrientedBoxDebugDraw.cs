@@ -17,11 +17,11 @@ public class BoundingOrientedBoxDebugDraw
         GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
 
         int componentID = ComponentManager.GetComponentID<HitBox>();
-        List<int> entities = ComponentManager.GetComponent<PathSegment>();
+        List<int> entities = ComponentManager.GetComponents<PathSegment>();
 
         foreach (int entity in entities)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(entity);
             foreach (BoundingOrientedBox box in segment.HitBoxes)
             {
                 

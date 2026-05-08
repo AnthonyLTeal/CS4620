@@ -61,10 +61,10 @@ public class CubeMeshBatcher
     public void Update()
     {
         ClearBuffers();
-        List<int> carEntities = ComponentManager.GetComponent<Car>();
+        List<int> carEntities = ComponentManager.GetComponents<Car>();
         foreach (var carEntity in carEntities)
         {
-            Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
+            Car car = ComponentManager.GetComponent<Car>(carEntity);
             InsertCube(car.Position, car.Rotation, car.Scale, car.Color);
         }
         

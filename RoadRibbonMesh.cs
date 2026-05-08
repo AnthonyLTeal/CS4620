@@ -32,7 +32,7 @@ public class RoadRibbonMesh
 
     public RoadRibbonMesh()
     {
-        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
+        GraphicsDevice graphicsDevice = ComponentManager.GetGlobalComponent<GraphicsDevice>();
         _basicEffect = new BasicEffect(graphicsDevice);
     }
 
@@ -110,7 +110,7 @@ public class RoadRibbonMesh
 
     public void RebuildMesh()
     {
-        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
+        GraphicsDevice graphicsDevice = ComponentManager.GetGlobalComponent<GraphicsDevice>();
         
         //TODO maybe use these instead, they are more accurate but I don't like this style
         // List<VertexPositionColor> vertices = new List<VertexPositionColor>(_segmentVertices.Sum(s => s.Length));
@@ -167,8 +167,8 @@ public class RoadRibbonMesh
 
     public void Draw()
     {
-        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
-        ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
+        GraphicsDevice graphicsDevice = ComponentManager.GetGlobalComponent<GraphicsDevice>();
+        ArcBallCamera camera = ComponentManager.GetGlobalComponent<ArcBallCamera>();
         if (_triangleCount == 0)
         {
             return;

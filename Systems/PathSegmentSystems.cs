@@ -42,7 +42,7 @@ public class PathSegmentSystems
     public static void DestroySegment(int entity)
     {
         RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+        PathSegment segment = ComponentManager.GetComponent<PathSegment>(entity);
 
         PathSegmentConnector endConnector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
         endConnector.SegmentEntities.Remove(entity);
@@ -76,11 +76,11 @@ public class PathSegmentSystems
 
     public static void UpdateCongestionCost(float virtualDt)
     {
-        List<int> entities = ComponentManager.GetComponent<PathSegment>();
+        List<int> entities = ComponentManager.GetComponents<PathSegment>();
 
         foreach (int entity in entities)
         {
-            PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            PathSegment pathSegment = ComponentManager.GetComponent<PathSegment>(entity);
 
             pathSegment.AverageSquaredTimer += virtualDt;
             
@@ -96,7 +96,7 @@ public class PathSegmentSystems
 
                 foreach (int carEntity in pathSegment.EntitiesOnSegment)
                 {
-                    Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
+                    Car car = ComponentManager.GetComponent<Car>(carEntity);
                     if (car == null)
                     {
                         //might be better to do a reverse for loop and forcibly remove them
@@ -159,11 +159,11 @@ public class PathSegmentSystems
     //for now we use 3 congestion levels, 1, 2, 3
     public static void SetPathColor()
     {
-        List<int> entities = ComponentManager.GetComponent<PathSegment>();
+        List<int> entities = ComponentManager.GetComponents<PathSegment>();
         foreach (int entity in entities)
         {
             int colorValue = 0;
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(entity);
             
             //Console.WriteLine($"Segment: {entity} | Entities On Segment: {segment.EntitiesOnSegment.Count}");
             

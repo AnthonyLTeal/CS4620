@@ -41,13 +41,13 @@ public class LoadSystem
         
         roadMesh.CreateEnabled = true;
         
-        List<int> segments = ComponentManager.GetComponent<PathSegment>();
+        List<int> segments = ComponentManager.GetComponents<PathSegment>();
         
         roadMesh.PathSegmentConnectors = worldState.PathSegmentConnectors;
 
         foreach (int segmentEntity in segments)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(segmentEntity);
             roadMesh.GenerateRibbonMesh(segment);
             segment.DebugPoints = PathSegmentSystems.GenerateRoadOutline(segment.Path, true);
             roadMesh.InsertSegmentPathPointsIntoOctree(segment);
