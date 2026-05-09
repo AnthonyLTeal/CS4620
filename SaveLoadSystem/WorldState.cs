@@ -10,10 +10,10 @@ public class WorldState
 {
     public List<int[]> Entities { get; set; }
     public List<SavedComponent> EntityComponents { get; set; }
-    public bool Reserved { get; set; }
-    public List<int> DeadEntities { get; set; }
+    public Stack<int> DeadEntities { get; set; }
     public int LastAddedEntity { get; set; }
-    public List<int> EntityGen { get; set; }
+    public int[] EntityGen { get; set; }
+    public int EntityCount { get; set; }
 
     //public Dictionary<Type, List<int>> ComponentRegistery { get; set; }
     //public Dictionary<Type, int> ComponentIDs { get; set; }

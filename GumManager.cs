@@ -224,8 +224,15 @@ class GumInterface
         StartPanel.AddChild(ClearButton);
         ClearButton.Click += (sender, args) =>
         {
-            Console.WriteLine("Clicked on the clear simulation button!");
             SimulationSystems.Clear();
+        };
+        
+        Button ClearCarsButton = new Button();
+        ClearCarsButton.Text = "Clear Cars";
+        StartPanel.AddChild(ClearCarsButton);
+        ClearCarsButton.Click += (sender, args) =>
+        {
+            SimulationSystems.DestroyCars();
         };
 
         //Add Graph Window Button:

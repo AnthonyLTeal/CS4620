@@ -38,6 +38,21 @@ public class SimulationSystems
         {
             ComponentManager.DestroyEntity(carOwners[i]);
         }
+        
+        PathSegment[] segments =  ComponentManager.GetComponents<PathSegment>();
+        int pathSegmentCount = ComponentManager.GetCount<PathSegment>();
+        for (int i = pathSegmentCount - 1; i >= 0; i--)
+        {
+            PathSegment segment = segments[i];
+            segment.EntitiesOnSegment = new List<int>();
+        }
+        
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
+
+        foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
+        {
+            connector.StopQueue = new List<int>();
+        }
     }
 
     public static void RunSimulation(float virutalDt)
