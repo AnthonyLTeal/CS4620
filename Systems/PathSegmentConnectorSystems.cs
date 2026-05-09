@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CS4620IS.Components;
+using PlanetaryExpansion;
+
 namespace CS4620IS;
 
 public enum SegmentConnectorIndex
@@ -29,6 +31,8 @@ public class PathSegmentConnectorSystems
         {
             segment.EndConnector = connector.ID;
         }
+        
+        GenerateStopSign(connector);
     }
 
     //TODO test this, it might not work right
@@ -98,5 +102,30 @@ public class PathSegmentConnectorSystems
         }
         List<int> traversedConnectorIds = new List<int>();
         DebugWriteSegmentPathTrace(connectors, connector, traversedConnectorIds);
+    }
+    
+    public static void AddConnector(PathSegmentConnector connector)
+    {
+        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        roadMesh.PathSegmentConnectors.Add(connector);
+    }
+
+    public static void GenerateStopSign(PathSegmentConnector connector)
+    {
+        if (connector.SegmentEntities.Count < 3)
+            return;
+        
+        connector.StopSignLocations.Clear();
+
+        foreach (int segmentEntity in connector.SegmentEntities)
+        {
+            PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+            Vector3 signPosition = pathSegment.Path[pathSegment.Path.Length - 1];
+            
+            if (connector.ID == (int)pathSegment.FrontConnector)
+                signPosition = pathSegment.Path[0];
+            
+            connector.StopSignLocations.Add(signPosition);
+        }
     }
 }

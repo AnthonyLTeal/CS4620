@@ -662,8 +662,8 @@ public class RoadMesh
         connector.Position = segment.Path[^1];
         //EntityManager.AddEntity();
         //EntityManager.AddComponentToEntity<PathSegmentConnector>(EntityManager.LastAddedEntity, connector);
-        PathSegmentConnectors.Add(connector);
-        connector.ID = PathSegmentConnectors.Count - 1;
+        connector.ID = PathSegmentConnectors.Count;
+        PathSegmentConnectorSystems.AddConnector(connector);
         Vector3[] previousSegmentPath = segment.Path;
         Array.Resize(ref previousSegmentPath, previousSegmentPath.Length-1);
         segment.Path = previousSegmentPath;
@@ -678,8 +678,8 @@ public class RoadMesh
         connector.Position = segment.Path[0];
         //EntityManager.AddEntity();
         //EntityManager.AddComponentToEntity<PathSegmentConnector>(EntityManager.LastAddedEntity, connector);
-        PathSegmentConnectors.Add(connector);
-        connector.ID = PathSegmentConnectors.Count - 1;
+        connector.ID = PathSegmentConnectors.Count;
+        PathSegmentConnectorSystems.AddConnector(connector);
         Vector3[] newPath = new Vector3[segment.Path.Length - 1];
 
         for (int i = 0; i < segment.Path.Length - 1; i++)
@@ -747,8 +747,8 @@ public class RoadMesh
             if (previousSegment != null)
             {
                 PathSegmentConnector pathSegmentConnector = new PathSegmentConnector();
-                PathSegmentConnectors.Add(pathSegmentConnector);
-                pathSegmentConnector.ID = PathSegmentConnectors.Count - 1;
+                pathSegmentConnector.ID = PathSegmentConnectors.Count;
+                PathSegmentConnectorSystems.AddConnector(pathSegmentConnector);
                 pathSegmentConnector.Position = newSegment.Path[0];
 
                 newSegment.Path = RemoveElementFromArrayAndResize(0, newSegment.Path);
@@ -1161,7 +1161,7 @@ public class RoadMesh
         PathSegmentConnectorSystems.RemoveSegmentFromConnector(PathSegmentConnectors[(int)oldSegment.EndConnector], entityIndex, path.Length - 1);
         PathSegmentConnector slicedConnector = new PathSegmentConnector();
         slicedConnector.ID = PathSegmentConnectors.Count;
-        PathSegmentConnectors.Add(slicedConnector);
+        PathSegmentConnectorSystems.AddConnector(slicedConnector);
         slicedConnector.Position = path[pathIndex];
         InsertSegmentConnectorIntoOctree(slicedConnector);
         

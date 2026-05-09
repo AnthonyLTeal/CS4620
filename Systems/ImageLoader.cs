@@ -18,7 +18,8 @@ public class ImageLoader
 
     public static Texture2D LoadImage(GraphicsDevice graphicsDevice, string path)
     {
-        using (var stream = new FileStream(path, FileMode.Open))
+        string _path = Path.Combine(content.RootDirectory, path);
+        using (var stream = new FileStream(_path, FileMode.Open))
         {
             return Texture2D.FromStream(graphicsDevice, stream);
         }
