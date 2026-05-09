@@ -13,18 +13,18 @@ public class BoundingOrientedBoxDebugDraw
 
     public static void DrawEntityOOBs()
     {
-        ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
-        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
+        ArcBallCamera camera = ComponentManager.GetGlobalComponent<ArcBallCamera>();
+        GraphicsDevice graphicsDevice = ComponentManager.GetGlobalComponent<GraphicsDevice>();
 
-        int componentID = ComponentManager.GetComponentID<HitBox>();
-        List<int> entities = ComponentManager.GetComponents<PathSegment>();
+        PathSegment[] segments = ComponentManager.GetComponents<PathSegment>();
+        int segmentCount = ComponentManager.GetCount<PathSegment>();
 
-        foreach (int entity in entities)
+        //foreach (PathSegment segment in segments)
+        for (int i = 0; i < segmentCount; i++)
         {
-            PathSegment segment = ComponentManager.GetComponent<PathSegment>(entity);
+            PathSegment segment = segments[i];
             foreach (BoundingOrientedBox box in segment.HitBoxes)
             {
-                
                 DrawOBB(graphicsDevice, camera, box.Center, box.HalfExtent, box.Orientation);
             }
             // HitBox entityData = (HitBox)EntityManager.EntityComponents[entity][componentID];

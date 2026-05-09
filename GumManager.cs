@@ -198,7 +198,7 @@ class GumInterface
         {
             Console.WriteLine("Clicked on the road path button!");
             // Logic to enable road path editing mode goes here
-            RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+            RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
             roadMesh.CreateEnabled = !roadMesh.CreateEnabled;
             RoadPathButton.Text = "Draw Road " + roadMesh.CreateEnabled;
 
@@ -210,7 +210,7 @@ class GumInterface
 
         PathTypeButton.Click += (sender, args) =>
         {
-            RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+            RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
             if (roadMesh.BuildType == BuildType.Curved)
                 roadMesh.BuildType = BuildType.Straight;
             else

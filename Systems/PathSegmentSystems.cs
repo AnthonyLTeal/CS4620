@@ -35,13 +35,13 @@ public class PathSegmentSystems
     
     public static void DestroySegmentConnector(int id)
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         roadMesh.PathSegmentConnectors[id] = null;
     }
 
     public static void DestroySegment(int entity)
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         PathSegment segment = ComponentManager.GetComponent<PathSegment>(entity);
 
         PathSegmentConnector endConnector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
@@ -57,12 +57,12 @@ public class PathSegmentSystems
             DestroySegmentConnector((int)segment.FrontConnector);
 
         CalculateAllPaths();
-        EntityManager.RemoveEntity(entity);
+        ComponentManager.DestroyEntity(entity);
     }
 
     public static void CalculateAllPaths()
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
 
         foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
         {
@@ -76,12 +76,13 @@ public class PathSegmentSystems
 
     public static void UpdateCongestionCost(float virtualDt)
     {
-        List<int> entities = ComponentManager.GetComponents<PathSegment>();
-
-        foreach (int entity in entities)
+        PathSegment[] segments = ComponentManager.GetComponents<PathSegment>();
+        int segmentCount = ComponentManager.GetCount<PathSegment>();
+        
+        //foreach (PathSegment pathSegment in segments)
+        for (int i = 0; i < segmentCount; i++)
         {
-            PathSegment pathSegment = ComponentManager.GetComponent<PathSegment>(entity);
-
+            PathSegment pathSegment = segments[i];
             pathSegment.AverageSquaredTimer += virtualDt;
             
             // if (pathSegment.EntitiesOnSegment.Count == 0 && MathF.Abs(pathSegment.CongestionCost) > 0.0001)
@@ -97,7 +98,7 @@ public class PathSegmentSystems
                 foreach (int carEntity in pathSegment.EntitiesOnSegment)
                 {
                     Car car = ComponentManager.GetComponent<Car>(carEntity);
-                    if (car == null)
+                    if (!car.Alive)
                     {
                         //might be better to do a reverse for loop and forcibly remove them
                         nullCars += 1;
@@ -147,7 +148,7 @@ public class PathSegmentSystems
             distance += Vector3.Distance(segment.Path[i], segment.Path[i + 1]);
         }
         
-        SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
+        SimulationSuper simulationSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
         float speed = 2 * simulationSuper.SimSpeed;
         float estimatedTravelTime =  distance / speed;
 
@@ -159,11 +160,13 @@ public class PathSegmentSystems
     //for now we use 3 congestion levels, 1, 2, 3
     public static void SetPathColor()
     {
-        List<int> entities = ComponentManager.GetComponents<PathSegment>();
-        foreach (int entity in entities)
+        PathSegment[] segments = ComponentManager.GetComponents<PathSegment>();
+        int segmentCount = ComponentManager.GetCount<PathSegment>();
+        //foreach (PathSegment segment in segments)
+        for (int i = 0; i < segmentCount; i++)
         {
+            PathSegment segment = segments[i];
             int colorValue = 0;
-            PathSegment segment = ComponentManager.GetComponent<PathSegment>(entity);
             
             //Console.WriteLine($"Segment: {entity} | Entities On Segment: {segment.EntitiesOnSegment.Count}");
             
@@ -199,14 +202,14 @@ public class PathSegmentSystems
                 color = Color.Red;
             }
 
-            RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+            RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
 
             // Console.WriteLine($"Updating Segment: {entity}");
             // Console.WriteLine($"Color Index: {colorValue}");
             // Console.WriteLine($"Start Point: {segment.RibbonOffset}");
             // Console.WriteLine($"End Point: {segment.RibbonLength}");
 
-            for (int i = segment.RibbonOffset; i < segment.RibbonOffset + segment.RibbonLength; i++)
+            for (int j = segment.RibbonOffset; j < segment.RibbonOffset + segment.RibbonLength; j++)
             {
                 roadMesh.RibbonMesh.UpdateVertexColor(i, color);
             }
@@ -242,7 +245,7 @@ public class PathSegmentSystems
 
             foreach (var edgeID in currentPoint.SegmentEntities)
             {
-                PathSegment edge = (PathSegment)EntityManager.EntityComponents[edgeID][pathSegmentCID];
+                PathSegment edge = ComponentManager.GetComponent<PathSegment>(edgeID);
                 int nextID = PathSegmentConnectorSystems.GetNextConnector(edge, currentPoint)!.Value;
 
                 int newDist = queuedDist + edge.Weight;
@@ -253,8 +256,6 @@ public class PathSegmentSystems
                     prev[nextID] = currentID;
                     minHeap.Enqueue((nextID, newDist), newDist);
                 }
-                
-                
             }
         }
         

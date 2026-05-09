@@ -24,7 +24,7 @@ public class StoplightSystems
         PriorityQueue<(int, int), float> potentialConnections = new PriorityQueue<(int, int), float>();
         List<(int, int)> stoplightConnections = new List<(int, int)>();
         List<int> segments = new List<int>();
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         PathSegmentConnector connector = roadMesh.PathSegmentConnectors[id];
         connector.StoplightConnections = stoplightConnections;
 
@@ -92,7 +92,7 @@ public class StoplightSystems
 
     public static void ChangeRedGreen(float virtualDT)
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         List<PathSegmentConnector> connectors = roadMesh.PathSegmentConnectors;
         for (int i = 0; i < connectors.Count; i++)
         {
@@ -119,7 +119,7 @@ public class StoplightSystems
     public static bool WaitOnStopLight(int carEntity)
     {
         Car car = ComponentManager.GetComponent<Car>(carEntity);
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         
         if (car.OnConnector == -1) {return false;}
         

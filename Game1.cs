@@ -59,7 +59,6 @@ public class Game1 : Game
         Window.AllowUserResizing = true;
         base.Initialize();
         InitializeGum(); // Added to Initialize UI
-        ComponentManager.ReserveZero();
         SaveSystem.RegisterFormatters();
         
     }
@@ -67,7 +66,7 @@ public class Game1 : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        
+
         ComponentManager.RegisterComponent<CubeMeshBatcher>();
         ComponentManager.RegisterComponent<ArcBallCamera>();
         // ComponentManager.RegisterComponent<TerrainCursor>();
@@ -78,29 +77,28 @@ public class Game1 : Game
         ComponentManager.RegisterComponent<RoadMesh>();
         ComponentManager.LoadComponentsFromNamespace("CS4620IS.Components");
         //Assets.Load(Content);
+        ComponentManager.ReserveZero();
         
-        CS4620IS.Components.Cursor cursor = new CS4620IS.Components.Cursor();
+        Components.Cursor cursor = new Components.Cursor();
         _terrain = new Terrain(_graphics.GraphicsDevice);
         _camera = new ArcBallCamera(GraphicsDevice.Viewport.AspectRatio, MathHelper.PiOver4, new Vector3(0, 0, 0), Vector3.Up, 0.1f, 1000);
         _cameraControls = new CameraControls();
-
+        DestinationBlob destinationBlob = new DestinationBlob(100000);
         SimulationSuper simulationSuper = new SimulationSuper();
-        EntityManager.AddComponentToGlobalEntity(simulationSuper);
         
-        //Assets.Effects["BasicEffect"] = new BasicEffect(GraphicsDevice);
+        ComponentManager.AddComponentToGlobalEntity(simulationSuper);
+        ComponentManager.AddComponentToGlobalEntity(cursor);
+        ComponentManager.AddComponentToGlobalEntity(_camera);
+        ComponentManager.AddComponentToGlobalEntity(_terrain);
+        ComponentManager.AddComponentToGlobalEntity(GraphicsDevice);
+        ComponentManager.AddComponentToGlobalEntity(destinationBlob);
         
-        //terrain cursor needed?
-        //EntityManager.AddComponentToGlobalEntity(new SimulationSuper());
-        EntityManager.AddComponentToGlobalEntity(cursor);
-        EntityManager.AddComponentToGlobalEntity(_camera);
-        EntityManager.AddComponentToGlobalEntity(_terrain);
-        EntityManager.AddComponentToGlobalEntity(GraphicsDevice);
         
         CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
-        EntityManager.AddComponentToGlobalEntity(cubeMeshBatcher);
+        ComponentManager.AddComponentToGlobalEntity(cubeMeshBatcher);
         
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
-        EntityManager.AddComponentToGlobalEntity(_roadMesh);
+        ComponentManager.AddComponentToGlobalEntity(_roadMesh);
     }
     
     private KeyboardState oldKeyState;
@@ -110,7 +108,7 @@ public class Game1 : Game
         
         float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
         
-        SimulationSuper simulationSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
+        SimulationSuper simulationSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
         float virtualDt = dt * simulationSuper.SimSpeed;
         
         PathSegmentSystems.UpdateCongestionCost(virtualDt);
@@ -129,7 +127,7 @@ public class Game1 : Game
 
         oldKeyState = Keyboard.GetState();
         
-        CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
+        CubeMeshBatcher cubeMeshBatcher = ComponentManager.GetGlobalComponent<CubeMeshBatcher>();
         cubeMeshBatcher.Update();
         
         _cameraControls.Update(gameTime, Keyboard.GetState(), Mouse.GetState(), _camera);
@@ -157,7 +155,7 @@ public class Game1 : Game
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
         //BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
         
-        CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
+        CubeMeshBatcher cubeMeshBatcher = ComponentManager.GetGlobalComponent<CubeMeshBatcher>();
         cubeMeshBatcher.Draw();
         
         // TODO: Add your drawing code here

@@ -8,32 +8,41 @@ public class SimulationSystems
 {
     public static void SetSpeed(int speed)
     {
-        EntityManager.GetGlobalComponent<SimulationSuper>().SimSpeed = speed;
+        ComponentManager.GetGlobalComponent<SimulationSuper>().SimSpeed = speed;
     }
 
     public static void Clear()
     {
-        List<int> carComponents = ComponentManager.GetComponents<Car>();
-        for (int i = carComponents.Count - 1; i >= 0; i--)
-        {
-            EntityManager.RemoveEntity(carComponents[i]);
-        }
+        DestroyCars();
         
-        List<int> pathSegmentComponents = ComponentManager.GetComponents<PathSegment>();
-        for (int i = pathSegmentComponents.Count - 1; i >= 0; i--)
+        int[] pathSegmentOwners = ComponentManager.GetOwners<PathSegment>();
+        int pathSegmentCount = ComponentManager.GetCount<PathSegment>();
+        
+        for (int i = pathSegmentCount - 1; i >= 0; i--)
         {
-            EntityManager.RemoveEntity(pathSegmentComponents[i]);
+            ComponentManager.DestroyEntity(pathSegmentOwners[i]);
         }
 
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         roadMesh.DestroyAll();
         
-        EntityManager.AddComponentToGlobalEntity(new SimulationSuper());
+        ComponentManager.AddComponentToGlobalEntity(new SimulationSuper());
+    }
+
+    public static void DestroyCars()
+    {
+        int[] carOwners = ComponentManager.GetOwners<Car>();
+        int carCount = ComponentManager.GetCount<Car>();
+        
+        for (int i = carCount - 1; i >= 0; i--)
+        {
+            ComponentManager.DestroyEntity(carOwners[i]);
+        }
     }
 
     public static void RunSimulation(float virutalDt)
     {
-        SimulationSuper simSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
+        SimulationSuper simSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
 
         simSuper.CongestionTimer += virutalDt;
         simSuper.SimTimer += virutalDt;
@@ -53,11 +62,7 @@ public class SimulationSystems
         //create new simulation metrics object and fill lists
         
         //clear cars next
-        List<int> carComponents = ComponentManager.GetComponents<Car>();
-        for (int i = carComponents.Count - 1; i >= 0; i--)
-        {
-            EntityManager.RemoveEntity(carComponents[i]);
-        }
+        DestroyCars();
         
         //gen new cars with same config
         CarSystems.GenerateCars(simSuper.GenCarCount, simSuper.GenSeed, simSuper.GenBehaviorDistribution);
@@ -65,23 +70,25 @@ public class SimulationSystems
 
     public static void CaptureCurrentAverageCongestion()
     {
-        SimulationSuper simSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
-        List<int> segmentEntities = ComponentManager.GetComponents<PathSegment>();
+        SimulationSuper simSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
+        
+        PathSegment[] segments = ComponentManager.GetComponents<PathSegment>();
+        int pathSegmentCount = ComponentManager.GetCount<PathSegment>();
 
         float totalCongestion = 0;
         
-        foreach (int segmentEntity in segmentEntities)
+        for (int i = 0; i < pathSegmentCount; i++)
         {
-            PathSegment segment = ComponentManager.GetComponent<PathSegment>(segmentEntity);
+            PathSegment segment =  segments[i];
             totalCongestion += segment.CongestionCost;
         }
         
-        simSuper.CurrentSimTracking.AverageCongestionCollection.Add((totalCongestion / segmentEntities.Count, simSuper.SimTimer));
+        simSuper.CurrentSimTracking.AverageCongestionCollection.Add((totalCongestion / pathSegmentCount, simSuper.SimTimer));
     }
 
     public static void IncrementDestinations(bool isReroute)
     {
-        SimulationSuper simSuper = EntityManager.GetGlobalComponent<SimulationSuper>();
+        SimulationSuper simSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
 
         if (isReroute)
             simSuper.CurrentSimTracking.RerouteDestinations += 1;

@@ -166,4 +166,9 @@ public class DPath
         Distances = _distances;
         Prevs = _prevs;
     }
+    
+    public static string GetPrevsString(DPath dPath)
+    {
+        return "Prevs: [" + string.Join(", ", dPath.Prevs) + "]";
+    }
 }

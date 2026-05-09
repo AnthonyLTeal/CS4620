@@ -10,16 +10,17 @@ namespace CS4620IS;
 public struct ReroutePath
 {
     public int Origin;
-    public List<int> IntermediaryNodes;
+    public int NextNode;
     public int DestinationNode;
     public float HeuristicDistance;
+    public bool IsRerouting;
 }
 
 public class RerouteSystem
 {
-    public static ReroutePath? Reroute(int depth, int origin, Destination destination)
+    public static ReroutePath Reroute(int depth, int origin, Destination destination)
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         PathSegment targetSegment = ComponentManager.GetComponent<PathSegment>(destination.TargetSegmentID);
 
         int destOneId = (int)targetSegment.EndConnector;
@@ -41,9 +42,9 @@ public class RerouteSystem
 
         //here we check if our bestDistance is any better than our raw distance, if not, it means there are no obstructions and we should continue to use that path
         if (Math.Abs(bestDistance - rawDistance) < 0.01f)
-            return null;
+            return new ReroutePath();
         
-        ReroutePath? bestPath = null;
+        ReroutePath bestPath = new ReroutePath();
 
         UpdateBestPath(depth, origin, new List<int>(), destOneId, ref bestDistance, ref bestPath);
         UpdateBestPath(depth, origin, new List<int>(), destTwoId, ref bestDistance, ref bestPath);
@@ -51,7 +52,7 @@ public class RerouteSystem
         return bestPath;
     }
     
-    public static void UpdateBestPath(int depth, int origin, List<int> previousNodes, int destinationNode, ref float bestDistance, ref ReroutePath? bestPath)
+    public static void UpdateBestPath(int depth, int origin, List<int> previousNodes, int destinationNode, ref float bestDistance, ref ReroutePath bestPath)
     {
         previousNodes.Add(origin);
 
@@ -77,14 +78,15 @@ public class RerouteSystem
         float routeDistance = CheckRoute(destinationNode, origin);
         float prevDistance = 0;
         
-        if (Math.Abs(bestDistance - (prevDistance + routeDistance)) < 0.01f)
+        if (Math.Abs(bestDistance - (prevDistance + routeDistance)) < 0.01f && previousNodes.Count > 1)
         {
             bestPath = new ReroutePath()
             {
                 Origin = origin,
                 DestinationNode = destinationNode,
-                IntermediaryNodes = new List<int>(previousNodes),
-                HeuristicDistance = routeDistance + prevDistance
+                NextNode = previousNodes[1],
+                HeuristicDistance = routeDistance + prevDistance,
+                IsRerouting = true
             };
         }
 
@@ -109,7 +111,7 @@ public class RerouteSystem
     private static List<int> GetAdjacentConnectors(int connectorId)
     {
         List<int> adjacentConnectors = new List<int>();
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         PathSegmentConnector connector = roadMesh.PathSegmentConnectors[connectorId];
 
         foreach (int segmentEntity in connector.SegmentEntities)
@@ -129,7 +131,7 @@ public class RerouteSystem
     /// </summary>
     public static float CheckRoute(int origin, int destination)
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         PathSegmentConnector originConnector = roadMesh.PathSegmentConnectors[origin];
         
         float routeCost = originConnector.DPath.Distances[destination];

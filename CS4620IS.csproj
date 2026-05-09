@@ -17,7 +17,6 @@
         <Compile Remove="Systems\DrawSystem.cs" />
         <None Include="Systems\DrawSystem.txt" />
         <Compile Remove="ECS\EntityManager.cs" />
-        <None Include="ECS\EntityManager.cs" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico" />

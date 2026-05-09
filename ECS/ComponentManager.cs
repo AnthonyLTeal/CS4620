@@ -46,6 +46,16 @@ public class ComponentManager
         return lastAddedEntity;
     }
 
+    public static int GetCount<T>()
+    {
+        return PoolCounts[GetComponentID<T>()];
+    }
+
+    public static int[] GetOwners<T>()
+    {
+        return ComponentOwners[GetComponentID<T>()];
+    }
+
     public static T GetGlobalComponent<T>()
     {
         return GetComponent<T>(0);
@@ -190,7 +200,7 @@ public class ComponentManager
         Type[] types = Assembly.GetExecutingAssembly().GetTypes();
         foreach (Type t in types)
         {
-            if (t.Namespace==@namespace)
+            if (t.Namespace == @namespace && !t.IsAbstract && !t.IsGenericTypeDefinition)
             {
                 RegisterComponent(t);
             }
