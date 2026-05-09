@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using MessagePack;
 using PlanetaryExpansion;
 
@@ -51,6 +52,12 @@ public class PathSegment
     public int RibbonOffset;
     //public int LastColorIndex = 1;
     public int CurrentColorIndex = 1;
+    public float CongestionCost = 0;
+    public Queue<float> SquaredTimes = new Queue<float>(Enumerable.Repeat(0f, 10));
+    public int MaxCarTimes = 10;
+    public float AverageSquaredTimer = 0;
+    public float AverageSquaredTimeMax = 2.0f;
+    public float EstimatedTravelTime;
     
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();
@@ -104,9 +111,10 @@ public class PathSegment
             _path = value;
             DebugPoints = PathSegmentSystems.GenerateRoadOutline(value, IsLaneRuler);
             RoadMesh.CreatePathHitBoxes(this);
+            EstimatedTravelTime = PathSegmentSystems.GetEstimatedTimeToTravel(this);
             //TODO uncomment the following 2 lines to build perpendiculars when roadmesh is fixed
             //if (IsLaneRuler)
-                //Perpendiculars = RoadMesh.GeneratePerpendiculars(_path);
+            //Perpendiculars = RoadMesh.GeneratePerpendiculars(_path);
         }
     }
 }
@@ -132,8 +140,8 @@ public class PathSegmentConnector
     public List<(int, int)> StoplightConnections;
     public int CurrentLightGreen = 0;
     public double LightTimer = 0;
-    public double LightTime = 10000;
-    public double YellowTimer = 3000;
+    public double LightTime = 4000;
+    public double YellowTimer = 1000;
     //public List<int> CarEntities = new List<int>(20);
 
     public Vector3 Position
@@ -158,5 +166,10 @@ public class DPath
     {
         Distances = _distances;
         Prevs = _prevs;
+    }
+    
+    public static string GetPrevsString(DPath dPath)
+    {
+        return "Prevs: [" + string.Join(", ", dPath.Prevs) + "]";
     }
 }

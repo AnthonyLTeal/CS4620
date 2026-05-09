@@ -24,7 +24,7 @@ public class StoplightSystems
         PriorityQueue<(int, int), float> potentialConnections = new PriorityQueue<(int, int), float>();
         List<(int, int)> stoplightConnections = new List<(int, int)>();
         List<int> segments = new List<int>();
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         PathSegmentConnector connector = roadMesh.PathSegmentConnectors[id];
         connector.StoplightConnections = stoplightConnections;
 
@@ -34,7 +34,7 @@ public class StoplightSystems
         for (int i = 0; i < connector.SegmentEntities.Count; i++)
         {
             int segmentOneEntity = connector.SegmentEntities[i];
-            PathSegment segmentOne = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
+            PathSegment segmentOne = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[i]);
             segments.Add(segmentOneEntity);
             if (connector.SegmentEntities.Count <= 2)
                 continue;
@@ -47,7 +47,7 @@ public class StoplightSystems
             for (int j = i + 1; j < connector.SegmentEntities.Count; j++)
             {
                 int segmentTwoEntity = connector.SegmentEntities[j];
-                PathSegment segmentTwo = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[j]);
+                PathSegment segmentTwo = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[j]);
                 
                 Vector3 p2 = segmentTwo.Path[0];
                 if (segmentTwo.EndConnector == connector.ID) 
@@ -56,6 +56,7 @@ public class StoplightSystems
                 float dotProduct = Vector3.Dot(mainDirection, nextDirection);
                 potentialConnections.Enqueue((segmentOneEntity, segmentTwoEntity), dotProduct);
             }
+            
         }
 
         while (segments.Count > 1)
@@ -77,18 +78,29 @@ public class StoplightSystems
         {
             stoplightConnections.Add((-1, segments[0]));
         }
+
+        int counter = 0;
+        foreach (var light in stoplightConnections)
+        {
+            counter++;
+            (int x, int y) = light;
+            Console.WriteLine($"Stop Light: 0: {x}, 1: {y}");
+        }
+        
+        //Console.WriteLine("Stop Light Count:  " + stoplightConnections.Count + "\n");
     }
 
-    public static void ChangeRedGreen(GameTime gametime)
+    public static void ChangeRedGreen(float virtualDT)
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         List<PathSegmentConnector> connectors = roadMesh.PathSegmentConnectors;
         for (int i = 0; i < connectors.Count; i++)
         {
+            //Console.WriteLine("Light TIME: " +  connectors[i].LightTime);
             if (connectors[i].SegmentEntities.Count < 3)
                 continue;
 
-            if (connectors[i].LightTime <= connectors[i].LightTimer)
+            if (connectors[i].LightTimer > connectors[i].LightTime)
             {
                 connectors[i].CurrentLightGreen += 1;
                 if (connectors[i].CurrentLightGreen >= connectors[i].StoplightConnections.Count)
@@ -97,17 +109,16 @@ public class StoplightSystems
                 } 
                 connectors[i].LightTimer = 0;
             }
-
-            if (connectors[i].LightTime > connectors[i].LightTimer)
+            else
             {
-                connectors[i].LightTimer += gametime.ElapsedGameTime.TotalMilliseconds;
+                connectors[i].LightTimer += virtualDT * 1000;
             }
         }
     }
-    public static bool WaitOnStopLight(int carEntity)
+    
+    public static bool WaitOnStopLight(ref Car car)
     {
-        Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         
         if (car.OnConnector == -1) {return false;}
         
@@ -115,7 +126,7 @@ public class StoplightSystems
         
         if (connector.SegmentEntities.Count <= 2) {return false;}
 
-        if (car.InIntersection)
+        if (car.IgnoreYellow)
             return false;
 
         (int segmentOne, int segmentTwo) = connector.StoplightConnections[connector.CurrentLightGreen];
@@ -129,7 +140,7 @@ public class StoplightSystems
         {
             if (connector.LightTime - connector.LightTimer > connector.YellowTimer)
             {
-                car.InIntersection = true;
+                car.IgnoreYellow = true;
                 return false;
             }
         }

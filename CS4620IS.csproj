@@ -22,6 +22,7 @@
         <None Update="Content\WhiteCircle.png">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <Compile Remove="ECS\EntityManager.cs" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico" />
@@ -33,6 +34,7 @@
         <PackageReference Include="Nopipeline.Task" Version="2.2.0" />
         <PackageReference Include="ScottPlot" Version="5.1.58" />
         <PackageReference Include="Gum.MonoGame" Version="2025.12.9.1" />
+        <PackageReference Include="ScottPlot" Version="5.1.58" />
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Content\Models\" />

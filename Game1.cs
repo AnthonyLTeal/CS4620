@@ -11,6 +11,9 @@ using PlanetaryExpansion;
 using Gum.Forms;
 using Gum.Forms.Controls;
 using MonoGameGum;
+//Added to create and view graphs
+using System.IO;
+using ScottPlot;
 
 namespace CS4620IS;
 
@@ -63,7 +66,7 @@ public class Game1 : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        
+
         ComponentManager.RegisterComponent<CubeMeshBatcher>();
         ComponentManager.RegisterComponent<ArcBallCamera>();
         // ComponentManager.RegisterComponent<TerrainCursor>();
@@ -74,112 +77,88 @@ public class Game1 : Game
         ComponentManager.RegisterComponent<RoadMesh>();
         ComponentManager.LoadComponentsFromNamespace("CS4620IS.Components");
         //Assets.Load(Content);
+        ComponentManager.ReserveZero();
         
-        Cursor cursor = new Cursor();
+        Components.Cursor cursor = new Components.Cursor();
         _terrain = new Terrain(_graphics.GraphicsDevice);
         _camera = new ArcBallCamera(GraphicsDevice.Viewport.AspectRatio, MathHelper.PiOver4, new Vector3(0, 0, 0), Vector3.Up, 0.1f, 1000);
         _cameraControls = new CameraControls();
-
+        DestinationBlob destinationBlob = new DestinationBlob(100000);
         SimulationSuper simulationSuper = new SimulationSuper();
-        EntityManager.AddComponentToGlobalEntity(simulationSuper);
         
-        //Assets.Effects["BasicEffect"] = new BasicEffect(GraphicsDevice);
+        ComponentManager.AddComponentToGlobalEntity(simulationSuper);
+        ComponentManager.AddComponentToGlobalEntity(cursor);
+        ComponentManager.AddComponentToGlobalEntity(_camera);
+        ComponentManager.AddComponentToGlobalEntity(_terrain);
+        ComponentManager.AddComponentToGlobalEntity(GraphicsDevice);
+        ComponentManager.AddComponentToGlobalEntity(destinationBlob);
         
-        //terrain cursor needed?
-        //EntityManager.AddComponentToGlobalEntity(new SimulationSuper());
-        EntityManager.AddComponentToGlobalEntity(cursor);
-        EntityManager.AddComponentToGlobalEntity(_camera);
-        EntityManager.AddComponentToGlobalEntity(_terrain);
-        EntityManager.AddComponentToGlobalEntity(GraphicsDevice);
         
         CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
-        EntityManager.AddComponentToGlobalEntity(cubeMeshBatcher);
+        ComponentManager.AddComponentToGlobalEntity(cubeMeshBatcher);
         
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
         EntityManager.AddComponentToGlobalEntity(_roadMesh);
         
         StopSignDrawSystem.Load(GraphicsDevice, Content);
+        ComponentManager.AddComponentToGlobalEntity(_roadMesh);
     }
-/* 
- */    private KeyboardState oldKeyState;
+    
+    private KeyboardState oldKeyState;
     protected override void Update(GameTime gameTime)
     {
+        GumService.Default.Update(gameTime);
+        
+        float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        
+        SimulationSuper simulationSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
+        float virtualDt = dt * simulationSuper.SimSpeed;
+        
+        PathSegmentSystems.UpdateCongestionCost(virtualDt);
+
+        var visualOver = GumService.Default.Cursor.WindowOver;
+        var control = visualOver?.FormsControlAsObject as FrameworkElement;
+        
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-        
-        
-        //TESTING - just a test for the car generation, should be more systematic
-        //if (Keyboard.GetState().IsKeyUp(Keys.P) && oldKeyState.IsKeyDown(Keys.P)) 
-        if (oldKeyState.IsKeyDown(Keys.P))
-        {
-            //List<int> carEntities = ComponentManager.GetComponent<Car>();
-            //Console.WriteLine(carEntities.Count);
-            //if (carEntities.Count == 0)
-            CarSystems.GenerateRandomCar();
-        }
-        
-        if (Keyboard.GetState().IsKeyUp(Keys.C) && oldKeyState.IsKeyDown(Keys.C))
-        {
-            List<int> carComponents = ComponentManager.GetComponent<Car>();
-            for (int i = carComponents.Count - 1; i >= 0; i--)
-            {
-                EntityManager.RemoveEntity(carComponents[i]);
-            }
-            
-            List<int> pathSegmentComponents = ComponentManager.GetComponent<PathSegment>();
-            for (int i = pathSegmentComponents.Count - 1; i >= 0; i--)
-            {
-                EntityManager.RemoveEntity(pathSegmentComponents[i]);
-            }
-
-            RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
-            roadMesh.DestroyAll();
-        }
-
-        if (Keyboard.GetState().IsKeyUp(Keys.X) && oldKeyState.IsKeyDown(Keys.X))
-        {
-            PathSegmentSystems.DestroySegment(1);
-        }
-
-        if (Keyboard.GetState().IsKeyUp(Keys.L) && oldKeyState.IsKeyDown(Keys.L))
-        {
-            LoadSystem.Load();
-        }
-        
-        if (Keyboard.GetState().IsKeyUp(Keys.S) && oldKeyState.IsKeyDown(Keys.S) && Keyboard.GetState().IsKeyDown(Keys.LeftControl))
-        {
-            SaveSystem.Save();
-        }
+        //
+        // if (Keyboard.GetState().IsKeyUp(Keys.X) && oldKeyState.IsKeyDown(Keys.X))
+        // {
+        //     PathSegmentSystems.DestroySegment(1);
+        // }
 
         oldKeyState = Keyboard.GetState();
         
-        CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
+        CubeMeshBatcher cubeMeshBatcher = ComponentManager.GetGlobalComponent<CubeMeshBatcher>();
         cubeMeshBatcher.Update();
         
         _cameraControls.Update(gameTime, Keyboard.GetState(), Mouse.GetState(), _camera);
         CursorSystem.Update(gameTime);
-        _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
-        CarSystems.BasicBehavior(gameTime);
+
+        if (control == null)
+        {
+            _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
+        }
+        CarSystems.BasicBehavior(virtualDt);
         //new stuff for stoplights
-        StoplightSystems.ChangeRedGreen(gameTime);
+        StoplightSystems.ChangeRedGreen(virtualDt);
     
         PathSegmentSystems.SetPathColor();
 
         // TODO: Add your update logic here
 
         base.Update(gameTime);
-        GumService.Default.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
         _terrain.Draw(_graphics.GraphicsDevice, _camera);
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
-        BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
+        //BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
         
-        CubeMeshBatcher cubeMeshBatcher = EntityManager.GetGlobalComponent<CubeMeshBatcher>();
+        CubeMeshBatcher cubeMeshBatcher = ComponentManager.GetGlobalComponent<CubeMeshBatcher>();
         cubeMeshBatcher.Draw();
         
         StopSignDrawSystem.Draw(_spriteBatch, GraphicsDevice);
@@ -198,4 +177,24 @@ public class Game1 : Game
         GumInterface _interface = new GumInterface();
         _interface.InitializeUI(); 
     }
+
+   public void createGraphs()
+    {
+    //graph stuff testing
+    /*
+    ScottPlot.Plot signalPlot = new();
+    signalPlot.Add.Signal(CarSystems.finalDestinationTimes);
+    signalPlot.Title("Times Took For Cars To Reach Destination");
+    string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+    string graphsDir = Path.Combine(root, "Graphs");
+    Directory.CreateDirectory(graphsDir);
+    string path = Path.Combine(graphsDir, "firstrun.png");
+    signalPlot.XLabel("Car");
+    signalPlot.YLabel("Destination Time (In Seconds");
+    signalPlot.SavePng(path, 400, 300);
+    CarSystems.finalDestinationTimes.Clear();
+    */
+    }
+    
+   
 }

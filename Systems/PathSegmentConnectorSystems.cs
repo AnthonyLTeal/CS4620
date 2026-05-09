@@ -71,9 +71,8 @@ public class PathSegmentConnectorSystems
         {
             //we will do this to make sure we don't end up in an endless loop for now
             
-            int segmentComponent = ComponentManager.GetComponentID<PathSegment>();
-            PathSegment segment = (PathSegment)EntityManager.EntityComponents[connector.SegmentEntities[i]][segmentComponent];
-        
+            ref  PathSegment segment = ref ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[i]);
+            
             int? nextconnectorId = GetNextConnector(segment, connector);
             if (nextconnectorId == null)
             {

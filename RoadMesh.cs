@@ -73,7 +73,7 @@ public class RoadMesh
     private int? StateThreeSnappedSegmentConnector = null;
     public OctreeSuper<PathSegmentPointOctreeData> Octree;
     private PathSegmentPointOctreeData ClampedPointOctreeData = null;
-    public bool CreateEnabled = true;
+    public bool CreateEnabled = false;
     private const float PATH_WIDTH = .5f;
     private RoadRibbonMesh _ribbonMesh = new RoadRibbonMesh();
     private List<int> DeadConnectorIDs = new List<int>();
@@ -86,7 +86,7 @@ public class RoadMesh
         basicEffect = new BasicEffect(graphicsDevice);
         game = _game;
 
-        Terrain terrain = EntityManager.GetGlobalComponent<Terrain>();        
+        Terrain terrain = ComponentManager.GetGlobalComponent<Terrain>();        
         Octree = new OctreeSuper<PathSegmentPointOctreeData>(terrain.Scale * 2, 4, terrain.WorldCenter);
         _ribbonMesh = new RoadRibbonMesh();
         //Octree = new OctreeSuper<PathSegmentOctreeData>(100, 4, terrain.WorldCenter);
@@ -107,11 +107,16 @@ public class RoadMesh
 
     public void DestroyAll()
     {
-        Terrain terrain = EntityManager.GetGlobalComponent<Terrain>();        
+        Terrain terrain = ComponentManager.GetGlobalComponent<Terrain>();        
         Octree = new OctreeSuper<PathSegmentPointOctreeData>(terrain.Scale * 2, 4, terrain.WorldCenter);
         _ribbonMesh = new RoadRibbonMesh();
         Reset();
         PathSegmentConnectors = new List<PathSegmentConnector>();
+    }
+    
+    public void RebuildMesh()
+    {
+        _ribbonMesh.RebuildMesh();
     }
 
     private bool meshGenerated = false;
@@ -369,8 +374,8 @@ public class RoadMesh
         {
             for (int j = i + 1; j < connector.SegmentEntities.Count; j++)
             {
-                PathSegment segmentOne = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
-                PathSegment segmentTwo = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[j]);
+                PathSegment segmentOne = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[i]);
+                PathSegment segmentTwo = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[j]);
     
                 bool segmentOneEnd = segmentOne.EndConnector == connector.ID;
                 bool segmentTwoEnd = segmentTwo.EndConnector == connector.ID;
@@ -443,7 +448,7 @@ public class RoadMesh
         connector.DebugPoints = new List<VertexPositionColor>();
         for (int i = 0; i < connector.SegmentEntities.Count; i++)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(connector.SegmentEntities[i]);
+            PathSegment segment = ComponentManager.GetComponent<PathSegment>(connector.SegmentEntities[i]);
             connector.DebugPoints.Add(new VertexPositionColor(segment.Path[connector.PointIDs[i]], Color.Blue));
         }
     }
@@ -455,7 +460,8 @@ public class RoadMesh
         //Console.WriteLine("StateOneSnappedSegmentConnector: " + StateOneSnappedSegmentConnector);
         
         int componentID = ComponentManager.GetComponentID<PathSegment>();
-        PathSegment stateOneSegment = StateOneSnappedSegmentEntity == null ? null : (PathSegment)EntityManager.EntityComponents[(int)StateOneSnappedSegmentEntity][componentID];;
+        PathSegment stateOneSegment = StateOneSnappedSegmentEntity == null ? null : ComponentManager.GetComponent<PathSegment>((int)StateOneSnappedSegmentEntity);
+            //(PathSegment)EntityManager.EntityComponents[(int)StateOneSnappedSegmentEntity][componentID];;
 
         // if (StateOneSnappedSegmentConnector == null)
         //     stateOneSegment = StateOneSnappedSegmentEntity == null ? null : (PathSegment)EntityManager.EntityComponents[(int)StateOneSnappedSegmentEntity][componentID];
@@ -479,7 +485,9 @@ public class RoadMesh
         }
         
         //slice path for state three snapped point (end point for new road segments)
-        if (StateThreeSnappedSegmentEntity != null && StateThreeSnappedPoint != 0 && StateThreeSnappedPoint != ((PathSegment)EntityManager.EntityComponents[(int)StateThreeSnappedSegmentEntity][componentID]).Path.Length - 1)
+        if (StateThreeSnappedSegmentEntity != null && StateThreeSnappedPoint != 0 && StateThreeSnappedPoint != 
+            ComponentManager.GetComponent<PathSegment>((int)StateThreeSnappedSegmentEntity).Path.Length - 1)
+            //((PathSegment)EntityManager.EntityComponents[(int)StateThreeSnappedSegmentEntity][componentID]).Path.Length - 1)
         {
             SlicePathSegment((int)StateThreeSnappedSegmentEntity, (int)StateThreeSnappedPoint);
             StateThreeSnappedSegmentConnector = PathSegmentConnectors.Count - 1;
@@ -529,6 +537,9 @@ public class RoadMesh
         if (totalSegments <= 0)
             return null;
 
+        PathSegment[] segmentEntities = ComponentManager.GetComponents<PathSegment>();
+        int segmentCount = ComponentManager.GetCount<PathSegment>();
+        
         for (int i = 0; i < totalSegments; i ++)
         {
             int segmentLength = MaxSegmentLength;
@@ -583,18 +594,17 @@ public class RoadMesh
             }
 
             //TODO need to refactor this function to decouple it from the class and use ECS
-            List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
 
             PathSegment newSegment = new PathSegment()
             {
                 Path = segmentPoints,
-                ID = segmentEntities.Count,
+                ID = segmentCount,
                 PathDirection = PathDirection.Right
             };
 
             segments.Add(newSegment);
-            int segmentEntity = EntityManager.AddEntity();
-            EntityManager.AddComponentToEntity(segmentEntity, newSegment);
+            int segmentEntity = ComponentManager.AddEntity();
+            ComponentManager.AddComponent(segmentEntity, newSegment);
             Console.WriteLine("Segment Entity: " + segmentEntity);
             newSegment.EntityID = segmentEntity;
             //Console.WriteLine("New Entity: " + segmentEntity);
@@ -649,7 +659,7 @@ public class RoadMesh
     public void AddEndConnectorToNewPath(PathSegment segment)
     {
         PathSegmentConnector connector = new PathSegmentConnector();
-        connector.Position = segment.Path[^1] + new Vector3(0, 0.1f, 0);
+        connector.Position = segment.Path[^1];
         //EntityManager.AddEntity();
         //EntityManager.AddComponentToEntity<PathSegmentConnector>(EntityManager.LastAddedEntity, connector);
         connector.ID = PathSegmentConnectors.Count;
@@ -665,7 +675,7 @@ public class RoadMesh
     public void AddBeginConnectorToNewPath(PathSegment segment)
     {
         PathSegmentConnector connector = new PathSegmentConnector();
-        connector.Position = segment.Path[0] + new Vector3(0, 0.1f, 0);
+        connector.Position = segment.Path[0];
         //EntityManager.AddEntity();
         //EntityManager.AddComponentToEntity<PathSegmentConnector>(EntityManager.LastAddedEntity, connector);
         connector.ID = PathSegmentConnectors.Count;
@@ -837,16 +847,15 @@ public class RoadMesh
     {
         if (segment.AdjacentPathSegmentEntities[0] != 0 && segment.AdjacentPathSegmentEntities[0] != previousSegment.EntityID)
         {
-            int componentID = ComponentManager.GetComponentID<PathSegment>();
             int nextSegmentID = segment.AdjacentPathSegmentEntities[0];
-            PathSegment nextSegment = (PathSegment)EntityManager.EntityComponents[nextSegmentID][componentID];
+            PathSegment nextSegment = ComponentManager.GetComponent<PathSegment>(nextSegmentID);//(PathSegment)EntityManager.EntityComponents[nextSegmentID][componentID];
             return GetOuterMostSegment(nextSegment, segment);
         }
         if (segment.AdjacentPathSegmentEntities[1] != 0 && segment.AdjacentPathSegmentEntities[1] != previousSegment.EntityID)
         {
-            int componentID = ComponentManager.GetComponentID<PathSegment>();
             int nextSegmentID = segment.AdjacentPathSegmentEntities[1];
-            PathSegment nextSegment = (PathSegment)EntityManager.EntityComponents[nextSegmentID][componentID];
+            PathSegment nextSegment = ComponentManager.GetComponent<PathSegment>(nextSegmentID);
+                //(PathSegment)EntityManager.EntityComponents[nextSegmentID][componentID];
             return GetOuterMostSegment(nextSegment, segment);
         }
 
@@ -858,8 +867,10 @@ public class RoadMesh
         int componentID = ComponentManager.GetComponentID<PathSegment>();
         int o1EntityID = rulerSegment.AdjacentPathSegmentEntities[0];
         int o2EntityID = rulerSegment.AdjacentPathSegmentEntities[1];
-        PathSegment o1Segment = (PathSegment)EntityManager.EntityComponents[o1EntityID][componentID];
-        PathSegment o2Segment = (PathSegment)EntityManager.EntityComponents[o2EntityID][componentID];
+        PathSegment o1Segment =  ComponentManager.GetComponent<PathSegment>(o1EntityID);
+            //(PathSegment)EntityManager.EntityComponents[o1EntityID][componentID];
+        PathSegment o2Segment = ComponentManager.GetComponent<PathSegment>(o2EntityID); 
+            //(PathSegment)EntityManager.EntityComponents[o2EntityID][componentID];
         o1Segment = GetOuterMostSegment(o1Segment, rulerSegment);
         o2Segment = GetOuterMostSegment(o2Segment, rulerSegment);
 
@@ -994,7 +1005,7 @@ public class RoadMesh
             
             for (int i = 0; i < pathSegmentConnector.SegmentEntities.Count; i++)
             {
-                PathSegment currentRulerSegment = ComponentManager.GetEntityComponent<PathSegment>(pathSegmentConnector.SegmentEntities[i]);
+                PathSegment currentRulerSegment = ComponentManager.GetComponent<PathSegment>(pathSegmentConnector.SegmentEntities[i]);
 
                 if (currentRulerSegment == sourceRulerSegment)
                     continue;
@@ -1061,8 +1072,10 @@ public class RoadMesh
         int componentID = ComponentManager.GetComponentID<PathSegment>();
         int o1EntityID = sourceRulerSegment.AdjacentPathSegmentEntities[0];
         int o2EntityID = sourceRulerSegment.AdjacentPathSegmentEntities[1];
-        PathSegment o1Segment = (PathSegment)EntityManager.EntityComponents[o1EntityID][componentID];
-        PathSegment o2Segment = (PathSegment)EntityManager.EntityComponents[o2EntityID][componentID];
+        PathSegment o1Segment = ComponentManager.GetComponent<PathSegment>(o1EntityID); 
+            //(PathSegment)EntityManager.EntityComponents[o1EntityID][componentID];
+        PathSegment o2Segment = ComponentManager.GetComponent<PathSegment>(o2EntityID); 
+            //(PathSegment)EntityManager.EntityComponents[o2EntityID][componentID];
         o1Segment = GetOuterMostSegment(o1Segment, sourceRulerSegment);
         o2Segment = GetOuterMostSegment(o2Segment, sourceRulerSegment);
         
@@ -1108,8 +1121,8 @@ public class RoadMesh
     {
         Console.WriteLine("Slicing Segment: " + entityIndex);
         Console.WriteLine("Slicing at: " + pathIndex);
-        int componentID = ComponentManager.GetComponentID<PathSegment>();
-        PathSegment oldSegment = (PathSegment)EntityManager.EntityComponents[entityIndex][componentID];
+        PathSegment oldSegment = ComponentManager.GetComponent<PathSegment>(entityIndex); 
+            //(PathSegment)EntityManager.EntityComponents[entityIndex][componentID];
         RemovePathSegmentPointsFromOctree(oldSegment);
         Vector3[] path = oldSegment.Path;
         
@@ -1128,9 +1141,13 @@ public class RoadMesh
             PathDirection = oldSegment.PathDirection,
             IsLaneRuler = oldSegment.IsLaneRuler
         };
-        EntityManager.AddEntity();
-        EntityManager.AddComponentToEntity(EntityManager.LastAddedEntity, segmentTwo);
-        segmentTwo.EntityID = EntityManager.LastAddedEntity;
+
+        int entity = ComponentManager.AddEntity();
+        ComponentManager.AddComponent(entity, segmentTwo);
+        segmentTwo.entityID = entity;
+        // EntityManager.AddEntity();
+        // EntityManager.AddComponentToEntity(EntityManager.LastAddedEntity, segmentTwo);
+        // segmentTwo.EntityID = EntityManager.LastAddedEntity;
         segmentTwo.SlicedParent = entityIndex;
         
         InsertSegmentPathPointsIntoOctree(segmentTwo);
@@ -1177,8 +1194,9 @@ public class RoadMesh
     //Vector3 angleToRoad = Vector3.Zero;
     public bool ClampToExistingRoadPoint()
     {
-        int cursorID = ComponentManager.GetComponentID<Cursor>();
-        Cursor cursor = (Cursor)EntityManager.EntityComponents[0][cursorID];
+        //int cursorID = ComponentManager.GetComponentID<Cursor>();
+        Cursor cursor = ComponentManager.GetGlobalComponent<Cursor>(); 
+            //(Cursor)EntityManager.EntityComponents[0][cursorID];
 
         bool connected = false;
 
@@ -1189,10 +1207,15 @@ public class RoadMesh
 
         //TODO optimize this
         //Could put points in an octree or something
-        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
-        foreach (int entity in segmentEntities)
+        //List<int> segmentEntities = ComponentManager.GetComponents<PathSegment>();
+        
+        PathSegment[] segments = ComponentManager.GetComponents<PathSegment>();
+        int segmentCount = ComponentManager.GetCount<PathSegment>();
+        
+        //foreach (int entity in segmentEntities)
+        for (int j = 0; j < segmentCount; j++)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            PathSegment segment = segments[j];
             float closestPoint = 100;
 
             for (int i = 0; i < segment.Path.Length; i++)
@@ -1461,7 +1484,8 @@ public class RoadMesh
             {
                 if (!ClampedPointOctreeData.Connector)
                 {
-                    PathSegment stateOneSegment = (PathSegment)EntityManager.EntityComponents[(int)StateOneSnappedSegmentEntity][componentID];
+                    PathSegment stateOneSegment = ComponentManager.GetComponent<PathSegment>((int)StateOneSnappedSegmentEntity); 
+                        //(PathSegment)EntityManager.EntityComponents[(int)StateOneSnappedSegmentEntity][componentID];
                     if (ClampedPointIsInvalid((int)StateOneSnappedPoint, stateOneSegment.Path.Length))
                     {
                         StateOneSnappedPoint = null;
@@ -1487,7 +1511,8 @@ public class RoadMesh
             {
                 if (!ClampedPointOctreeData.Connector)
                 {
-                    PathSegment stateOneSegment = (PathSegment)EntityManager.EntityComponents[(int)StateThreeSnappedSegmentEntity][componentID];
+                    PathSegment stateOneSegment = ComponentManager.GetComponent<PathSegment>((int)StateThreeSnappedSegmentEntity);
+                        //(PathSegment)EntityManager.EntityComponents[(int)StateThreeSnappedSegmentEntity][componentID];
                     if (ClampedPointIsInvalid((int)StateThreeSnappedPoint, stateOneSegment.Path.Length))
                     {
                         StateThreeSnappedPoint = null;
@@ -1503,7 +1528,10 @@ public class RoadMesh
                 }
             }
             PendingP3 = selectedPoint;
-            PendingP2 = (PendingP1 + PendingP3) / 2;
+            if (BuildType == BuildType.Straight)
+            {
+                PendingP2 = (PendingP1 + PendingP3) / 2;
+            }
         }
     }
 
@@ -1713,11 +1741,13 @@ public class RoadMesh
             GenerateRibbonMesh(segment);
         }
 
-        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        PathSegment[] segmentComponents = ComponentManager.GetComponents<PathSegment>();
+        int segmentCount = ComponentManager.GetCount<PathSegment>();
         
-        foreach (int entity in segmentEntities)
+        //foreach (int entity in segmentEntities)
+        for (int i = 0; i  < segmentCount; i++)
         {
-            PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(entity);
+            PathSegment segment = segmentComponents[i];
             if (segment.EndConnector == null)
             {
                 Console.WriteLine($"Segment {segment.ID} missing end connector");
@@ -1786,7 +1816,8 @@ public class RoadMesh
     private List<PathSegment> GenerateParallelPath(List<PathSegment> rulerSegments, int pathOffset, float pathWidth, bool leftOfCenter, List<PathSegment> previousPath = null)
     {
         int directionMod = leftOfCenter == true ? -1 : 1;
-        List<int> segmentEntities = ComponentManager.GetComponent<PathSegment>();
+        //List<int> segmentEntities = ComponentManager.GetComponents<PathSegment>();
+        int segmentCount = ComponentManager.GetCount<PathSegment>();
         List<PathSegment> newSegments = new List<PathSegment>(); 
         for (int i = 0; i < rulerSegments.Count; i++)
         {
@@ -1802,16 +1833,15 @@ public class RoadMesh
             
             PathSegment newSegment = new PathSegment()
             {
-                ID = segmentEntities.Count,
+                ID = segmentCount,
                 IsLaneRuler = false,
                 PathDirection = (PathDirection)directionMod
             };
             newSegment.Path = segmentPoints;
 
             newSegments.Add(newSegment);
-            EntityManager.AddEntity();
-            int segmentEntity = EntityManager.LastAddedEntity;
-            EntityManager.AddComponentToEntity<PathSegment>(segmentEntity, newSegment);
+            int segmentEntity = ComponentManager.AddEntity();
+            ComponentManager.AddComponent(segmentEntity, newSegment);
             newSegment.EntityID = segmentEntity;
 
             int rulerIndex = 0;
@@ -2067,14 +2097,17 @@ public class RoadMesh
         // } else if (PendingP1 != cursor.Location) {
         // }
     }
+    
+    private MouseState previousMouseState = Mouse.GetState();
 
     public void Update(GraphicsDevice graphicsDevice, Terrain terrain, ArcBallCamera camera, KeyboardState keyState)
     {
         if (!CreateEnabled)
             return;
         
-        int cursorID = ComponentManager.GetComponentID<Cursor>();
-        Cursor cursor = (Cursor)EntityManager.EntityComponents[0][cursorID];
+        //int cursorID = ComponentManager.GetComponentID<Cursor>();
+        Cursor cursor = ComponentManager.GetGlobalComponent<Cursor>(); 
+            //(Cursor)EntityManager.EntityComponents[0][cursorID];
 
         bool connected = false;
 
@@ -2088,15 +2121,16 @@ public class RoadMesh
         
         StateThreeUpdate(cursor);
 
-        if (spacePressed == false && keyState.IsKeyDown(Keys.Space))
+        if (Mouse.GetState().LeftButton == ButtonState.Released && previousMouseState.LeftButton == ButtonState.Pressed)
         {
-            spacePressed = true;
             if (cursor.Location != null)
             {
                 SelectPoint((Vector3)cursor.Location + new Vector3(0,0.1f,0), graphicsDevice, terrain, camera);
-                //SelectPointStraight((Vector3)terrainCursor.brushLocation, graphicsDevice, terrain, camera);
             }
-        }
+        } 
+        
+        if (Mouse.GetState().RightButton == ButtonState.Released && previousMouseState.RightButton == ButtonState.Pressed)
+            Reset();
 
         OutlineMeshUpdate(cursor, graphicsDevice, terrain, camera);
 
@@ -2168,6 +2202,7 @@ public class RoadMesh
         // }
         //
         // previousBrushLocation = cursor.Location;
+        previousMouseState = Mouse.GetState();
     }
 
     public RoadRibbonMesh RibbonMesh

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CS4620IS.Components;
 using Microsoft.Xna.Framework;
@@ -28,7 +29,7 @@ public class CubeMeshBatcher
     /// </summary>
     public CubeMeshBatcher(int maximum = 2000)
     {
-        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
+        GraphicsDevice graphicsDevice = ComponentManager.GetGlobalComponent<GraphicsDevice>();
         _basicEffect = new BasicEffect(graphicsDevice);
         
         Maximum = maximum;
@@ -61,11 +62,18 @@ public class CubeMeshBatcher
     public void Update()
     {
         ClearBuffers();
-        List<int> carEntities = ComponentManager.GetComponent<Car>();
-        foreach (var carEntity in carEntities)
+        Car[] cars = ComponentManager.GetComponents<Car>();
+        int count = ComponentManager.PoolCounts[ComponentManager.GetComponentID<Car>()];
+        for (int i = 0; i < count; i ++)
         {
-            Car car = ComponentManager.GetEntityComponent<Car>(carEntity);
-            InsertCube(car.Position, car.Rotation, car.Scale, car.Color);
+            ref Car car = ref cars[i];
+            // Console.WriteLine("Position Inserted: " + car.Position);
+            // Console.WriteLine("Rotation Inserted: " + car.Rotation);
+            // Console.WriteLine("Scale Inserted: " + car.Scale);
+            // Console.WriteLine("Color Inserted: " + car.Color);
+            
+            Matrix rotationMatrix = Matrix.CreateRotationY(car.Rotation);
+            InsertCube(car.Position, rotationMatrix, car.Scale, car.Color);
         }
         
         _vertexBuffer.SetData(Vertices);
@@ -74,8 +82,8 @@ public class CubeMeshBatcher
 
     public void Draw()
     {
-        GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
-        ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
+        GraphicsDevice graphicsDevice = ComponentManager.GetGlobalComponent<GraphicsDevice>();
+        ArcBallCamera camera = ComponentManager.GetGlobalComponent<ArcBallCamera>();
         int _triangleCount = CubeCount * 12;
         if (_triangleCount == 0)
         {

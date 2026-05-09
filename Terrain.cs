@@ -91,8 +91,8 @@ public class Terrain
         collisionPoint = null;
         short[] triangle = null;
 
-        ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
-        GraphicsDevice graphics = EntityManager.GetGlobalComponent<GraphicsDevice>();
+        ArcBallCamera camera = ComponentManager.GetGlobalComponent<ArcBallCamera>();
+        GraphicsDevice graphics = ComponentManager.GetGlobalComponent<GraphicsDevice>();
         Vector2 mouseLocation = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
         Ray ray = CalculateRay(mouseLocation, camera.ViewMatrix, camera.ProjectionMatrix, graphics.Viewport);
         

@@ -11,58 +11,106 @@ namespace CS4620IS.Components;
 /// A group ID will tell us which group the 
 /// </summary>
 [MessagePackObject(keyAsPropertyName: true)]
-public class Car
+public struct Car
 {
-    public int GroupID;
-    public int connectedSegment;
+    public int connectedSegmentId;
+    public PathSegment ConnectedSegment;
     public int PreviousSegment;
     public int InitialPathIndex;
     public Vector3 Position;
     public Color Color;
-    public float Scale = 0.25f;
-    public List<Destination> Destinations;
-    public CarPath SegmentPath;
-    public Stack<Vector3> OverridePath = new Stack<Vector3>();
-    public float CurrentLane = 1 * -0.2f;
-    public int OnConnector = -1;
-    public bool InIntersection = false;
-    
-    public List<String> Log = new List<String>();
+    public float Scale; 
+    //public DestinationPointer DestinationPointer;
+    public DestinationPointer Destinations;
+    //public Queue<Destination> Destinations = new Queue<Destination>();
+    //public List<String> Log = new List<string>();
+    public CarPath CarPath;
+    public OverridePath OverridePath;
+    public float CurrentLane;
+    public int OnConnector;
+    public bool IgnoreYellow;
+    public ReroutePath ReroutePath;
+    public bool IsReroute;
+    public float TimeOnSegment;
+    public float WaitTimer;
+    public float StuckCooldown;
+    public bool InIntersection;
+    public bool Alive;
     
     [IgnoreMember]
-    public int ConnectedSegment
+    public float Rotation;
+    
+    // public static readonly Car Default =  new Car
+    // {
+    //     CurrentLane = 1 * -0.2f,
+    //     Scale = 0.25f,
+    //     OnConnector = -1,
+    //     IgnoreYellow = false,
+    //     
+    // };
+    
+    //public List<String> Log = new List<String>();
+    
+    [IgnoreMember]
+    public int ConnectedSegmentId
     {
-        get => connectedSegment;
+        get => connectedSegmentId;
         set
         {
-            if (value == 0)
+            if (value == 0) 
             {
-                Console.WriteLine("ERROR: WTF");
+                Console.WriteLine("ERROR: dunno");
             }
             else
             {
-                connectedSegment = value;
+                connectedSegmentId = value;
             }
         }
     }
-
-    [IgnoreMember]
-    public Matrix Rotation;
 }
 
 [MessagePackObject(keyAsPropertyName: true)]
-public class Destination
+public struct DestinationPointer
+{
+    public int Start;
+    public int Count;
+    public int Current;
+    
+    public DestinationPointer(int start, int count)
+    {
+        Start = start;
+        Count = count;
+        Current = 0;
+    }
+
+    public void Clear()
+    {
+        Count = 0;
+    }
+}
+
+[MessagePackObject(keyAsPropertyName: true)]
+public struct Destination
 {
     public int TargetSegmentID;
     public int TargetPathIndex;
 }
 
 [MessagePackObject(keyAsPropertyName: true)]
-public class CarPath
+public struct CarPath
 {
     public int CurrentIndex;
     public int Direction;
     public int SegmentSize;
-    public int LastConnectorID = -1;
-    public int NextConnectorID = -1;
+    public int LastConnectorID;
+    public int NextConnectorID;
+
+    public CarPath(int currentIndex, int direction, int segmentSize,  int lastConnectorID = -1, int nextConnectorID = -1)
+    {
+        CurrentIndex = currentIndex;
+        Direction = direction;
+        SegmentSize = segmentSize;
+        LastConnectorID = lastConnectorID;
+        NextConnectorID = nextConnectorID;
+    }
 }

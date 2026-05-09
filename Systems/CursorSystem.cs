@@ -14,10 +14,8 @@ namespace CS4620IS
     {
         public static void Update(GameTime gameTime)
         {
-            Cursor cursor = EntityManager.GetGlobalComponent<Cursor>();
-            Terrain terrain = EntityManager.GetGlobalComponent<Terrain>();
-            ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
-            GraphicsDevice graphicsDevice = EntityManager.GetGlobalComponent<GraphicsDevice>();
+            Cursor cursor = ComponentManager.GetGlobalComponent<Cursor>();
+            Terrain terrain = ComponentManager.GetGlobalComponent<Terrain>();
 
             if (!cursor.isListening)
             {
@@ -32,8 +30,7 @@ namespace CS4620IS
             
             if (cursor.OnClick != null)
             {
-                int inputStateID = ComponentManager.GetComponentID<InputState>();
-                InputState inputState = (InputState)EntityManager.EntityComponents[0][inputStateID];
+                InputState inputState = ComponentManager.GetGlobalComponent<InputState>();
 
                 if (inputState.MouseState.RightButton == ButtonState.Pressed && inputState.RightMousePressed == false)
                 {
