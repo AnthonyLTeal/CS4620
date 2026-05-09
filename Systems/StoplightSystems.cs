@@ -116,9 +116,8 @@ public class StoplightSystems
         }
     }
     
-    public static bool WaitOnStopLight(int carEntity)
+    public static bool WaitOnStopLight(ref Car car)
     {
-        Car car = ComponentManager.GetComponent<Car>(carEntity);
         RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         
         if (car.OnConnector == -1) {return false;}

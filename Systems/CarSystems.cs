@@ -568,7 +568,7 @@ public class CarSystems
             //break;
 
             //my new stuff
-            if (StoplightSystems.WaitOnStopLight(entity))
+            if (StoplightSystems.WaitOnStopLight(ref car))
                 break;
 
             var nextPoint = GetPathVertex(car);
@@ -652,7 +652,7 @@ public class CarSystems
             // Console.WriteLine("Current Point Index: " + car.CarPath.CurrentIndex);
             if (WaitOnTraffic(entity, remaining, direction, virtualDt, destination))
             {
-                Console.WriteLine("Waiting On Traffic?");
+                //Console.WriteLine("Waiting On Traffic?");
                 return;
             }
 
@@ -974,7 +974,7 @@ public class CarSystems
     }
 
     public static void GenerateRandomCar(Random random, DestinationBlob destinationBlob, CarBehavior behavior = CarBehavior.Basic,
-        int destinationCount = 100)
+        int destinationCount = 20)
     {
         //List<int> segments = ComponentManager.GetComponent<PathSegment>();
         (int randomSegment, int randomPathPoint) = GetRandomPathPoint(random);
