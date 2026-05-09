@@ -98,7 +98,7 @@ public class Game1 : Game
         ComponentManager.AddComponentToGlobalEntity(cubeMeshBatcher);
         
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
-        EntityManager.AddComponentToGlobalEntity(_roadMesh);
+        ComponentManager.AddComponentToGlobalEntity(_roadMesh);
         
         StopSignDrawSystem.Load(GraphicsDevice, Content);
         ComponentManager.AddComponentToGlobalEntity(_roadMesh);

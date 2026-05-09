@@ -22,11 +22,11 @@ public class StopSignDrawSystem
 
     public static void DrawLight(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice, int segmentId, PathSegmentConnector connector, int greenIndex)
     {
-        ArcBallCamera camera = EntityManager.GetGlobalComponent<ArcBallCamera>();
+        ArcBallCamera camera = ComponentManager.GetGlobalComponent<ArcBallCamera>();
         Vector2 origin = new Vector2(stopSign.Width / 2, stopSign.Height / 2);
         float scale = 0.25f;
         
-        PathSegment segment = ComponentManager.GetEntityComponent<PathSegment>(segmentId);
+        PathSegment segment = ComponentManager.GetComponent<PathSegment>(segmentId);
 
         int index = 0;
         if (connector.ID == segment.EndConnector)
@@ -57,7 +57,7 @@ public class StopSignDrawSystem
     
     public static void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice)
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         spriteBatch.Begin();
 
         foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)

@@ -1153,12 +1153,18 @@ public class RoadMesh
         InsertSegmentPathPointsIntoOctree(segmentTwo);
         InsertSegmentPathPointsIntoOctree(oldSegment);
         
-        segmentTwo.EndConnector = oldSegment.EndConnector;
-        PathSegmentConnectors[(int)oldSegment.EndConnector].SegmentEntities.Add(segmentTwo.EntityID);
-        PathSegmentConnectors[(int)oldSegment.EndConnector].PointIDs.Add(segmentTwo.Path.Length - 1);
-        PathSegmentConnectors[(int)oldSegment.EndConnector].DebugPoints.Add(new VertexPositionColor(segmentTwo.Path[^1], Color.Blue));
-
-        PathSegmentConnectorSystems.RemoveSegmentFromConnector(PathSegmentConnectors[(int)oldSegment.EndConnector], entityIndex, path.Length - 1);
+        // segmentTwo.EndConnector = oldSegment.EndConnector;
+        // PathSegmentConnectors[(int)oldSegment.EndConnector].SegmentEntities.Add(segmentTwo.EntityID);
+        // PathSegmentConnectors[(int)oldSegment.EndConnector].PointIDs.Add(segmentTwo.Path.Length - 1);
+        // PathSegmentConnectors[(int)oldSegment.EndConnector].DebugPoints.Add(new VertexPositionColor(segmentTwo.Path[^1], Color.Blue));
+        
+        // PathSegmentConnectorSystems.RemoveSegmentFromConnector(PathSegmentConnectors[(int)oldSegment.EndConnector], entityIndex, path.Length - 1);
+        int oldEndConnectorID = (int)oldSegment.EndConnector;
+        PathSegmentConnector oldEndConnector = PathSegmentConnectors[oldEndConnectorID];
+        PathSegmentConnectorSystems.RemoveSegmentFromConnector(oldEndConnector, entityIndex, path.Length - 1);
+        PathSegmentConnectorSystems.RemoveSegmentFromConnector(oldEndConnector, entityIndex);
+        PathSegmentConnectorSystems.AddSegmentToSegmentConnector(oldEndConnector, segmentTwo, SegmentConnectorIndex.Last);
+        
         PathSegmentConnector slicedConnector = new PathSegmentConnector();
         slicedConnector.ID = PathSegmentConnectors.Count;
         PathSegmentConnectorSystems.AddConnector(slicedConnector);
@@ -1167,6 +1173,11 @@ public class RoadMesh
         
         PathSegmentConnectorSystems.AddSegmentToSegmentConnector(slicedConnector, oldSegment, SegmentConnectorIndex.Last);
         PathSegmentConnectorSystems.AddSegmentToSegmentConnector(slicedConnector, segmentTwo, SegmentConnectorIndex.First);
+
+        StoplightSystems.GenerateStoplights((int)segmentTwo.EndConnector);
+        StoplightSystems.GenerateStoplights((int)segmentTwo.FrontConnector);
+        StoplightSystems.GenerateStoplights((int)oldSegment.EndConnector);
+        StoplightSystems.GenerateStoplights((int)oldSegment.FrontConnector);
         
         Console.WriteLine("New Segment From Slice: " + segmentTwo.entityID);
     }

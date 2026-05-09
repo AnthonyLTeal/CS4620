@@ -18,6 +18,26 @@ public class PathSegmentConnectorSystems
     public static void AddSegmentToSegmentConnector(PathSegmentConnector connector, PathSegment segment, SegmentConnectorIndex segmentConnectorIndex)
     {
         int index = segmentConnectorIndex == SegmentConnectorIndex.First ? 0 : segment.Path.Length - 1;
+        
+        // Keep connector membership unique per segment entity.
+        // If the segment is already present, refresh its endpoint index/debug point.
+        for (int i = 0; i < connector.SegmentEntities.Count; i++)
+        {
+            if (connector.SegmentEntities[i] != segment.EntityID)
+                continue;
+            connector.PointIDs[i] = index;
+            connector.DebugPoints[i] = new VertexPositionColor(segment.Path[index], Color.Blue);
+
+            if (index == 0)
+            {
+                segment.FrontConnector = connector.ID;
+            }
+            else
+            {
+                segment.EndConnector = connector.ID;
+            }
+            return;
+        }
 
         connector.SegmentEntities.Add(segment.EntityID);
         connector.PointIDs.Add(index);
@@ -31,8 +51,6 @@ public class PathSegmentConnectorSystems
         {
             segment.EndConnector = connector.ID;
         }
-        
-        GenerateStopSign(connector);
     }
 
     //TODO test this, it might not work right
@@ -48,6 +66,19 @@ public class PathSegmentConnectorSystems
                 connector.DebugPoints.RemoveAt(i);
                 break;
             }
+        }
+    }
+    
+    // Fallback removal used when stored point indices are stale.
+    public static void RemoveSegmentFromConnector(PathSegmentConnector connector, int segmentEntity)
+    {
+        for (int i = connector.SegmentEntities.Count - 1; i >= 0; i--)
+        {
+            if (connector.SegmentEntities[i] != segmentEntity)
+                continue;
+            connector.SegmentEntities.RemoveAt(i);
+            connector.PointIDs.RemoveAt(i);
+            connector.DebugPoints.RemoveAt(i);
         }
     }
 
@@ -106,7 +137,7 @@ public class PathSegmentConnectorSystems
     
     public static void AddConnector(PathSegmentConnector connector)
     {
-        RoadMesh roadMesh = EntityManager.GetGlobalComponent<RoadMesh>();
+        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
         roadMesh.PathSegmentConnectors.Add(connector);
     }
 
@@ -119,7 +150,7 @@ public class PathSegmentConnectorSystems
 
         foreach (int segmentEntity in connector.SegmentEntities)
         {
-            PathSegment pathSegment = ComponentManager.GetEntityComponent<PathSegment>(segmentEntity);
+            PathSegment pathSegment = ComponentManager.GetComponent<PathSegment>(segmentEntity);
             Vector3 signPosition = pathSegment.Path[pathSegment.Path.Length - 1];
             
             if (connector.ID == (int)pathSegment.FrontConnector)
