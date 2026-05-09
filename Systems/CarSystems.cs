@@ -11,7 +11,7 @@ namespace CS4620IS;
 
 public class CarSystems
 {
-    public const float MaxStallTime = 10.0f; //in seconds
+    public const float MaxStallTime = 15.0f; //in seconds
 
     public static void BasicBehavior(float virtualDt)
     {
@@ -202,10 +202,15 @@ public class CarSystems
         {
             //outside
         }
+        
+        car.OverridePath.P3 = p2 - p2Offset * car.CurrentLane;
+        car.OverridePath.P2 = position;
+        car.OverridePath.P1 = p1 - p1Offset * car.CurrentLane;
+        car.OverridePath.Count = 3;
 
-        car.OverridePath.Push(p2 - p2Offset * car.CurrentLane);
-        car.OverridePath.Push(position);
-        car.OverridePath.Push(p1 - p1Offset * car.CurrentLane);
+        // car.OverridePath.Push(p2 - p2Offset * car.CurrentLane);
+        // car.OverridePath.Push(position);
+        // car.OverridePath.Push(p1 - p1Offset * car.CurrentLane);
     }
 
     // private static Vector3? forwardLookPoint(Car car)
@@ -392,7 +397,7 @@ public class CarSystems
         if (car.WaitTimer >= MaxStallTime)
         {
             car.WaitTimer = 0;
-            car.StuckCooldown = 0.5f;
+            car.StuckCooldown = 1f;
             return false;
         }
 
@@ -568,7 +573,7 @@ public class CarSystems
             {
                 if (WaitOnTraffic(entity, remaining, direction, virtualDt))
                 {
-                    Console.WriteLine("Waiting on Traffic");
+                    //Console.WriteLine("Waiting on Traffic");
                     return;
                 }
 

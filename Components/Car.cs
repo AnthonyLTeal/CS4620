@@ -24,7 +24,7 @@ public class Car
     public Queue<Destination> Destinations = new Queue<Destination>();
     public List<String> Log = new List<string>();
     public CarPath CarPath;
-    public Stack<Vector3> OverridePath = new Stack<Vector3>();
+    public OverridePath OverridePath;
     public float CurrentLane;
     public int OnConnector;
     public bool IgnoreYellow;
