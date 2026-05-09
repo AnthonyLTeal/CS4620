@@ -211,7 +211,7 @@ public class PathSegmentSystems
 
             for (int j = segment.RibbonOffset; j < segment.RibbonOffset + segment.RibbonLength; j++)
             {
-                roadMesh.RibbonMesh.UpdateVertexColor(i, color);
+                roadMesh.RibbonMesh.UpdateVertexColor(j, color);
             }
         }
     }

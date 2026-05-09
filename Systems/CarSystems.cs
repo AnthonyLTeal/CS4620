@@ -1044,7 +1044,8 @@ public class CarSystems
             InitialPathIndex = randomPathPoint,
             Scale = 0.25f,
             OnConnector = -1,
-            CurrentLane = 1 * -0.2f
+            CurrentLane = 1 * -0.2f,
+            Alive = true
 //            InitialPathIndex = segment.TotalPathLength - 3
         };
         
