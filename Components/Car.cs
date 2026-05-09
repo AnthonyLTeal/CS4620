@@ -11,7 +11,7 @@ namespace CS4620IS.Components;
 /// A group ID will tell us which group the 
 /// </summary>
 [MessagePackObject(keyAsPropertyName: true)]
-public class Car
+public struct Car
 {
     public int connectedSegmentId;
     public PathSegment ConnectedSegment;
@@ -21,8 +21,9 @@ public class Car
     public Color Color;
     public float Scale; 
     //public DestinationPointer DestinationPointer;
-    public Queue<Destination> Destinations = new Queue<Destination>();
-    public List<String> Log = new List<string>();
+    public DestinationPointer Destinations;
+    //public Queue<Destination> Destinations = new Queue<Destination>();
+    //public List<String> Log = new List<string>();
     public CarPath CarPath;
     public OverridePath OverridePath;
     public float CurrentLane;
@@ -80,6 +81,11 @@ public struct DestinationPointer
         Start = start;
         Count = count;
         Current = 0;
+    }
+
+    public void Clear()
+    {
+        Count = 0;
     }
 }
 
