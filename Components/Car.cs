@@ -32,6 +32,7 @@ public struct Car
     public ReroutePath ReroutePath;
     public bool IsReroute;
     public float TimeOnSegment;
+    public float TimeToDestination;
     public float WaitTimer;
     public float StuckCooldown;
     public bool InIntersection;

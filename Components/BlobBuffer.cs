@@ -14,6 +14,7 @@ public class BlobBuffer<T> where T : struct
     
     public void AddDestination(T item)
     {
+        if (Count > Data.Length) throw new Exception("Blob Full!");
         Data[Count] = item;
         Count += 1;
     }

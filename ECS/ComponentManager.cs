@@ -12,15 +12,15 @@ public class ComponentManager
     public static readonly int _maxComponents = 64;
     
     private static bool reserved = false;
-    private static int lastAddedEntity = 0;
-    private static int entityCount = 0;
-    private static Stack<int> deadEntities = new Stack<int>();
-    private static int[] entityGen = new int[_maxEntities];
+    public static int LastAddedEntity = 0;
+    public static int EntityCount = 0;
+    public static Stack<int> DeadEntities = new Stack<int>();
+    public static int[] EntityGen = new int[_maxEntities];
 
-    public static int[] EntityGen = entityGen;
-    public static int EntityCount = entityCount;
-    public static Stack<int> DeadEntities = deadEntities;
-    public static int LastAddedEntity = lastAddedEntity;
+    //public static int[] EntityGen = entityGen;
+    //public static int EntityCount = entityCount;
+    //public static Stack<int> DeadEntities = deadEntities;
+    //public static int LastAddedEntity = lastAddedEntity;
 
     public static List<Array> ComponentRegistry = new List<Array>();
     public static Dictionary<Type, int> ComponentIDs = new Dictionary<Type, int>();
@@ -75,23 +75,23 @@ public class ComponentManager
     
     public static int AddEntity()
     {
-        if (deadEntities.Count == 0)
+        if (DeadEntities.Count == 0)
         {
-            lastAddedEntity = entityCount;
-            entityCount += 1;
+            LastAddedEntity = EntityCount;
+            EntityCount += 1;
         } else {
             //TODO need to change DeadEntities to a stack/queue for faster operation
-            lastAddedEntity = deadEntities.Pop();
+            LastAddedEntity = DeadEntities.Pop();
         }
         
         // IMPORTANT: Ensure the entity's component row is ready
-        if (Entities[lastAddedEntity] == null) {
-            Entities[lastAddedEntity] = new int[_maxComponents];
-            Array.Fill(Entities[lastAddedEntity], -1);
+        if (Entities[LastAddedEntity] == null) {
+            Entities[LastAddedEntity] = new int[_maxComponents];
+            Array.Fill(Entities[LastAddedEntity], -1);
         }
         
-        AddComponent(lastAddedEntity, new EntityID() { ID = lastAddedEntity});
-        return lastAddedEntity;
+        AddComponent(LastAddedEntity, new EntityID() { ID = LastAddedEntity});
+        return LastAddedEntity;
     }
 
     public static int GetCount<T>()
@@ -139,8 +139,8 @@ public class ComponentManager
         }
         if (!hadAnyComponent)
             return;
-        deadEntities.Push(entity);
-        entityGen[entity] += 1;
+        DeadEntities.Push(entity);
+        EntityGen[entity] += 1;
     }
 
     public static void ReserveZero()
@@ -149,9 +149,9 @@ public class ComponentManager
             return;
 
         AddEntity();
-        entityGen[0] = 1;
+        EntityGen[0] = 1;
 
-        lastAddedEntity = 0;
+        LastAddedEntity = 0;
         reserved = true;
     }
     

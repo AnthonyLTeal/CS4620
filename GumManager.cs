@@ -10,6 +10,7 @@ using Gum.Forms;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.IO;
+using CS4620IS.Components;
 using PlanetaryExpansion;
 using RenderingLibrary.Graphics;
 //using RenderingLibrary.Graphics;
@@ -397,26 +398,33 @@ class GumInterface
             SpawnPanel.AddChild(StartSimButton);
 
             StartSimButton.Click += (sender, args) =>
-                {
-                    int totalCount;
-                    int distributionPercent;
-                    int seed;
-
-                    if (int.TryParse(CarCountTextbox.Text, out totalCount) &&
-                        int.TryParse(PercentTextbox.Text, out distributionPercent) &&
-                        int.TryParse(SeedTextbox.Text, out seed))
-                    {
-                        Console.WriteLine($"Spawning {totalCount} static cars and {distributionPercent}% of them are dynamic cars");
-                        // Call your car spawning logic here using staticCount and dynamicCount
-                        //CarSystems.GenerateRandomCar();
-                        CarSystems.GenerateCars(totalCount, seed, distributionPercent * .01f);
-                        SpawnWindow.RemoveFromRoot();
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid input for static or dynamic car count. Please enter valid integers.");
-                    }
-                };
+            {
+                SimulationSuper super = ComponentManager.GetGlobalComponent<SimulationSuper>();
+                SimulationSystems.StartBatch();
+                //super.Finished = false;
+            };
+            
+            // StartSimButton.Click += (sender, args) =>
+            //     {
+            //         int totalCount;
+            //         int distributionPercent;
+            //         int seed;
+            //
+            //         if (int.TryParse(CarCountTextbox.Text, out totalCount) &&
+            //             int.TryParse(PercentTextbox.Text, out distributionPercent) &&
+            //             int.TryParse(SeedTextbox.Text, out seed))
+            //         {
+            //             Console.WriteLine($"Spawning {totalCount} static cars and {distributionPercent}% of them are dynamic cars");
+            //             // Call your car spawning logic here using staticCount and dynamicCount
+            //             //CarSystems.GenerateRandomCar();
+            //             CarSystems.GenerateCars(totalCount, seed, distributionPercent * .01f);
+            //             SpawnWindow.RemoveFromRoot();
+            //         }
+            //         else
+            //         {
+            //             Console.WriteLine("Invalid input for static or dynamic car count. Please enter valid integers.");
+            //         }
+            //     };
 
             // Create Exit Button for Spawn Window:
             Button ExitSpawnButton = new Button();

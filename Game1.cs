@@ -114,6 +114,8 @@ public class Game1 : Game
         SimulationSuper simulationSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
         float virtualDt = dt * simulationSuper.SimSpeed;
         
+        SimulationSystems.RunSimulation(virtualDt);
+        
         PathSegmentSystems.UpdateCongestionCost(virtualDt);
 
         var visualOver = GumService.Default.Cursor.WindowOver;

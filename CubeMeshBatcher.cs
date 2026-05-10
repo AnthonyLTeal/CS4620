@@ -27,7 +27,7 @@ public class CubeMeshBatcher
     /// Vertices: 8 vertices per cube
     /// Indices: 12 triangles per cube and 3 vertices per triangle
     /// </summary>
-    public CubeMeshBatcher(int maximum = 2000)
+    public CubeMeshBatcher(int maximum = 10000)
     {
         GraphicsDevice graphicsDevice = ComponentManager.GetGlobalComponent<GraphicsDevice>();
         _basicEffect = new BasicEffect(graphicsDevice);
@@ -36,7 +36,7 @@ public class CubeMeshBatcher
         Vertices = new VertexPositionColor[Maximum * 8];
         Indices = new int[Maximum * 12 * 3];
         
-        _vertexBuffer = new VertexBuffer(
+        _vertexBuffer = new DynamicVertexBuffer(
             graphicsDevice,
             typeof(VertexPositionColor),
             Vertices.Length,
@@ -70,7 +70,7 @@ public class CubeMeshBatcher
             // Console.WriteLine("Position Inserted: " + car.Position);
             // Console.WriteLine("Rotation Inserted: " + car.Rotation);
             // Console.WriteLine("Scale Inserted: " + car.Scale);
-            // Console.WriteLine("Color Inserted: " + car.Color);
+            // Console.WriteLine("Color Inserted: " + car.Color);                                 
             
             Matrix rotationMatrix = Matrix.CreateRotationY(car.Rotation);
             InsertCube(car.Position, rotationMatrix, car.Scale, car.Color);
@@ -108,6 +108,8 @@ public class CubeMeshBatcher
         {
             pass.Apply();
 
+            //graphicsDevice.DrawInstancedPrimitives();
+            
             graphicsDevice.DrawIndexedPrimitives(
                 PrimitiveType.TriangleList,
                 0,

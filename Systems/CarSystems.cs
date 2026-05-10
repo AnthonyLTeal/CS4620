@@ -19,6 +19,7 @@ public class CarSystems
         Car[] cars = ComponentManager.GetComponents<Car>();
         int carCount = ComponentManager.GetCount<Car>();
         DestinationBlob destinationBlob = ComponentManager.GetGlobalComponent<DestinationBlob>();
+        SimulationSuper simSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
         
         var entitiesToRemove = new List<int>();
         //Dictionary<int, double> carDestinationTimes = new Dictionary<int, double>();
@@ -82,7 +83,7 @@ public class CarSystems
 
             // try
             // {
-            MoveCar(ref car, entity, virtualDt, destinationBlob);
+            MoveCar(ref car, entity, virtualDt, destinationBlob, simSuper);
             // }
             // catch (Exception e)
             // {
@@ -548,14 +549,14 @@ public class CarSystems
 
 
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
-    private static void MoveCar(ref Car car, int entity, float virtualDt, DestinationBlob destinationBlob)
+    private static void MoveCar(ref Car car, int entity, float virtualDt, DestinationBlob destinationBlob, SimulationSuper simSuper)
     {
         //Car car = ComponentManager.GetComponent<Car>(entity);
         RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
 
         car.WaitTimer += virtualDt;
-
         car.TimeOnSegment += virtualDt;
+        car.TimeToDestination += virtualDt;
 
         var remaining = 2 * virtualDt;
         while (remaining > 0.000001f)
@@ -593,7 +594,9 @@ public class CarSystems
                 car.Position += direction * remaining;
                 car.Rotation = (float)Math.Atan2(direction.X, direction.Z);;
                 car.WaitTimer = 0;
-
+                
+                SimulationSystems.IncrementDistances(car.IsReroute, remaining, simSuper);
+                
                 if (isOverridden && car.OnConnector != -1)
                 {
                     var previousConnector = roadMesh.PathSegmentConnectors[car.OnConnector];
@@ -630,7 +633,9 @@ public class CarSystems
                 
                 //Destination recycledDest = car.Destinations.Dequeue();
                 //car.Destinations.Enqueue(recycledDest);
-                SimulationSystems.IncrementDestinations(car.IsReroute);
+                SimulationSystems.IncrementDestinations(car.IsReroute, car.TimeToDestination, simSuper);
+                car.TimeToDestination = 0;
+                
                 if (car.Destinations.Count <= 0)
                 {
                     connectedSegment.EntitiesOnSegment.Remove(entity);
@@ -707,7 +712,7 @@ public class CarSystems
 
                 //there might be some unknown bugs with this, so if I go this route, I should be willing to think in a different direction
                 if (car.IsReroute) 
-                    car.ReroutePath = RerouteSystem.Reroute(2, lastConnectorID, destination);
+                    car.ReroutePath = RerouteSystem.Reroute(3, lastConnectorID, destination);
 
                 // if (car.ReroutePath is not null)
                 if (car.ReroutePath.IsRerouting)
@@ -1057,13 +1062,17 @@ public class CarSystems
         // Console.WriteLine("CarPath Last Connector Id: " + car.CarPath.LastConnectorID);
         // Console.WriteLine("CarPath Segment Size: " + car.CarPath.SegmentSize);
 
-        SimulationSuper simulationSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
-
         if (behavior == CarBehavior.Rerouting)
         {
             car.Color = Color.HotPink;
             car.IsReroute = true;
         }
+        
+        SimulationSuper simulationSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
+        if (car.IsReroute)
+            simulationSuper.CurrentSimTracking.TotalRerouteCars += 1;
+        else
+            simulationSuper.CurrentSimTracking.TotalBasicCars += 1;
 
         car.Position = GetInitialPosition(car);
 

@@ -145,7 +145,10 @@ public class RerouteSystem
                 if (((int)segment.EndConnector == origin || (int)segment.FrontConnector == origin) &&
                     ((int)segment.EndConnector == destination || (int)segment.FrontConnector == destination))
                 {
-                    routeCost += segment.CongestionCost;
+                    if (segment.CongestionCost > segment.EstimatedTravelTime * 1.4)
+                    {
+                        routeCost += segment.CongestionCost * 1.4f;
+                    }
                 }
             }
             destination = originConnector.DPath.Prevs[destination];
