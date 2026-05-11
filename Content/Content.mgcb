@@ -18,3 +18,9 @@
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:Shaders/InstancedPrimitive.fx
+
+#begin Shaders/InstancedPrimitive.xnb
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/InstancedPrimitive.xnb

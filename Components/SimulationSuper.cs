@@ -7,12 +7,12 @@ public class SimulationSuper
     public bool Finished = true;
     public int SimSpeed = 1;
     public float GenBehaviorDistribution = 100;
-    public int GenCarCount = 7000;
+    public int GenCarCount = 2000;
     public int GenSeed = 1;
     public float SimTimer = 0;
     public float SimRuntime = 0;
     public int SimCount = 0;
-    public float MaxSimTime = 60 * 20; //in seconds
+    public float MaxSimTime = 60 * 10; //in seconds
     public float CongestionTimer = 0; //any code using this timer for a check needs to happen after simsuper is updated
     public readonly float CONGESTION_TIMER_MAX = 1;
     public int DistributionChangeValue = 10;

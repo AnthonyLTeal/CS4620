@@ -515,7 +515,7 @@ public class CarSystems
                 {
                     car.InitialPathIndex = car.CarPath.CurrentIndex;
                     car.CarPath = BuildCarPath(entity, ref car, previousDestination, destination);
-                    instancedData.Position = GetInitialPosition(car);
+                    //instancedData.Position = GetInitialPosition(car);
                 }
                 
                 return;
@@ -565,13 +565,13 @@ public class CarSystems
                 connectedSegment.EntitiesOnSegment.Remove(entity);
 
                 //TODO bug here, I think the lastConnectorID might be wrong for reroute paths, we have to actually check it against the current segments 2 connectors to see which one we just left or something I don't know
-                int lastConnectorID = car.CarPath.NextConnectorID;
+                //int lastConnectorID = car.CarPath.NextConnectorID;
 
                 //this might work
-                // int lastConnectorID = (int)connectedSegment.EndConnector;
-                // if (car.CarPath.Direction == -1)
-                //     lastConnectorID = (int)connectedSegment.FrontConnector;
-                //
+                int lastConnectorID = (int)connectedSegment.EndConnector;
+                if (car.CarPath.Direction == -1)
+                    lastConnectorID = (int)connectedSegment.FrontConnector;
+                
                 var nextConnectorId = GetNextConnectorID(destination, lastConnectorID);
                 //Console.WriteLine("nextConnectorID before Reroute: " + nextConnectorId);
 

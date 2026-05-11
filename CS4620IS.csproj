@@ -23,6 +23,9 @@
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <Compile Remove="ECS\EntityManager.cs" />
+        <None Update="Content\Shaders\InstancedPrimitive.xnb">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico" />
@@ -30,7 +33,6 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="MessagePack" Version="3.1.4" />
-        <PackageReference Include="MonoGame.Content.Builder.Task.Compute" Version="3.8.3" />
         <PackageReference Include="MonoGame.Framework.Compute.DesktopGL" Version="3.8.3" />
         <PackageReference Include="Nopipeline.Task" Version="2.2.0" />
         <PackageReference Include="ScottPlot" Version="5.1.58" />

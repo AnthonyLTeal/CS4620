@@ -2113,6 +2113,8 @@ public class RoadMesh
 
     public void Update(GraphicsDevice graphicsDevice, Terrain terrain, ArcBallCamera camera, KeyboardState keyState)
     {
+        _ribbonMesh.Update();
+        
         if (!CreateEnabled)
             return;
         
@@ -2121,7 +2123,13 @@ public class RoadMesh
             //(Cursor)EntityManager.EntityComponents[0][cursorID];
 
         bool connected = false;
+        
+        // if (cursor.Location == null && state != State.One)
+        //     Reset();
 
+        if (cursor.Location == null)
+            return;
+        
         StateOneUpdate(cursor);
 
         if (state == State.Two && BuildType == BuildType.Straight)
@@ -2205,8 +2213,6 @@ public class RoadMesh
             spacePressed = false;
         }
         
-        _ribbonMesh.Update();
-
         // if (previousBrushLocation == cursor.Location && !p3Clamped)
         // {
         //     return;

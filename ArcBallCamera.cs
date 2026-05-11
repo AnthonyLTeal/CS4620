@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework.Input;
 public class ArcBallCamera
 {
 
-    private const float DEFAULTY_PITCH = -2f;
+    private const float DEFAULT_PITCH = -1;
     public ArcBallCamera(float aspectRation, Vector3 lookAt)
         : this(aspectRation, MathHelper.PiOver4, lookAt, Vector3.Up, 0.1f, float.MaxValue) { }
 
@@ -21,7 +21,7 @@ public class ArcBallCamera
         this.lookAt = lookAt;
         this.nearPlane = nearPlane;
         this.farPlane = farPlane;
-        pitch = DEFAULTY_PITCH;
+        pitch = DEFAULT_PITCH;
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ public class ArcBallCamera
     private bool projectionMatrixDirty = true;
 
     public float MinPitch = -MathHelper.PiOver2 + 0.3f;
-    public float MaxPitch = MathHelper.PiOver2 - 0.3f;
+    public float MaxPitch = -0.1f;
     private float pitch;
     public float Pitch
     {

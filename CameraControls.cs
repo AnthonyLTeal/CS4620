@@ -78,7 +78,7 @@ namespace PlanetaryExpansion
                 if (rotating)
                 {
                     camera.Yaw = yawAnchor - (mouse.Position.X - mouseAnchor.X) * .01f;
-                    camera.Pitch = pitchAnchor - (mouse.Position.Y - mouseAnchor.Y) * .01f;
+                    camera.Pitch = MathF.Min((pitchAnchor - (mouse.Position.Y - mouseAnchor.Y) * .01f), camera.MaxPitch);
                 }
             }
 
@@ -105,24 +105,24 @@ namespace PlanetaryExpansion
             //
             if (keyState.IsKeyDown(Keys.D))
             {
-                camera.MoveCameraRight(0.01f * (float)gameTime.ElapsedGameTime.TotalMilliseconds);
+                camera.MoveCameraRight(0.05f * (float)gameTime.ElapsedGameTime.TotalMilliseconds);
                 //camera.Zoom -= (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.2f;
             }
             
             if (keyState.IsKeyDown(Keys.A))
             {
-                camera.MoveCameraRight(-0.01f * (float)gameTime.ElapsedGameTime.TotalMilliseconds);
+                camera.MoveCameraRight(-0.05f * (float)gameTime.ElapsedGameTime.TotalMilliseconds);
                 //camera.Zoom += (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.2f;
             }
             
             if (keyState.IsKeyDown(Keys.W))
             {
-                camera.MoveCameraForward(0.01f * (float)gameTime.ElapsedGameTime.TotalMilliseconds);
+                camera.MoveCameraForward(0.05f * (float)gameTime.ElapsedGameTime.TotalMilliseconds);
             }
             
             if (keyState.IsKeyDown(Keys.S))
             {
-                camera.MoveCameraForward(-0.01f * (float)gameTime.ElapsedGameTime.TotalMilliseconds);
+                camera.MoveCameraForward(-0.05f * (float)gameTime.ElapsedGameTime.TotalMilliseconds);
             }
         }
     }

@@ -26,7 +26,6 @@ class GumInterface
         GumService.Default.Root.Children.Clear();
         CreateStartPanel();
         SimulationSystems.Clear();
-        SimulationSystems.SetSpeed(2);
     }
 
     private void CreateStartPanel()

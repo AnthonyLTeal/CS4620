@@ -136,6 +136,27 @@ public class StoplightSystems
         //
         // Console.WriteLine("Car previous Segment: " + car.PreviousSegment);
         //
+
+        // if (segmentOne != -1)
+        // {
+        //     int seg1Dir = 1;
+        //     PathSegment seg1 = ComponentManager.GetComponent<PathSegment>(segmentOne);
+        //     if (seg1.FrontConnector == connector.ID)
+        //         seg1Dir = -1;
+        //     if (car.PreviousSegment == segmentOne && car.CarPath.Direction != seg1Dir)
+        //         return false;
+        // }
+        //
+        // if (segmentTwo != -1)
+        // {
+        //     PathSegment seg2 = ComponentManager.GetComponent<PathSegment>(segmentTwo);
+        //     int seg2Dir = 1;
+        //     if (seg2.FrontConnector == connector.ID)
+        //         seg2Dir = -1;
+        //     if (car.PreviousSegment == segmentTwo && car.CarPath.Direction != seg2Dir)
+        //         return false;
+        // }
+        
         if (segmentOne == car.PreviousSegment || segmentTwo == car.PreviousSegment) 
         {
             if (connector.LightTime - connector.LightTimer > connector.YellowTimer)

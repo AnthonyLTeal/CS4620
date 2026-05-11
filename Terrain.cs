@@ -7,7 +7,7 @@ namespace CS4620IS;
 
 public class Terrain
 {
-    public float Scale = 200;
+    public float Scale = 500;
     public Vector3 WorldCenter = new Vector3(0, 0, 0);
     public VertexPositionNormalTexture[] Vertices;
     public short[] Indices;
