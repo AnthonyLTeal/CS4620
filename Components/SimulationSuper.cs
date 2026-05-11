@@ -7,7 +7,7 @@ public class SimulationSuper
     public bool Finished = true;
     public int SimSpeed = 1;
     public float GenBehaviorDistribution = 100;
-    public int GenCarCount = 2000;
+    public int GenCarCount = 1000;
     public int GenSeed = 1;
     public float SimTimer = 0;
     public float SimRuntime = 0;

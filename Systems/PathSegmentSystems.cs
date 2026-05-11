@@ -181,7 +181,7 @@ public class PathSegmentSystems
         segment.TotalDistance = distance;
         
         SimulationSuper simulationSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
-        float speed = 2 * simulationSuper.SimSpeed;
+        float speed = 2 * Math.Max(1, simulationSuper.SimSpeed);
         float estimatedTravelTime =  distance / speed;
 
         return estimatedTravelTime;

@@ -10,11 +10,12 @@ public class SimulationSystems
 {
     public static void SetSpeed(int speed)
     {
-        ComponentManager.GetGlobalComponent<SimulationSuper>().SimSpeed = speed;
+        ComponentManager.GetGlobalComponent<SimulationSuper>().SimSpeed = Math.Max(0, speed);
     }
 
     public static void Clear()
     {
+        EndSimulationAndReport();
         DestroyCars();
         
         int[] pathSegmentOwners = ComponentManager.GetOwners<PathSegment>();
@@ -29,6 +30,35 @@ public class SimulationSystems
         roadMesh.DestroyAll();
         
         ComponentManager.AddComponentToGlobalEntity(new SimulationSuper());
+    }
+
+    public static void EndSimulationAndReport()
+    {
+        SimulationSuper simSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
+        if (simSuper == null)
+            return;
+
+        if (!simSuper.Finished)
+        {
+            bool hasCurrentRunData =
+                simSuper.CurrentSimTracking.BasicDestinations > 0 ||
+                simSuper.CurrentSimTracking.RerouteDestinations > 0 ||
+                simSuper.CurrentSimTracking.TotalBasicCars > 0 ||
+                simSuper.CurrentSimTracking.TotalRerouteCars > 0 ||
+                simSuper.CurrentSimTracking.AverageCongestionCollection.Count > 0;
+
+            if (hasCurrentRunData)
+            {
+                CaptureMetrics();
+            }
+        }
+
+        simSuper.Finished = true;
+
+        if (simSuper.BasicDestinationsReached.Count > 0)
+        {
+            PrintAllSimulationRuns();
+        }
     }
 
     public static void DestroyCars()
@@ -98,26 +128,31 @@ public class SimulationSystems
         simSuper.BasicDistancesTravelled.Add(currentSimTracking.BasicDistanceTravelled);
 
         float totalRerouteDestinationTime = 0;
-        foreach (var VARIABLE in currentSimTracking.RerouteTimesToDestinations)
+        foreach (float destinationTime in currentSimTracking.RerouteTimesToDestinations)
         {
-            totalRerouteDestinationTime += VARIABLE;
+            totalRerouteDestinationTime += destinationTime;
         }
-        simSuper.RerouteAverageTimesToDestinations.Add(totalRerouteDestinationTime/currentSimTracking.RerouteDestinations);
+        float rerouteAverageTime = currentSimTracking.RerouteDestinations > 0
+            ? totalRerouteDestinationTime / currentSimTracking.RerouteDestinations
+            : 0;
+        simSuper.RerouteAverageTimesToDestinations.Add(rerouteAverageTime);
         
         float totalBasicDestinationTime = 0;
-        foreach (var VARIABLE in currentSimTracking.BasicTimesToDestinations)
+        foreach (float destinationTime in currentSimTracking.BasicTimesToDestinations)
         {
-            totalBasicDestinationTime += VARIABLE;
+            totalBasicDestinationTime += destinationTime;
         }
-        simSuper.BasicAverageTimesToDestinations.Add(totalBasicDestinationTime/currentSimTracking.BasicDestinations);
+        float basicAverageTime = currentSimTracking.BasicDestinations > 0
+            ? totalBasicDestinationTime / currentSimTracking.BasicDestinations
+            : 0;
+        simSuper.BasicAverageTimesToDestinations.Add(basicAverageTime);
     }
 
     //used AI for this boilerplate, don't really care to write this all out it's silly
     public static void PrintAllSimulationRuns()
     {
         SimulationSuper simulationSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
-        // Assuming all lists are the same length, we use the count of one as our limit
-        int runCount = simulationSuper.SimCount;
+        int runCount = simulationSuper.BasicDestinationsReached.Count;
 
         for (int i = 0; i < runCount; i++)
         {
@@ -167,8 +202,14 @@ public class SimulationSystems
         Console.WriteLine($"{label,-30} | {basicStr,-10} | {rerouteStr,-10}");
     }
 
-    public static void StartBatch()
+    public static bool StartBatch()
     {
+            if (ComponentManager.GetCount<PathSegment>() < 4)
+            {
+                Console.WriteLine("Need at least 4 path segments to run simulation.");
+                return false;
+            }
+
             SimulationSuper simSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
 
             // 1. Reset the "Global" state
@@ -194,6 +235,7 @@ public class SimulationSystems
             CarSystems.GenerateCars(simSuper.GenCarCount, simSuper.GenSeed, simSuper.GenBehaviorDistribution * 0.01f);
 
             Console.WriteLine("Batch Simulation Started...");
+            return true;
     }
     
     //not doing this one defensively for now, just only use 0 or 100, and the startingDistribution should be
@@ -225,7 +267,12 @@ public class SimulationSystems
         if (simSuper.GenBehaviorDistribution < 0.001f)
         {
             simSuper.Finished = true;
+            simSuper.SimSpeed = 0;
+            simSuper.SimTimer = 0;
+            simSuper.CongestionTimer = 0;
             PrintAllSimulationRuns();
+            DestroyCars();
+            Console.WriteLine("\nBatch Simulation Finished.");
             return;
         }
         
@@ -253,6 +300,9 @@ public class SimulationSystems
             totalCongestion += segment.CongestionCost;
         }
         
+        if (pathSegmentCount == 0)
+            return;
+
         simSuper.CurrentSimTracking.AverageCongestionCollection.Add((totalCongestion / pathSegmentCount, simSuper.SimTimer));
     }
 
