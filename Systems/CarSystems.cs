@@ -453,11 +453,14 @@ public class CarSystems
 
             if (distanceTo > remaining)
             {
-                if (car.WaitOnTraffic)
+                //if (car.WaitOnTraffic)
+                if (CarCollisionSystems.WaitOnTraffic(ref car, ref instancedData, entity, remaining, direction, virtualDt, 
+                    destination, cars, instancedDatas, roadMesh, carComponentId, connectedSegment, 
+                    segments, segmentComponentId))
                     return;
 
                 instancedData.Position += direction * remaining;
-                instancedData.Rotation = (float)Math.Atan2(direction.X, direction.Z);;
+                instancedData.Rotation = -(float)Math.Atan2(direction.X, direction.Z);;
                 car.WaitTimer = 0;
                 
                 SimulationSystems.IncrementDistances(car.IsReroute, remaining, simSuper);
@@ -522,7 +525,13 @@ public class CarSystems
             // Console.WriteLine("Current Segment: " + car.ConnectedSegmentId);
             // Console.WriteLine("Current Point Index: " + car.CarPath.CurrentIndex);
             //if (WaitOnTraffic(entity, remaining, direction, virtualDt, destination))
-            if (car.WaitOnTraffic)
+            
+            //if (car.WaitOnTraffic)
+            //    return;
+            
+            if (CarCollisionSystems.WaitOnTraffic(ref car, ref instancedData, entity, remaining, direction, virtualDt, 
+                    destination, cars, instancedDatas, roadMesh, carComponentId, connectedSegment, 
+                    segments, segmentComponentId))
                 return;
 
             if (isOverridden) //if overidden, car is traveling through an intersection/connector, but not necessarily an intersection
@@ -634,7 +643,7 @@ public class CarSystems
         return Vector3.Cross(Vector3.Up, direction);
     }
 
-    private static int GetNextSegment(Destination destination, int nextConnectorID, int lastConnectorID)
+    public static int GetNextSegment(Destination destination, int nextConnectorID, int lastConnectorID)
     {
         PathSegmentConnector connector =
             ComponentManager.GetGlobalComponent<RoadMesh>().PathSegmentConnectors[lastConnectorID];

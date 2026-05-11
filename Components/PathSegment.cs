@@ -50,6 +50,7 @@ public class PathSegment
     public List<int> EntitiesOnSegment = new List<int>();
     public List<int> NegativeCars = new List<int>();
     public List<int> PositiveCars = new List<int>();
+    public List<int> OnConnectorcars = new List<int>();
     public int SlicedParent;
     public int RibbonLength;
     public int RibbonOffset;
@@ -147,6 +148,7 @@ public class PathSegmentConnector
     public double LightTimer = 0;
     public double LightTime = 4000;
     public double YellowTimer = 1000;
+    public List<int> DenseCarsOnConnector = new List<int>();
     //public List<int> CarEntities = new List<int>(20);
 
     public Vector3 Position

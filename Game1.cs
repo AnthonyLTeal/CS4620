@@ -143,6 +143,7 @@ public class Game1 : Game
         {
             _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
         }
+        CarCollisionSystems.Update(virtualDt);
         CarSystems.BasicBehavior(virtualDt);
         InstancedCarDraw.Update();
         //new stuff for stoplights
