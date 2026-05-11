@@ -14,7 +14,7 @@ public class InstancedCarDraw
     private static VertexBuffer _unitCubeBuffer;
     private static DynamicVertexBuffer _instanceBuffer;
     private static int _activeCarCount;
-    private static int _maximum = 10000;
+    private static int _maximum = 20000;
 
     public static void Load(GraphicsDevice graphicsDevice, ContentManager content)
     {
