@@ -15,7 +15,6 @@ using RenderingLibrary.Graphics;
 
 namespace CS4620IS;
 
-
 class GumInterface
 {
     public void InitializeUI()
