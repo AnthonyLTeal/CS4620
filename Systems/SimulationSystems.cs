@@ -58,6 +58,7 @@ public class SimulationSystems
         if (simSuper.BasicDestinationsReached.Count > 0)
         {
             PrintAllSimulationRuns();
+            GenerateChartsAndOpenWindows(simSuper);
         }
     }
 
@@ -126,6 +127,7 @@ public class SimulationSystems
         simSuper.TotalBasicCars.Add(currentSimTracking.TotalBasicCars);
         simSuper.RerouteDistancesTravelled.Add(currentSimTracking.RerouteDistanceTravelled);
         simSuper.BasicDistancesTravelled.Add(currentSimTracking.BasicDistanceTravelled);
+        simSuper.DistributionRatiosBasic.Add(simSuper.GenBehaviorDistribution);
 
         float totalRerouteDestinationTime = 0;
         foreach (float destinationTime in currentSimTracking.RerouteTimesToDestinations)
@@ -211,13 +213,15 @@ public class SimulationSystems
             }
 
             SimulationSuper simSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
+            simSuper.StartBasicDistributionPercent = (int)Math.Round(simSuper.GenBehaviorDistribution);
 
             // 1. Reset the "Global" state
             simSuper.Finished = false;
             simSuper.SimCount = 1;
             simSuper.SimTimer = 0;
             simSuper.SimRuntime = 0;
-            simSuper.GenBehaviorDistribution = 100; // Starting value
+            simSuper.GenBehaviorDistribution = simSuper.StartBasicDistributionPercent;
+            simSuper.ChartsGeneratedForCurrentBatch = false;
             
             simSuper.BasicDestinationsReached.Clear();
             simSuper.RerouteDestinationsReached.Clear();
@@ -227,6 +231,7 @@ public class SimulationSystems
             simSuper.BasicDistancesTravelled.Clear();
             simSuper.RerouteAverageTimesToDestinations.Clear();
             simSuper.BasicAverageTimesToDestinations.Clear();
+            simSuper.DistributionRatiosBasic.Clear();
             simSuper.AverageCongestionCollectionLines.Clear();
 
             simSuper.CurrentSimTracking = new CurrentSimTracking();
@@ -271,6 +276,7 @@ public class SimulationSystems
             simSuper.SimTimer = 0;
             simSuper.CongestionTimer = 0;
             PrintAllSimulationRuns();
+            GenerateChartsAndOpenWindows(simSuper);
             DestroyCars();
             Console.WriteLine("\nBatch Simulation Finished.");
             return;
@@ -326,5 +332,19 @@ public class SimulationSystems
             simSuper.CurrentSimTracking.BasicTimesToDestinations.Add(timeToDestination);
             simSuper.CurrentSimTracking.BasicDestinations += 1;
         }
+    }
+
+    private static void GenerateChartsAndOpenWindows(SimulationSuper simSuper)
+    {
+        if (simSuper.ChartsGeneratedForCurrentBatch)
+            return;
+
+        List<ChartImageInfo> charts = SimulationChartSystem.GenerateCharts(simSuper);
+        simSuper.ChartsGeneratedForCurrentBatch = true;
+        if (charts.Count == 0)
+            return;
+
+        GumInterface.Instance?.ShowSimulationCharts(charts);
+        Console.WriteLine($"Saved {charts.Count} chart images to {SimulationChartSystem.GetOutputDirectory()}");
     }
 }

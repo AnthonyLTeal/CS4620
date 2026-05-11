@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using CS4620IS.Components;
 using PlanetaryExpansion;
-using RenderingLibrary.Graphics;
+using Microsoft.Xna.Framework.Graphics;
 //using RenderingLibrary.Graphics;
 //using System.IO.Enumeration;
 
@@ -21,6 +21,13 @@ namespace CS4620IS;
 
 class GumInterface
 {
+    private const int ChartWindowWidth = 780;   // <= 65% of 1280
+    private const int ChartWindowHeight = 440;  // comfortable on 720p
+    private const int ChartImageMaxWidth = 720;
+    private const int ChartImageMaxHeight = 330;
+
+    public static GumInterface Instance { get; private set; }
+
     private Window _saveWindow;
     private TextBox _saveInputBox;
     private ListBox _saveListBox;
@@ -35,9 +42,11 @@ class GumInterface
     private TextBox _seedTextbox;
     private TextBox _maxSimTimeTextbox;
     private TextBox _distributionStepTextbox;
+    private readonly List<Window> _chartWindows = new List<Window>();
 
     public void InitializeUI()
     {
+        Instance = this;
         GumService.Default.Root.Children.Clear();
         _saveWindow = null;
         _saveInputBox = null;
@@ -51,8 +60,89 @@ class GumInterface
         _seedTextbox = null;
         _maxSimTimeTextbox = null;
         _distributionStepTextbox = null;
+        _chartWindows.Clear();
         CreateStartPanel();
         SimulationSystems.Clear();
+    }
+
+    public void ShowSimulationCharts(List<ChartImageInfo> charts)
+    {
+        if (charts == null || charts.Count == 0)
+            return;
+
+        GraphicsDevice graphicsDevice = ComponentManager.GetGlobalComponent<GraphicsDevice>();
+        if (graphicsDevice == null)
+            return;
+
+        foreach (Window oldWindow in _chartWindows)
+        {
+            oldWindow.RemoveFromRoot();
+        }
+        _chartWindows.Clear();
+
+        for (int i = 0; i < charts.Count; i++)
+        {
+            ChartImageInfo chart = charts[i];
+            if (!File.Exists(chart.ImagePath))
+                continue;
+
+            Window chartWindow = CreateWindow();
+            chartWindow.Width = ChartWindowWidth;
+            chartWindow.Height = ChartWindowHeight;
+            chartWindow.X = -220 + (i % 2) * 120;
+            chartWindow.Y = -130 + (i / 2) * 30;
+            chartWindow.Visual.ClipsChildren = true;
+
+            StackPanel panel = new StackPanel();
+            panel.Spacing = 6;
+            panel.Anchor(Anchor.TopLeft);
+            panel.X = 16;
+            panel.Y = 12;
+            chartWindow.AddChild(panel);
+
+            Label title = new Label();
+            title.Text = chart.Title;
+            panel.AddChild(title);
+
+            Texture2D chartTexture = ImageLoader.LoadImage(graphicsDevice, chart.ImagePath);
+            int imageWidth = chartTexture.Width;
+            int imageHeight = chartTexture.Height;
+            float scale = 1;
+            if (imageWidth > 0 && imageHeight > 0)
+            {
+                float xScale = (float)ChartImageMaxWidth / imageWidth;
+                float yScale = (float)ChartImageMaxHeight / imageHeight;
+                scale = Math.Min(1f, Math.Min(xScale, yScale));
+            }
+
+            int finalWidth = Math.Max(1, (int)(imageWidth * scale));
+            int finalHeight = Math.Max(1, (int)(imageHeight * scale));
+
+            SpriteRuntime chartSprite = new SpriteRuntime();
+            chartSprite.Texture = chartTexture;
+            chartSprite.WidthUnits = Gum.DataTypes.DimensionUnitType.Absolute;
+            chartSprite.HeightUnits = Gum.DataTypes.DimensionUnitType.Absolute;
+            chartSprite.TextureWidth = imageWidth;
+            chartSprite.TextureHeight = imageHeight;
+            chartSprite.Width = finalWidth;
+            chartSprite.Height = finalHeight;
+            chartSprite.X = 16;
+            chartSprite.Y = 48;
+            chartWindow.Visual.AddChild(chartSprite);
+
+            Button closeButton = new Button();
+            closeButton.Text = "Close";
+            closeButton.X = 16;
+            closeButton.Y = finalHeight + 58;
+            panel.AddChild(closeButton);
+            closeButton.Click += (sender, args) =>
+            {
+                chartWindow.RemoveFromRoot();
+            };
+
+            chartWindow.AddToRoot();
+            _chartWindows.Add(chartWindow);
+        }
     }
 
     private void CreateStartPanel()

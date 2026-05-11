@@ -12,10 +12,12 @@ public class SimulationSuper
     public float SimTimer = 0;
     public float SimRuntime = 0;
     public int SimCount = 0;
+    public int StartBasicDistributionPercent = 100;
     public float MaxSimTime = 60 * 10; //in seconds
     public float CongestionTimer = 0; //any code using this timer for a check needs to happen after simsuper is updated
     public readonly float CONGESTION_TIMER_MAX = 1;
     public int DistributionChangeValue = 10;
+    public bool ChartsGeneratedForCurrentBatch = false;
 
     public List<float> EquilibriumValues = new List<float>();
 
@@ -29,6 +31,7 @@ public class SimulationSuper
     public List<float> BasicDistancesTravelled = new List<float>();
     public List<float> RerouteAverageTimesToDestinations = new List<float>();
     public List<float> BasicAverageTimesToDestinations = new List<float>();
+    public List<float> DistributionRatiosBasic = new List<float>();
     public List<List<(float, float)>> AverageCongestionCollectionLines = new List<List<(float, float)>>(); //first is congestion value, second is time for the line chart
 }
 

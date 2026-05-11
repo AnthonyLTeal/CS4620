@@ -11,9 +11,6 @@ using PlanetaryExpansion;
 using Gum.Forms;
 using Gum.Forms.Controls;
 using MonoGameGum;
-//Added to create and view graphs
-using System.IO;
-using ScottPlot;
 
 namespace CS4620IS;
 
@@ -25,6 +22,7 @@ public class Game1 : Game
     private Terrain _terrain;
     private RoadMesh _roadMesh;
     private CameraControls _cameraControls;
+    private GumInterface _interface;
 
     public Game1()
     {
@@ -181,27 +179,7 @@ public class Game1 : Game
         GumService.Default.Initialize(this, DefaultVisualsVersion.V3);
         GumService.Default.ContentLoader.XnaContentManager = Content; 
         FrameworkElement.KeyboardsForUiControl.Add(GumService.Default.Keyboard);
-        GumInterface _interface = new GumInterface();
+        _interface = new GumInterface();
         _interface.InitializeUI(); 
     }
-
-   public void createGraphs()
-    {
-    //graph stuff testing
-    /*
-    ScottPlot.Plot signalPlot = new();
-    signalPlot.Add.Signal(CarSystems.finalDestinationTimes);
-    signalPlot.Title("Times Took For Cars To Reach Destination");
-    string root = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-    string graphsDir = Path.Combine(root, "Graphs");
-    Directory.CreateDirectory(graphsDir);
-    string path = Path.Combine(graphsDir, "firstrun.png");
-    signalPlot.XLabel("Car");
-    signalPlot.YLabel("Destination Time (In Seconds");
-    signalPlot.SavePng(path, 400, 300);
-    CarSystems.finalDestinationTimes.Clear();
-    */
-    }
-    
-   
 }
