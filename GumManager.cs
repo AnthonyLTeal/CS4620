@@ -21,9 +21,36 @@ namespace CS4620IS;
 
 class GumInterface
 {
+    private Window _saveWindow;
+    private TextBox _saveInputBox;
+    private ListBox _saveListBox;
+
+    private Window _loadWindow;
+    private ListBox _loadListBox;
+
+    private Window _runSimulationWindow;
+    private Label _runSimulationStatusLabel;
+    private TextBox _carCountTextbox;
+    private TextBox _percentTextbox;
+    private TextBox _seedTextbox;
+    private TextBox _maxSimTimeTextbox;
+    private TextBox _distributionStepTextbox;
+
     public void InitializeUI()
     {
         GumService.Default.Root.Children.Clear();
+        _saveWindow = null;
+        _saveInputBox = null;
+        _saveListBox = null;
+        _loadWindow = null;
+        _loadListBox = null;
+        _runSimulationWindow = null;
+        _runSimulationStatusLabel = null;
+        _carCountTextbox = null;
+        _percentTextbox = null;
+        _seedTextbox = null;
+        _maxSimTimeTextbox = null;
+        _distributionStepTextbox = null;
         CreateStartPanel();
         SimulationSystems.Clear();
     }
@@ -44,81 +71,7 @@ class GumInterface
 
         SaveButton.Click += (sender, args) =>
         {
-            Console.WriteLine("Clicked on the Save button!");
-            Window SaveWindow = CreateWindow();
-            SaveWindow.Height = 400;
-            SaveWindow.AddToRoot();
-            // Add a Panel to the window 
-            StackPanel SavePanel = new StackPanel();
-            SavePanel.Spacing = 3;
-            //SavePanel.Dock(Dock.Fill);
-            SavePanel.Anchor(Anchor.Center);
-            SaveWindow.AddChild(SavePanel);
-
-            //Add Label to Panel
-            Label SaveLabel = new Label();
-            SaveLabel.Text = "File Name: ";
-            //SaveLabel.Anchor(Anchor.Center);
-            //SaveLabel.Anchor(Anchor.Top);
-            SavePanel.AddChild(SaveLabel);
-
-            // Add Textbox to the panel
-            TextBox inputBox = new TextBox();
-            inputBox.Text = "";
-            //inputBox.Anchor(Anchor.Center);
-            //inputBox.Anchor(Anchor.Top);
-            SavePanel.AddChild(inputBox);
-
-            Label FileLabel = new Label();
-            FileLabel.Text = "Select file to save";
-            SavePanel.AddChild(FileLabel);
-
-            //Create a ListBox with all of the file information
-            ListBox SaveBox = new ListBox();
-            SavePanel.AddChild(SaveBox);
-
-            // Add Button to Save Road Data:
-            Button SButton = new Button();
-            SButton.Text = "Save File";
-            //SButton.Anchor(Anchor.Center);
-            SavePanel.AddChild(SButton);
-
-            if (!Directory.Exists("saves"))
-            {
-                Directory.CreateDirectory("saves");
-            }
-
-            foreach (var fileName in Directory.EnumerateFiles("saves"))
-            {
-                SaveBox.Items.Add(Path.GetFileNameWithoutExtension(fileName));
-            }
-
-            SaveBox.ItemClicked += (sender, args) =>
-            {
-                inputBox.Text = SaveBox.SelectedObject.ToString();
-            };
-
-            SButton.Click += (sender, args) =>
-            {
-                if (inputBox.Text == "")
-                    return;
-
-                string fileName = inputBox.Text;
-                SaveSystem.Save("saves/" + fileName + ".ism");
-                SaveWindow.RemoveFromRoot();
-            };
-
-            // Add Cancel Button to the Panel:
-            Button CloseWindowButton = new Button();
-            //CloseWindowButton.Anchor(Anchor.Bottom);
-            //CloseWindowButton.Anchor(Anchor.Center);
-            CloseWindowButton.Text = "Cancel";
-            SavePanel.AddChild(CloseWindowButton);
-
-            CloseWindowButton.Click += (sender, args) =>
-            {
-                SaveWindow.RemoveFromRoot();
-            };
+            OpenSaveWindow();
         };
 
         //Add button 2
@@ -128,54 +81,7 @@ class GumInterface
 
         LoadButton.Click += (sender, args) =>
         {
-            Console.WriteLine("Clicked on the load button!");
-            Window LoadWindow = CreateWindow();
-            LoadWindow.Height = 350;
-            LoadWindow.AddToRoot();
-
-
-            StackPanel LoadPanel = new StackPanel();
-            LoadPanel.Anchor(Anchor.Center);
-            LoadPanel.Spacing = 4;
-            LoadWindow.AddChild(LoadPanel);
-
-            Label LoadLabel = new Label();
-            LoadLabel.Text = "Select which road system to open";
-            LoadPanel.AddChild(LoadLabel);
-
-            if (!Directory.Exists("saves"))
-            {
-                Directory.CreateDirectory("saves");
-            }
-
-            //Creating a List Box to view files
-            ListBox LoadBox = new ListBox();
-            LoadPanel.AddChild(LoadBox);
-
-            foreach (var fileName in Directory.EnumerateFiles("saves"))
-            {
-                LoadBox.Items.Add(Path.GetFileNameWithoutExtension(fileName));
-            }
-
-            //Create a Button to load once file is selected from listBox:
-            Button LButton = new Button();
-            LButton.Text = "Load";
-            LoadPanel.AddChild(LButton);
-            LButton.Click += (sender, args) =>
-            {
-                // LoadSystem.Load(ListBox.SelectedStateName);
-                LoadSystem.Load("saves/" + LoadBox.SelectedObject + ".ism");
-                LoadWindow.RemoveFromRoot();
-            };
-
-            Button CancelButton = new Button();
-            CancelButton.Text = "Cancel";
-            LoadPanel.AddChild(CancelButton);
-
-            CancelButton.Click += (sender, args) =>
-            {
-                LoadWindow.RemoveFromRoot();
-            };
+            OpenLoadWindow();
         };
 
         //Add button 3 -> ExitButton
@@ -235,125 +141,6 @@ class GumInterface
             SimulationSystems.DestroyCars();
         };
 
-        //Add Graph Window Button:
-        Button GraphWindowButton = new Button();
-        GraphWindowButton.Text = "View Charts";
-        StartPanel.AddChild(GraphWindowButton);
-
-        GraphWindowButton.Click += (sender, args) =>
-        {
-            Window GraphWindow = CreateWindow();
-            GraphWindow.AddToRoot();
-
-            StackPanel ChartPanel = new StackPanel();
-            ChartPanel.Spacing = 20;
-            ChartPanel.Anchor(Anchor.Center);
-            GraphWindow.AddChild(ChartPanel);
-
-            Button Chart1Button = new Button();
-            Chart1Button.Text = "Chart 1";
-            ChartPanel.AddChild(Chart1Button);
-
-            Chart1Button.Click += (sender, args) =>
-            {
-                Window Chart1Window = CreateWindow();
-                Chart1Window.Width = 460;
-                Chart1Window.Height = 360;
-                Chart1Window.AddToRoot();
-                //Add the chart image to the window:
-                SpriteRuntime chartSprite = new SpriteRuntime();
-                // The Source file name, has to be a specific path on the user's machine at the moment.
-                chartSprite.SourceFileName = "C:\\Users\\inter\\OneDrive\\Desktop\\Spring 2026\\CS4620 Intelligent Systems\\New folder\\CS4620\\Graphs\\Graph_20260409_083621.png";
-                chartSprite.Dock(Dock.Fill);
-                // Creating Rectangle for the image to sit in:
-                RectangleRuntime chart1Rectangle = new RectangleRuntime();
-                chart1Rectangle.Width = 400;
-                chart1Rectangle.Height = 300;
-                chart1Rectangle.Anchor(Anchor.Center);
-                chart1Rectangle.AddChild(chartSprite);
-                Chart1Window.AddChild(chart1Rectangle);
-
-                Button SaveFormatButton = new Button();
-                SaveFormatButton.Text = "Save Graph";
-                SaveFormatButton.Anchor(Anchor.BottomRight);
-                Chart1Window.AddChild(SaveFormatButton);
-
-                SaveFormatButton.Click += (sender, args) =>
-                    {
-                        ItemsControl ControlBox = CreateFormatSelection();
-                        Chart1Window.AddChild(ControlBox);
-                        ControlBox.Anchor(Anchor.BottomRight);
-                    };
-                //Add Exit button to the graph window:
-                Button ExitGraphButton = new Button();
-                ExitGraphButton.Text = "Cancel";
-                ExitGraphButton.Anchor(Anchor.TopRight);
-                Chart1Window.AddChild(ExitGraphButton);
-                ExitGraphButton.Click += (sender, args) =>
-                    {
-                        Chart1Window.RemoveFromRoot();
-                    };
-            };
-
-            Button Chart2Button = new Button();
-            Chart2Button.Text = "Chart 2";
-            ChartPanel.AddChild(Chart2Button);
-
-            Chart2Button.Click += (sender, args) =>
-            {
-                Window Chart2Window = CreateWindow();
-                Chart2Window.Width = 460;
-                Chart2Window.Height = 360;
-                Chart2Window.AddToRoot();
-                SpriteRuntime chart2Sprite = new SpriteRuntime();
-                chart2Sprite.SourceFileName = "C:\\Users\\inter\\OneDrive\\Desktop\\Spring 2026\\CS4620 Intelligent Systems\\New folder\\CS4620\\Graphs\\Graph_20260409_083621.png";
-
-                RectangleRuntime chart2Rectangle = new RectangleRuntime();
-                chart2Rectangle.Width = 400;
-                chart2Rectangle.Height = 300;
-                chart2Rectangle.Anchor(Anchor.Center);
-                chart2Rectangle.AddChild(chart2Sprite);
-                Chart2Window.AddChild(chart2Rectangle);
-
-                Button SaveFormatButton = new Button();
-                SaveFormatButton.Text = "Save Graph";
-                SaveFormatButton.Anchor(Anchor.BottomRight);
-                Chart2Window.AddChild(SaveFormatButton);
-
-                SaveFormatButton.Click += (sender, args) =>
-                    {
-                        ItemsControl ControlBox = CreateFormatSelection();
-                        Chart2Window.AddChild(ControlBox);
-                        ControlBox.Anchor(Anchor.BottomRight);
-                    };
-
-                //Add Exit button to the graph window:
-                Button ExitGraphButton = new Button();
-                ExitGraphButton.Text = "Cancel";
-                ExitGraphButton.Anchor(Anchor.TopRight);
-                Chart2Window.AddChild(ExitGraphButton);
-
-                ExitGraphButton.Click += (sender, args) =>
-                    {
-                        Chart2Window.RemoveFromRoot();
-                    };
-
-            };
-
-
-            //Add Exit button to the graph window:
-            Button ExitGraphButton = new Button();
-            ExitGraphButton.Text = "Cancel";
-            ExitGraphButton.Anchor(Anchor.TopRight);
-            ChartPanel.AddChild(ExitGraphButton);
-
-            ExitGraphButton.Click += (sender, args) =>
-            {
-                GraphWindow.RemoveFromRoot();
-            };
-
-        };
-
 
 
         //Add Button to run simulation :
@@ -363,88 +150,20 @@ class GumInterface
 
         runButton.Click += (sender, args) =>
         {
-            //Add Window for controls
-            Window SpawnWindow = CreateWindow();
-            SpawnWindow.AddToRoot();
-
-            StackPanel SpawnPanel = new StackPanel();
-            SpawnPanel.Spacing = 4;
-            SpawnPanel.Anchor(Anchor.Center);
-            SpawnWindow.AddChild(SpawnPanel);
-
-            //Create Labels and TextBoxes for Static and Dynamic Cars:
-            Label CarCountLabel = new Label();
-            CarCountLabel.Text = "Total cars";
-            SpawnPanel.AddChild(CarCountLabel);
-            TextBox CarCountTextbox = new TextBox();
-            SpawnPanel.AddChild(CarCountTextbox);
-
-            Label PercentLabel = new Label();
-            PercentLabel.Text = "Percent of cars that are basic vs reroute";
-            SpawnPanel.AddChild(PercentLabel);
-            TextBox PercentTextbox = new TextBox();
-            SpawnPanel.AddChild(PercentTextbox);
-
-            Label SeedLabel = new Label();
-            SeedLabel.Text = "Seed";
-            SpawnPanel.AddChild(SeedLabel);
-            TextBox SeedTextbox = new TextBox();
-            SpawnPanel.AddChild(SeedTextbox);
-
-            //Create Button to Start Simulation:
-            Button StartSimButton = new Button();
-            StartSimButton.Text = "Start Simulation";
-            SpawnPanel.AddChild(StartSimButton);
-
-            StartSimButton.Click += (sender, args) =>
-            {
-                SimulationSuper super = ComponentManager.GetGlobalComponent<SimulationSuper>();
-                SimulationSystems.StartBatch();
-                //super.Finished = false;
-            };
-            
-            // StartSimButton.Click += (sender, args) =>
-            //     {
-            //         int totalCount;
-            //         int distributionPercent;
-            //         int seed;
-            //
-            //         if (int.TryParse(CarCountTextbox.Text, out totalCount) &&
-            //             int.TryParse(PercentTextbox.Text, out distributionPercent) &&
-            //             int.TryParse(SeedTextbox.Text, out seed))
-            //         {
-            //             Console.WriteLine($"Spawning {totalCount} static cars and {distributionPercent}% of them are dynamic cars");
-            //             // Call your car spawning logic here using staticCount and dynamicCount
-            //             //CarSystems.GenerateRandomCar();
-            //             CarSystems.GenerateCars(totalCount, seed, distributionPercent * .01f);
-            //             SpawnWindow.RemoveFromRoot();
-            //         }
-            //         else
-            //         {
-            //             Console.WriteLine("Invalid input for static or dynamic car count. Please enter valid integers.");
-            //         }
-            //     };
-
-            // Create Exit Button for Spawn Window:
-            Button ExitSpawnButton = new Button();
-            ExitSpawnButton.Text = "Cancel";
-            SpawnPanel.AddChild(ExitSpawnButton);
-
-            ExitSpawnButton.Click += (sender, args) =>
-                {
-                    SpawnWindow.RemoveFromRoot();
-                };
+            OpenRunSimulationWindow();
         };
 
         ColoredRectangleRuntime SpeedRectangle = new ColoredRectangleRuntime();
         SpeedRectangle.Color = Microsoft.Xna.Framework.Color.DarkGray;
-        SpeedRectangle.Width = 127;
-        SpeedRectangle.Height = 100;
+        SpeedRectangle.Dock(Dock.SizeToChildren);
+        // Small padding around the content.
+        SpeedRectangle.Width = 16;
+        SpeedRectangle.Height = 16;
         StartPanel.AddChild(SpeedRectangle);
 
         StackPanel RectangleStackPanel = new StackPanel();
         RectangleStackPanel.Spacing = 4;    
-        RectangleStackPanel.Dock(Dock.Fill);
+        RectangleStackPanel.Dock(Dock.SizeToChildren);
         SpeedRectangle.AddChild(RectangleStackPanel);
 
         Label SpeedLabel = new Label();
@@ -455,6 +174,27 @@ class GumInterface
         SpeedPanel.Spacing = 4;
         RectangleStackPanel.AddChild(SpeedPanel);
         SpeedPanel.Orientation = Orientation.Horizontal;
+        int lastNonZeroSpeed = 1;
+        bool isPaused = false;
+
+        Button PauseButton = new Button();
+
+        void SetSimSpeedFromUi(int speed)
+        {
+            SimulationSystems.SetSpeed(speed);
+
+            if (speed > 0)
+            {
+                lastNonZeroSpeed = speed;
+                isPaused = false;
+                PauseButton.Text = "||";
+            }
+            else
+            {
+                isPaused = true;
+                PauseButton.Text = "|>";
+            }
+        }
 
         Button Speed1Button = new Button();
         Speed1Button.Text = "1x";
@@ -463,7 +203,7 @@ class GumInterface
         SpeedPanel.AddChild(Speed1Button);
         Speed1Button.Click += (sender, args) =>
         {
-            SimulationSystems.SetSpeed(1);
+            SetSimSpeedFromUi(1);
         };
 
         Button Speed2Button = new Button();
@@ -473,7 +213,7 @@ class GumInterface
         SpeedPanel.AddChild(Speed2Button);
         Speed2Button.Click += (sender, args) =>
         {
-            SimulationSystems.SetSpeed(5);
+            SetSimSpeedFromUi(5);
         };
 
         Button Speed4Button = new Button();
@@ -483,7 +223,23 @@ class GumInterface
         SpeedPanel.AddChild(Speed4Button);
         Speed4Button.Click += (sender, args) =>
         {
-            SimulationSystems.SetSpeed(10);
+            SetSimSpeedFromUi(10);
+        };
+
+        PauseButton.Text = "||";
+        PauseButton.Width = 45;
+        PauseButton.Height = 15;
+        SpeedPanel.AddChild(PauseButton);
+        PauseButton.Click += (sender, args) =>
+        {
+            if (isPaused)
+            {
+                SetSimSpeedFromUi(lastNonZeroSpeed);
+            }
+            else
+            {
+                SetSimSpeedFromUi(0);
+            }
         };
 
         //Weather Button Doesn't do anything right now, maybe we'll add some later or delete it.
@@ -522,6 +278,252 @@ class GumInterface
                 // Logic to enable adding a sign goes here
             };
         };
+    }
+
+    private void OpenSaveWindow()
+    {
+        if (_saveWindow == null)
+        {
+            _saveWindow = CreateWindow();
+            _saveWindow.Width = 420;
+            _saveWindow.Height = 360;
+
+            StackPanel savePanel = new StackPanel();
+            savePanel.Spacing = 3;
+            savePanel.Anchor(Anchor.Center);
+            _saveWindow.AddChild(savePanel);
+
+            Label saveLabel = new Label();
+            saveLabel.Text = "File Name: ";
+            savePanel.AddChild(saveLabel);
+
+            _saveInputBox = new TextBox();
+            savePanel.AddChild(_saveInputBox);
+
+            Label fileLabel = new Label();
+            fileLabel.Text = "Select file to save";
+            savePanel.AddChild(fileLabel);
+
+            _saveListBox = new ListBox();
+            _saveListBox.Width = 260;
+            _saveListBox.Height = 160;
+            savePanel.AddChild(_saveListBox);
+            _saveListBox.ItemClicked += (sender, args) =>
+            {
+                if (_saveListBox.SelectedObject != null)
+                {
+                    _saveInputBox.Text = _saveListBox.SelectedObject.ToString();
+                }
+            };
+
+            Button submitButton = new Button();
+            submitButton.Text = "Save File";
+            savePanel.AddChild(submitButton);
+            submitButton.Click += (sender, args) =>
+            {
+                if (_saveInputBox.Text == "")
+                    return;
+
+                SaveSystem.Save("saves/" + _saveInputBox.Text + ".ism");
+                _saveWindow.RemoveFromRoot();
+            };
+
+            Button cancelButton = new Button();
+            cancelButton.Text = "Cancel";
+            savePanel.AddChild(cancelButton);
+            cancelButton.Click += (sender, args) =>
+            {
+                _saveWindow.RemoveFromRoot();
+            };
+        }
+
+        RefreshSaveFiles(_saveListBox);
+        _saveInputBox.Text = "";
+        _saveWindow.RemoveFromRoot();
+        _saveWindow.AddToRoot();
+    }
+
+    private void OpenLoadWindow()
+    {
+        if (_loadWindow == null)
+        {
+            _loadWindow = CreateWindow();
+            _loadWindow.Width = 420;
+            _loadWindow.Height = 320;
+
+            StackPanel loadPanel = new StackPanel();
+            loadPanel.Anchor(Anchor.Center);
+            loadPanel.Spacing = 4;
+            _loadWindow.AddChild(loadPanel);
+
+            Label loadLabel = new Label();
+            loadLabel.Text = "Select which road system to open";
+            loadPanel.AddChild(loadLabel);
+
+            _loadListBox = new ListBox();
+            _loadListBox.Width = 260;
+            _loadListBox.Height = 160;
+            loadPanel.AddChild(_loadListBox);
+
+            Button loadButton = new Button();
+            loadButton.Text = "Load";
+            loadPanel.AddChild(loadButton);
+            loadButton.Click += (sender, args) =>
+            {
+                if (_loadListBox.SelectedObject == null)
+                    return;
+
+                LoadSystem.Load("saves/" + _loadListBox.SelectedObject + ".ism");
+                _loadWindow.RemoveFromRoot();
+            };
+
+            Button cancelButton = new Button();
+            cancelButton.Text = "Cancel";
+            loadPanel.AddChild(cancelButton);
+            cancelButton.Click += (sender, args) =>
+            {
+                _loadWindow.RemoveFromRoot();
+            };
+        }
+
+        RefreshSaveFiles(_loadListBox);
+        _loadWindow.RemoveFromRoot();
+        _loadWindow.AddToRoot();
+    }
+
+    private void OpenRunSimulationWindow()
+    {
+        if (ComponentManager.GetCount<PathSegment>() < 4)
+        {
+            Console.WriteLine("Need at least 4 path segments to run simulation.");
+            return;
+        }
+
+        if (_runSimulationWindow == null)
+        {
+            _runSimulationWindow = CreateWindow();
+            _runSimulationWindow.Width = 440;
+            _runSimulationWindow.Height = 430;
+
+            StackPanel spawnPanel = new StackPanel();
+            spawnPanel.Spacing = 4;
+            spawnPanel.Anchor(Anchor.Center);
+            _runSimulationWindow.AddChild(spawnPanel);
+
+            Label carCountLabel = new Label();
+            carCountLabel.Text = "Total cars";
+            spawnPanel.AddChild(carCountLabel);
+            _carCountTextbox = new TextBox();
+            spawnPanel.AddChild(_carCountTextbox);
+
+            Label percentLabel = new Label();
+            percentLabel.Text = "Percent basic (0-100)";
+            spawnPanel.AddChild(percentLabel);
+            _percentTextbox = new TextBox();
+            spawnPanel.AddChild(_percentTextbox);
+
+            Label seedLabel = new Label();
+            seedLabel.Text = "Seed";
+            spawnPanel.AddChild(seedLabel);
+            _seedTextbox = new TextBox();
+            spawnPanel.AddChild(_seedTextbox);
+
+            Label maxTimeLabel = new Label();
+            maxTimeLabel.Text = "Timer per simulation run (seconds)";
+            spawnPanel.AddChild(maxTimeLabel);
+            _maxSimTimeTextbox = new TextBox();
+            spawnPanel.AddChild(_maxSimTimeTextbox);
+
+            Label distributionStepLabel = new Label();
+            distributionStepLabel.Text = "Distribution step";
+            spawnPanel.AddChild(distributionStepLabel);
+            _distributionStepTextbox = new TextBox();
+            spawnPanel.AddChild(_distributionStepTextbox);
+
+            _runSimulationStatusLabel = new Label();
+            _runSimulationStatusLabel.Text = "";
+            spawnPanel.AddChild(_runSimulationStatusLabel);
+
+            Button startSimButton = new Button();
+            startSimButton.Text = "Start Simulation";
+            spawnPanel.AddChild(startSimButton);
+            startSimButton.Click += (sender, args) =>
+            {
+                SimulationSuper simSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
+                int carCount;
+                int seed = 0;
+                float behaviorDistribution = 0;
+                float maxSimTime = 0;
+                int distributionStep = 0;
+
+                bool validInput =
+                    int.TryParse(_carCountTextbox.Text, out carCount) &&
+                    int.TryParse(_seedTextbox.Text, out seed) &&
+                    float.TryParse(_percentTextbox.Text, out behaviorDistribution) &&
+                    float.TryParse(_maxSimTimeTextbox.Text, out maxSimTime) &&
+                    int.TryParse(_distributionStepTextbox.Text, out distributionStep) &&
+                    carCount > 0 &&
+                    distributionStep > 0 &&
+                    behaviorDistribution >= 0 &&
+                    behaviorDistribution <= 100 &&
+                    maxSimTime > 0;
+
+                if (!validInput)
+                {
+                    _runSimulationStatusLabel.Text = "Invalid values. Check fields and try again.";
+                    return;
+                }
+
+                simSuper.GenCarCount = carCount;
+                simSuper.GenSeed = seed;
+                simSuper.GenBehaviorDistribution = behaviorDistribution;
+                simSuper.MaxSimTime = maxSimTime;
+                simSuper.DistributionChangeValue = distributionStep;
+
+                bool started = SimulationSystems.StartBatch();
+                if (started)
+                {
+                    _runSimulationStatusLabel.Text = "";
+                    _runSimulationWindow.RemoveFromRoot();
+                }
+                else
+                {
+                    _runSimulationStatusLabel.Text = "Need at least 4 path segments.";
+                }
+            };
+
+            Button exitSpawnButton = new Button();
+            exitSpawnButton.Text = "Cancel";
+            spawnPanel.AddChild(exitSpawnButton);
+            exitSpawnButton.Click += (sender, args) =>
+            {
+                _runSimulationWindow.RemoveFromRoot();
+            };
+        }
+
+        SimulationSuper currentSettings = ComponentManager.GetGlobalComponent<SimulationSuper>();
+        _carCountTextbox.Text = currentSettings.GenCarCount.ToString();
+        _percentTextbox.Text = currentSettings.GenBehaviorDistribution.ToString();
+        _seedTextbox.Text = currentSettings.GenSeed.ToString();
+        _maxSimTimeTextbox.Text = currentSettings.MaxSimTime.ToString();
+        _distributionStepTextbox.Text = currentSettings.DistributionChangeValue.ToString();
+        _runSimulationStatusLabel.Text = "";
+        _runSimulationWindow.RemoveFromRoot();
+        _runSimulationWindow.AddToRoot();
+    }
+
+    private void RefreshSaveFiles(ListBox targetList)
+    {
+        if (!Directory.Exists("saves"))
+        {
+            Directory.CreateDirectory("saves");
+        }
+
+        targetList.Items.Clear();
+        foreach (string fileName in Directory.EnumerateFiles("saves"))
+        {
+            targetList.Items.Add(Path.GetFileNameWithoutExtension(fileName));
+        }
     }
 
     private Window CreateWindow()
