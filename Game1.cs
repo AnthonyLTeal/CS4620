@@ -83,7 +83,7 @@ public class Game1 : Game
         _terrain = new Terrain(_graphics.GraphicsDevice);
         _camera = new ArcBallCamera(GraphicsDevice.Viewport.AspectRatio, MathHelper.PiOver4, new Vector3(0, 0, 0), Vector3.Up, 0.1f, 1000);
         _cameraControls = new CameraControls();
-        DestinationBlob destinationBlob = new DestinationBlob(100000);
+        DestinationBlob destinationBlob = new DestinationBlob(1000000);
         SimulationSuper simulationSuper = new SimulationSuper();
         
         ComponentManager.AddComponentToGlobalEntity(simulationSuper);

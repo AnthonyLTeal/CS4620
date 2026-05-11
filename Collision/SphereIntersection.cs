@@ -23,10 +23,10 @@ public class SphereIntersection
         return distanceSquared <= SQUARED_RADIUS_SUM;
     }
 
-    public static bool WillIntersect(Vector3 centerA, Vector3 centerB)
+    public static bool WillIntersect(Vector3 centerA, Vector3 centerB, float radius = 0.25f)
     {
         float distanceSquared = Vector3.DistanceSquared(centerA, centerB);
         //Console.WriteLine("Distance Squared: " + distanceSquared);
-        return distanceSquared <= SQUARED_RADIUS_SUM;
+        return distanceSquared <= radius;
     }
 }

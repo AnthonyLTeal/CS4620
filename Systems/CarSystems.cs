@@ -96,7 +96,7 @@ public class CarSystems
 
             // try
             // {
-            MoveCar(ref car, ref instancedData, entity, virtualDt, destinationBlob, simSuper, cars, instancedDatas, roadMesh, carComponentId, segments, segmentComponentId);
+            MoveCar(ref car, i, ref instancedData, entity, virtualDt, destinationBlob, simSuper, cars, instancedDatas, roadMesh, carComponentId, segments, segmentComponentId);
             // }
             // catch (Exception e)
             // {
@@ -259,6 +259,7 @@ public class CarSystems
 
         var endConnector = roadMesh.PathSegmentConnectors[(int)targetSegment.EndConnector];
         var frontConnector = roadMesh.PathSegmentConnectors[(int)targetSegment.FrontConnector];
+        
         if (endConnector.DPath.Distances[lastConnectorId] < frontConnector.DPath.Distances[lastConnectorId])
             return endConnector.DPath.Prevs[lastConnectorId];
         return frontConnector.DPath.Prevs[lastConnectorId];
@@ -406,7 +407,7 @@ public class CarSystems
 
 
     //TODO need to add collision check here for cars so they don't hit/pass through each other, especially at intersections
-    private static void MoveCar(ref Car car, ref InstancedData instancedData, 
+    private static void MoveCar(ref Car car, int denseId, ref InstancedData instancedData, 
         int entity, float virtualDt, DestinationBlob destinationBlob, SimulationSuper simSuper,
         Car[] cars, InstancedData[] instancedDatas, RoadMesh roadMesh, int carComponentId, PathSegment[] segments, int segmentComponentId)
     {
@@ -453,11 +454,12 @@ public class CarSystems
 
             if (distanceTo > remaining)
             {
-                //if (car.WaitOnTraffic)
-                if (CarCollisionSystems.WaitOnTraffic(ref car, ref instancedData, entity, remaining, direction, virtualDt, 
-                    destination, cars, instancedDatas, roadMesh, carComponentId, connectedSegment, 
-                    segments, segmentComponentId))
+                if (car.WaitOnTraffic)
                     return;
+                // if (CarCollisionSystems.WaitOnTraffic(ref car, denseId, ref instancedData, entity, remaining, direction, virtualDt, 
+                //     destination, cars, instancedDatas, roadMesh, carComponentId, connectedSegment, 
+                //     segments, segmentComponentId))
+                //     return;
 
                 instancedData.Position += direction * remaining;
                 instancedData.Rotation = -(float)Math.Atan2(direction.X, direction.Z);;
@@ -526,13 +528,13 @@ public class CarSystems
             // Console.WriteLine("Current Point Index: " + car.CarPath.CurrentIndex);
             //if (WaitOnTraffic(entity, remaining, direction, virtualDt, destination))
             
-            //if (car.WaitOnTraffic)
-            //    return;
-            
-            if (CarCollisionSystems.WaitOnTraffic(ref car, ref instancedData, entity, remaining, direction, virtualDt, 
-                    destination, cars, instancedDatas, roadMesh, carComponentId, connectedSegment, 
-                    segments, segmentComponentId))
+            if (car.WaitOnTraffic)
                 return;
+            
+            // if (CarCollisionSystems.WaitOnTraffic(ref car, denseId, ref instancedData, entity, remaining, direction, virtualDt, 
+            //         destination, cars, instancedDatas, roadMesh, carComponentId, connectedSegment, 
+            //         segments, segmentComponentId))
+            //     return;
 
             if (isOverridden) //if overidden, car is traveling through an intersection/connector, but not necessarily an intersection
             {
@@ -631,6 +633,7 @@ public class CarSystems
                 {
                     car.InIntersection = false;
                     lastConnector.StopQueue.Add(entity);
+                    lastConnector.DenseCarsOnConnector.Add(denseId);
                 }
             }
         }

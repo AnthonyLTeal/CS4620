@@ -1,52 +1,63 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using CS4620IS.Collision;
 using CS4620IS.Components;
 using Microsoft.Xna.Framework;
 using PlanetaryExpansion;
+using ScottPlot.Colormaps;
 
 namespace CS4620IS;
 
 public class CarCollisionSystems
 {
     public const float MaxStallTime = 15.0f; //in seconds
-
-    public static void BuildLeadingSegmentLists(PathSegment[] segments, Car[] cars, InstancedData[] instanceDatas, int segmentCid,
-        int segmentCount, int carCount, RoadMesh roadMesh)
+    private static Car[] _cars;
+    private static InstancedData[] _instancedData;
+    private static PathSegment[] _segments;
+    private static RoadMesh _roadMesh;
+    private static float _velocity;
+    private static float _virtualDt;
+    private static int _carCount;
+    private static int _segmentCount;
+    private static int _segmentCid;
+    
+    public static void BuildLeadingSegmentLists()
     {
-        for (int i = 0; i < segmentCount; i++)
+        for (int i = 0; i < _segmentCount; i++)
         {
-            PathSegment segment = segments[i];
+            PathSegment segment = _segments[i];
             segment.NegativeCars.Clear();
             segment.PositiveCars.Clear();
         }
 
-        foreach (PathSegmentConnector connector in roadMesh.PathSegmentConnectors)
+        foreach (PathSegmentConnector connector in _roadMesh.PathSegmentConnectors)
         {
             connector.DenseCarsOnConnector.Clear();
         }
 
-        for (int i = 0; i < carCount; i++)
+        for (int i = 0; i < _carCount; i++)
         {
-            ref Car car = ref cars[i];
+            ref Car car = ref _cars[i];
 
             car.WaitOnTraffic = false;
             
-            InstancedData instanceData = instanceDatas[i];
+            InstancedData instanceData = _instancedData[i];
             
-            int segmentDenseId = ComponentManager.GetDenseId(car.connectedSegmentId, segmentCid);
-            PathSegment segment = segments[segmentDenseId];
+            int segmentDenseId = ComponentManager.GetDenseId(car.connectedSegmentId, _segmentCid);
+            PathSegment segment = _segments[segmentDenseId];
 
             if (car.OnConnector != -1)
             {
-                PathSegmentConnector connector = roadMesh.PathSegmentConnectors[car.OnConnector];
+                PathSegmentConnector connector = _roadMesh.PathSegmentConnectors[car.OnConnector];
                 connector.DenseCarsOnConnector.Add(i);
                 continue;
             }
 
             float offset = Vector3.Distance(instanceData.Position, segment.Path[car.CarPath.CurrentIndex]);
             float distance = PathSegmentSystems.GetDistance(segment, car.CarPath.Direction, car.CarPath.CurrentIndex, offset);
-
+            
             car.DistOnSegment = distance;
             
             if (car.CarPath.Direction == -1)
@@ -55,139 +66,245 @@ public class CarCollisionSystems
                 segment.PositiveCars.Add(i);
         }
         
-        for (int i = 0; i < segmentCount; i++)
+        for (int i = 0; i < _segmentCount; i++)
         {
-            PathSegment segment = segments[i];
+            PathSegment segment = _segments[i];
 
             if (segment.PositiveCars.Count > 1)
             {
-                // The lambda captures 'cars' from the method scope
-                var localCars = cars;
-                segment.PositiveCars.Sort((a, b) => localCars[a].DistOnSegment.CompareTo(localCars[b].DistOnSegment));
-            }
+                segment.PositiveCars.Sort((a, b) => _cars[a].DistOnSegment.CompareTo(_cars[b].DistOnSegment));            }
 
             if (segment.NegativeCars.Count > 1)
             {
-                segment.NegativeCars.Sort((a, b) => cars[a].DistOnSegment.CompareTo(cars[b].DistOnSegment));
+                segment.NegativeCars.Sort((a, b) => _cars[a].DistOnSegment.CompareTo(_cars[b].DistOnSegment));
             }
         }
     }
 
     public static void Update(float virtualDt)
     {
-        PathSegment[] segments = ComponentManager.GetComponents<PathSegment>();
-        Car[] cars = ComponentManager.GetComponents<Car>();
-        InstancedData[] instancedDatas = ComponentManager.GetComponents<InstancedData>();
+        _cars = ComponentManager.GetComponents<Car>();
+        _instancedData = ComponentManager.GetComponents<InstancedData>();
+        _segments = ComponentManager.GetComponents<PathSegment>();
+        _roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
+        _velocity = virtualDt * 2; // include your buffer
         
-        int segmentCid = ComponentManager.GetComponentID<PathSegment>();
+        _segmentCid = ComponentManager.GetComponentID<PathSegment>();
         
-        int segmentCount = ComponentManager.PoolCounts[segmentCid];
-        int carCount = ComponentManager.GetCount<Car>();
+        _segmentCount = ComponentManager.PoolCounts[_segmentCid];
+        _carCount = ComponentManager.GetCount<Car>();
 
-        RoadMesh roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
-
-        float velocity = 2 * virtualDt; //2 for the constant to match (remaining) for the car movement constant
+        _roadMesh = ComponentManager.GetGlobalComponent<RoadMesh>();
+        _virtualDt = virtualDt;
         
-        //BuildLeadingSegmentLists(segments, cars, instancedDatas, segmentCid, segmentCount, carCount, roadMesh);
-        //WaitOnLeadingConnector(cars, instancedDatas, segments, segmentCount, roadMesh, velocity);
-        //WaitOnTrafficSegment(cars, carCount, instancedDatas, segments, segmentCount, velocity);
+        BuildLeadingSegmentLists();
+        ProcessSegmentLists();
+        ProcessConnectorLists();
     }
 
-    private static void WaitOnLeadingConnector(Car[] cars, InstancedData[] instancedDatas, PathSegment[] segments, 
-        int segmentCount, RoadMesh roadMesh, float velocity)
+    public static void ProcessSegmentLists()
     {
-        for (int i = 0; i < segmentCount; i++)
+        for (int i = 0; i < _segmentCount; i++)
         {
-            PathSegment segment = segments[i];
-            if (segment.PositiveCars.Count + segment.NegativeCars.Count < 1)
-                continue;
+            PathSegment segment = _segments[i];
+            
+            ProcessSegmentList(segment.NegativeCars, (int)segment.FrontConnector);
+            ProcessSegmentList(segment.PositiveCars, (int)segment.EndConnector);
+        }
+    }
 
-            if (segment.NegativeCars.Count > 0)
+    public static void ProcessSegmentList(List<int> denseCarList, int connectorId)
+    {
+        for (int i = 0; i < denseCarList.Count; i++)
+        {
+            int idx = denseCarList[i];
+
+            ref Car car = ref _cars[idx];
+            
+            //if the car is in an actual intersection, they should ignore all collision
+            // if (car.InIntersection) 
+            //     continue;
+            
+            ref InstancedData instancedData = ref _instancedData[idx];
+            
+            if (car.WaitTimer >= MaxStallTime)
             {
-                int carDenseId = segment.NegativeCars[0];
-                ref Car car = ref cars[carDenseId];
-                ref InstancedData instancedData = ref instancedDatas[carDenseId];
-                PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)segment.FrontConnector];
-                foreach (int targetDenseId in connector.DenseCarsOnConnector)
-                {
-                    ref Car targetCar = ref cars[targetDenseId]; 
-                    ref InstancedData targetInstancedData = ref  instancedDatas[targetDenseId];
-                    if (CarToCarWillIntersect(ref targetCar, ref instancedData, ref targetInstancedData,
-                            car.Direction, 4 * velocity))
-                    {
-                        car.WaitOnTraffic = true;
-                        Console.WriteLine("Waiting on Leading Connector");
-                    }
-                }   
+                car.WaitTimer = 0;
+                car.StuckCooldown = .2f;
+                continue;
+            }
+            
+            if (car.StuckCooldown > 0)
+            {
+                car.StuckCooldown -= _virtualDt;
+                continue;
             }
 
-            if (segment.PositiveCars.Count > 0)
+            //check if car to car intersection is happening on a segment
+            if (i < denseCarList.Count - 1)
             {
-                int carDenseId = segment.PositiveCars[0];
-                ref Car car = ref cars[carDenseId];
-                ref InstancedData instancedData = ref instancedDatas[carDenseId];
-                PathSegmentConnector connector = roadMesh.PathSegmentConnectors[(int)segment.EndConnector];
-                foreach (int targetDenseId in connector.DenseCarsOnConnector)
+                int targetIdx = denseCarList[i + 1];
+                ref Car targetCar = ref _cars[targetIdx];
+                ref InstancedData targetInstancedData = ref _instancedData[targetIdx];
+                
+                if (CarToCarWillIntersect(ref targetCar, ref instancedData, ref targetInstancedData, car.Direction, _velocity))
                 {
-                    ref Car targetCar = ref cars[targetDenseId]; 
-                    ref InstancedData targetInstancedData = ref  instancedDatas[targetDenseId];
-                    if (CarToCarWillIntersect(ref targetCar, ref instancedData, ref targetInstancedData,
-                            car.Direction, 4 * velocity))
-                    {
-                        car.WaitOnTraffic = true;
-                    }
-                }   
+                    car.WaitOnTraffic = true;
+                    continue;
+                }
+            }
+
+            PathSegmentConnector connector = _roadMesh.PathSegmentConnectors[connectorId];
+            
+            //car on segment checking if they will collide with another car that is stopped at the intersection
+            if (WaitOnLeadingConnector(ref car, ref instancedData, connector))
+            {
+                car.WaitOnTraffic = true;
             }
         }
     }
 
-    private static void WaitOnTrafficSegment(Car[] cars, int carCount, InstancedData[] instancedDatas, 
-        PathSegment[] segments, int segmentCount, float velocity)
+    public static void ProcessConnectorLists()
     {
-        for (int i = 0; i < segmentCount; i++)
+        foreach (PathSegmentConnector connector in _roadMesh.PathSegmentConnectors)
         {
-            PathSegment segment = segments[i];
+            ProcessConnectorList(connector);
+        }
+    }
 
-            if (segment.PositiveCars.Count + segment.NegativeCars.Count < 1)
-                continue;
+    public static void ProcessConnectorList(PathSegmentConnector connector)
+    {
+        for (int i = 0; i < connector.DenseCarsOnConnector.Count; i++)
+        {
+            int idx = connector.DenseCarsOnConnector[i];
+            ref Car car = ref _cars[idx];
+            ref InstancedData instancedData = ref _instancedData[idx];
             
-            for (int j = 0; j < segment.NegativeCars.Count - 1; j++)
+            //check if car hasnt entered the inersection (happens on the first update that they move on a connector with size > 2), and if the target segment is blocked
+            if (!car.InIntersection && connector.SegmentEntities.Count > 2)
             {
-                ref Car car = ref cars[j];
-
-                if (car.WaitOnTraffic)
+                if (WaitOnBlockedSegmentIntersection(ref car))
                     continue;
-                
-                int carIdx = segment.NegativeCars[j];
-                int leadingIdx = segment.NegativeCars[j + 1];
-                ref InstancedData instancedData = ref instancedDatas[carIdx];
-                ref Car leadingCar = ref cars[carIdx];
-                ref InstancedData leadingInstancedData = ref instancedDatas[leadingIdx];
-
-                if (CarToCarWillIntersect(ref leadingCar, ref instancedData, ref leadingInstancedData, car.Direction,
-                       velocity))
-                {
-                    car.WaitOnTraffic = true;
-                }
             }
 
-            for (int j = 0; j < segment.PositiveCars.Count - 1; j++)
+            if (connector.SegmentEntities.Count < 3)
             {
-                ref Car car = ref cars[j];
-                if (car.WaitOnTraffic)
+                if (WaitOnBlockedSegment(ref car, ref instancedData))
                     continue;
-                
-                int carIdx = segment.PositiveCars[j];
-                int leadingIdx = segment.PositiveCars[j + 1];
-                ref InstancedData instancedData = ref instancedDatas[carIdx];
-                ref Car leadingCar = ref cars[carIdx];
-                ref InstancedData leadingInstancedData = ref instancedDatas[leadingIdx];
+            }
+            
+            WaitOnSingleConnector(ref car, ref instancedData, idx, connector, i);
+            
+        }
+    }
 
-                if (CarToCarWillIntersect(ref leadingCar, ref instancedData, ref leadingInstancedData, car.Direction,
-                        velocity))
-                {
-                    car.WaitOnTraffic = true;
-                }
+    public static bool WaitOnBlockedSegment(ref Car car, ref InstancedData instancedData)
+    {
+        int segmentId = ComponentManager.GetDenseId(car.connectedSegmentId, _segmentCid);
+        PathSegment segment = _segments[segmentId];
+
+        List<int> segmentList = segment.PositiveCars;
+        if (car.CarPath.Direction == -1)
+            segmentList = segment.NegativeCars;
+        if (segmentList.Count > 0)
+        {
+            int targetIdx = segmentList[0];
+            Car targetCar = _cars[targetIdx];
+            InstancedData targetInstancedData = _instancedData[targetIdx];
+            if (CarToCarWillIntersect(ref targetCar, ref instancedData, ref targetInstancedData, car.Direction, _velocity ))
+            {
+                car.WaitOnTraffic = true;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool WaitOnBlockedSegmentIntersection(ref Car car)
+    {
+        int currentIndex = car.CarPath.CurrentIndex;
+        int segmentId = ComponentManager.GetDenseId(car.connectedSegmentId, _segmentCid);
+        PathSegment segment = _segments[segmentId];
+        Vector3 point = segment.Path[currentIndex];
+
+        List<int> segmentList = segment.PositiveCars;
+        if (car.CarPath.Direction == -1)
+            segmentList = segment.NegativeCars;
+        if (segmentList.Count > 0)
+        {
+            int targetIdx = segmentList[0];
+            InstancedData instancedData = _instancedData[targetIdx];
+            if (SphereIntersection.WillIntersect(point, instancedData.Position, 1))
+            {
+                car.WaitOnTraffic = true;
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    private static bool WaitOnLeadingConnector(ref Car car, ref InstancedData instancedData, PathSegmentConnector connector)
+    {
+        foreach (int targetDenseId in connector.DenseCarsOnConnector)
+        {
+            ref Car targetCar = ref _cars[targetDenseId];
+            
+            ref InstancedData targetInstancedData = ref  _instancedData[targetDenseId];
+            if (CarToCarWillIntersect(ref targetCar, ref instancedData, ref targetInstancedData,
+                    car.Direction, _velocity))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void WaitOnSingleConnector(ref Car car, ref InstancedData instancedData, int idx, PathSegmentConnector connector, int i)
+    {
+        for (int j = i + 1; j < connector.DenseCarsOnConnector.Count; j++)
+        {
+            bool sourceBlocked = false;
+            bool targetBlocked = false;
+            
+            int targetDenseId = connector.DenseCarsOnConnector[j];
+            
+            //if (targetDenseId == idx)
+            //    continue;
+        
+            ref Car targetCar = ref _cars[targetDenseId];
+        
+            if (car.connectedSegmentId != targetCar.connectedSegmentId)
+                continue;
+        
+            Vector3 carOneDir = Vector3.Normalize(car.OverridePath.Peek() - instancedData.Position); 
+        
+            ref InstancedData targetInstancedData = ref  _instancedData[targetDenseId];
+            Vector3 targetCarDir = Vector3.Normalize(targetCar.OverridePath.Peek() - targetInstancedData.Position);
+        
+            if (Vector3.Dot(carOneDir, targetCarDir) < 0.0f)
+                continue;
+        
+            if (CarToCarWillIntersect(ref targetCar, ref instancedData, ref targetInstancedData,
+                    carOneDir, _velocity))
+            {
+                sourceBlocked = true;
+                car.WaitOnTraffic = true;
+            }
+            
+            if (CarToCarWillIntersect(ref car, ref targetInstancedData,  ref instancedData,
+                    targetCarDir, _velocity))
+            {
+                targetBlocked = true;
+                targetCar.WaitOnTraffic = false;
+            }
+
+            if (targetBlocked && sourceBlocked)
+            {
+                car.WaitOnTraffic = false;
+                return;
             }
         }
     }
@@ -195,7 +312,7 @@ public class CarCollisionSystems
     //TODO WaitOnTraffic isn't complete
     //For cars that are on a connector, before they've left a connector, they should check that the road ahead isn't backed up
     //not just wait on the intersection
-    public static bool WaitOnTraffic(ref Car car, ref InstancedData instanceData, int entity, float velocity, Vector3 direction, float virtualDt, Destination destination, Car[] cars, InstancedData[] instanceDatas, RoadMesh roadMesh, int carComponentId, PathSegment connectedSegment, PathSegment[] segments, int segmentComponentId)
+    public static bool WaitOnTraffic(ref Car car, int sourceDenseId, ref InstancedData instanceData, int entity, float velocity, Vector3 direction, float virtualDt, Destination destination, Car[] cars, InstancedData[] instanceDatas, RoadMesh roadMesh, int carComponentId, PathSegment connectedSegment, PathSegment[] segments, int segmentComponentId)
     {
         //Vector3 predPosition = instancedData.Position + velocity * direction;
 
@@ -229,6 +346,7 @@ public class CarCollisionSystems
                     int denseId = ComponentManager.GetDenseId(targetCarEntity, carComponentId);
                     if (denseId == -1) continue;
                     ref Car targetCar = ref cars[denseId];
+                    ref  InstancedData targetInstancedData = ref _instancedData[denseId];
                     
                     //don't even go to WillIntersect, just ignore from here
                     if (MathF.Abs(targetCar.CarPath.CurrentIndex - car.CarPath.CurrentIndex) > 2)
@@ -240,7 +358,7 @@ public class CarCollisionSystems
                         int currentIndex = car.CarPath.CurrentIndex;
                         Vector3 point = connectedSegment.Path[currentIndex];
 
-                        if (targetCar.OnConnector == -1 && SphereIntersection.WillIntersect(point, instanceData.Position))
+                        if (targetCar.OnConnector == -1 && SphereIntersection.WillIntersect(point, targetInstancedData.Position))
                             return true;
                     }
                 }
@@ -286,18 +404,21 @@ public class CarCollisionSystems
     
             if (connector.SegmentEntities.Count > 2) //check against entering intersection
             {
-                foreach (int targetCarEntity in connector.StopQueue)
+                foreach (int denseCar in connector.DenseCarsOnConnector)
                 {
-                    int denseId = ComponentManager.GetDenseId(targetCarEntity, carComponentId);
-                    if (denseId == -1) continue;
-                    ref Car targetCar = ref cars[denseId];
-                    ref InstancedData targetInstanceData = ref  instanceDatas[denseId];
+                    //int denseId = ComponentManager.GetDenseId(denseCar, carComponentId);
+                    //if (denseId == -1) continue;
+                    //ref Car targetCar = ref cars[denseId];
+                    ref InstancedData targetInstanceData = ref  instanceDatas[denseCar];
+                    ref Car targetCar =  ref cars[denseCar];
                     // if (targetCar.SegmentPath.Direction != car.SegmentPath.Direction)
                     //     continue;
-                    if (targetCarEntity == entity)
+                    if (denseCar == sourceDenseId)
                         continue;
                     if (CarToCarWillIntersect(ref targetCar, ref instanceData, ref targetInstanceData, direction, velocity))
+                    {
                         return true;
+                    }
                 }
             }
             
