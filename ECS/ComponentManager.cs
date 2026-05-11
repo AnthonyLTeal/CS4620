@@ -154,6 +154,19 @@ public class ComponentManager
         LastAddedEntity = 0;
         reserved = true;
     }
+
+    public static int GetDenseId(int entity, int componentId)
+    {
+        return Entities[entity][componentId];
+    }
+
+    public static int GetDenseId<T>(int entity)
+    {
+        int componentId = GetComponentID<T>();
+        int denseId = Entities[entity][componentId];
+
+        return denseId;
+    }
     
     public static ref T GetComponent<T>(int entity)
     {
@@ -288,6 +301,12 @@ public class ComponentManager
         
         Array pool = ComponentRegistry[componentId];
         Array.Copy(pool, count - 1, pool, denseId, 1);
+        
+        //null the value for garbage collection if it's a class
+        if (!pool.GetType().GetElementType().IsValueType)
+        {
+            pool.SetValue(null, count - 1);
+        }
         
         int lastEntity = ComponentOwners[componentId][count - 1];
         Entities[lastEntity][componentId] = denseId;

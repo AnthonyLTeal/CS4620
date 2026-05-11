@@ -67,7 +67,7 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        ComponentManager.RegisterComponent<CubeMeshBatcher>();
+        //ComponentManager.RegisterComponent<CubeMeshBatcher>();
         ComponentManager.RegisterComponent<ArcBallCamera>();
         // ComponentManager.RegisterComponent<TerrainCursor>();
         // ComponentManager.RegisterComponent<Desktop>();
@@ -94,14 +94,15 @@ public class Game1 : Game
         ComponentManager.AddComponentToGlobalEntity(destinationBlob);
         
         
-        CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
-        ComponentManager.AddComponentToGlobalEntity(cubeMeshBatcher);
+        //CubeMeshBatcher cubeMeshBatcher = new CubeMeshBatcher();
+        //ComponentManager.AddComponentToGlobalEntity(cubeMeshBatcher);
         
         _roadMesh = new RoadMesh(_graphics.GraphicsDevice, this);
         ComponentManager.AddComponentToGlobalEntity(_roadMesh);
         
         StopSignDrawSystem.Load(GraphicsDevice, Content);
         ComponentManager.AddComponentToGlobalEntity(_roadMesh);
+        InstancedCarDraw.Load(GraphicsDevice, Content);
     }
     
     private KeyboardState oldKeyState;
@@ -132,8 +133,8 @@ public class Game1 : Game
 
         oldKeyState = Keyboard.GetState();
         
-        CubeMeshBatcher cubeMeshBatcher = ComponentManager.GetGlobalComponent<CubeMeshBatcher>();
-        cubeMeshBatcher.Update();
+        //CubeMeshBatcher cubeMeshBatcher = ComponentManager.GetGlobalComponent<CubeMeshBatcher>();
+        //cubeMeshBatcher.Update();
         
         _cameraControls.Update(gameTime, Keyboard.GetState(), Mouse.GetState(), _camera);
         CursorSystem.Update(gameTime);
@@ -143,6 +144,7 @@ public class Game1 : Game
             _roadMesh.Update(_graphics.GraphicsDevice, _terrain, _camera, Keyboard.GetState());
         }
         CarSystems.BasicBehavior(virtualDt);
+        InstancedCarDraw.Update();
         //new stuff for stoplights
         StoplightSystems.ChangeRedGreen(virtualDt);
     
@@ -160,8 +162,9 @@ public class Game1 : Game
         _roadMesh.Draw(_graphics.GraphicsDevice, _camera.ViewMatrix, _camera.ProjectionMatrix);
         //BoundingOrientedBoxDebugDraw.DrawEntityOOBs();
         
-        CubeMeshBatcher cubeMeshBatcher = ComponentManager.GetGlobalComponent<CubeMeshBatcher>();
-        cubeMeshBatcher.Draw();
+        //CubeMeshBatcher cubeMeshBatcher = ComponentManager.GetGlobalComponent<CubeMeshBatcher>();
+        //cubeMeshBatcher.Draw();
+        InstancedCarDraw.Draw(GraphicsDevice, _camera);
         
         StopSignDrawSystem.Draw(_spriteBatch, GraphicsDevice);
         

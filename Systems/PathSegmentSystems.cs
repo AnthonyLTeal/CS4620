@@ -140,6 +140,36 @@ public class PathSegmentSystems
         }
     }
 
+    public static void CalculateIndexDistances(PathSegment segment, Vector3[] path)
+    {
+        segment.Distances.Clear();
+        float total = 0f;
+        
+        segment.Distances.Add(0f);
+        
+        for (int i = 0; i <  path.Length - 1; i++)
+        {
+            Vector3 p1 = path[i];
+            Vector3 p2 = path[i + 1];
+            float distance = Vector3.Distance(p1, p2);
+            total += distance;
+            segment.Distances.Add(total);
+        }
+    }
+
+    public static float GetDistance(PathSegment segment, int direction, int index, float offset)
+    {
+        float distance = segment.Distances[index];
+        float totalLength = segment.Distances[segment.Distances.Count - 1];
+
+        if (direction > 0)
+        {
+            return distance + offset;
+        }
+
+        return totalLength - (distance - offset);
+    }
+
     public static float GetEstimatedTimeToTravel(PathSegment segment)
     {
         float distance = 0;
@@ -147,6 +177,8 @@ public class PathSegmentSystems
         {
             distance += Vector3.Distance(segment.Path[i], segment.Path[i + 1]);
         }
+
+        segment.TotalDistance = distance;
         
         SimulationSuper simulationSuper = ComponentManager.GetGlobalComponent<SimulationSuper>();
         float speed = 2 * simulationSuper.SimSpeed;

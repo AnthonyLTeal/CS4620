@@ -41,12 +41,15 @@ public class PathSegment
     private int? frontConnector = null;
     public int ID;
     public int entityID;
+    public float TotalDistance;
     public int[] AdjacentPathSegmentEntities = new int[2];
     public PathDirection PathDirection; 
     public bool IsLaneRuler = true;
     public int Weight = 1;
     public int Speed = 1;
     public List<int> EntitiesOnSegment = new List<int>();
+    public List<int> NegativeCars = new List<int>();
+    public List<int> PositiveCars = new List<int>();
     public int SlicedParent;
     public int RibbonLength;
     public int RibbonOffset;
@@ -58,6 +61,7 @@ public class PathSegment
     public float AverageSquaredTimer = 0;
     public float AverageSquaredTimeMax = 2.0f;
     public float EstimatedTravelTime;
+    public List<float> Distances = new List<float>();
     
     [IgnoreMember]
     public List<BoundingOrientedBox> HitBoxes = new List<BoundingOrientedBox>();
@@ -112,6 +116,7 @@ public class PathSegment
             DebugPoints = PathSegmentSystems.GenerateRoadOutline(value, IsLaneRuler);
             RoadMesh.CreatePathHitBoxes(this);
             EstimatedTravelTime = PathSegmentSystems.GetEstimatedTimeToTravel(this);
+            PathSegmentSystems.CalculateIndexDistances(this, value);
             //TODO uncomment the following 2 lines to build perpendiculars when roadmesh is fixed
             //if (IsLaneRuler)
             //Perpendiculars = RoadMesh.GeneratePerpendiculars(_path);

@@ -30,6 +30,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="MessagePack" Version="3.1.4" />
+        <PackageReference Include="MonoGame.Content.Builder.Task.Compute" Version="3.8.3" />
         <PackageReference Include="MonoGame.Framework.Compute.DesktopGL" Version="3.8.3" />
         <PackageReference Include="Nopipeline.Task" Version="2.2.0" />
         <PackageReference Include="ScottPlot" Version="5.1.58" />
@@ -38,7 +39,6 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Content\Models\" />
-      <Folder Include="Content\Shaders\" />
       <Folder Include="Content\Textures\" />
     </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">

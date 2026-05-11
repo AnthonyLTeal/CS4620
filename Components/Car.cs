@@ -18,6 +18,10 @@ public struct Car
     public int PreviousSegment;
     public int InitialPathIndex;
     public Vector3 Position;
+    public Vector3 NextPathVertex;
+    public bool NeedsPathVertexUpdate;
+    public float SegmentProgress;
+    public Vector3 Direction;
     public Color Color;
     public float Scale; 
     //public DestinationPointer DestinationPointer;
@@ -37,6 +41,8 @@ public struct Car
     public float StuckCooldown;
     public bool InIntersection;
     public bool Alive;
+    public float DistOnSegment;
+    public bool WaitOnTraffic;
     
     [IgnoreMember]
     public float Rotation;
