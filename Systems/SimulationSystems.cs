@@ -60,6 +60,8 @@ public class SimulationSystems
             PrintAllSimulationRuns();
             GenerateChartsAndOpenWindows(simSuper);
         }
+
+        ResetTransientStateAfterBatch(simSuper);
     }
 
     public static void DestroyCars()
@@ -218,8 +220,10 @@ public class SimulationSystems
             // 1. Reset the "Global" state
             simSuper.Finished = false;
             simSuper.SimCount = 1;
+            simSuper.SimSpeed = Math.Max(1, simSuper.SimSpeed);
             simSuper.SimTimer = 0;
             simSuper.SimRuntime = 0;
+            simSuper.CongestionTimer = 0;
             simSuper.GenBehaviorDistribution = simSuper.StartBasicDistributionPercent;
             simSuper.ChartsGeneratedForCurrentBatch = false;
             
@@ -278,6 +282,7 @@ public class SimulationSystems
             PrintAllSimulationRuns();
             GenerateChartsAndOpenWindows(simSuper);
             DestroyCars();
+            ResetTransientStateAfterBatch(simSuper);
             Console.WriteLine("\nBatch Simulation Finished.");
             return;
         }
@@ -346,5 +351,16 @@ public class SimulationSystems
 
         GumInterface.Instance?.ShowSimulationCharts(charts);
         Console.WriteLine($"Saved {charts.Count} chart images to {SimulationChartSystem.GetOutputDirectory()}");
+    }
+
+    private static void ResetTransientStateAfterBatch(SimulationSuper simSuper)
+    {
+        simSuper.Finished = true;
+        simSuper.SimTimer = 0;
+        simSuper.SimRuntime = 0;
+        simSuper.CongestionTimer = 0;
+        simSuper.SimCount = 0;
+        simSuper.GenBehaviorDistribution = simSuper.StartBasicDistributionPercent;
+        simSuper.CurrentSimTracking = new CurrentSimTracking();
     }
 }

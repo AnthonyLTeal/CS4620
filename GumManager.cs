@@ -22,7 +22,7 @@ namespace CS4620IS;
 class GumInterface
 {
     private const int ChartWindowWidth = 780;   // <= 65% of 1280
-    private const int ChartWindowHeight = 440;  // comfortable on 720p
+    private const int ChartWindowHeight = 480;  // extra room for controls
     private const int ChartImageMaxWidth = 720;
     private const int ChartImageMaxHeight = 330;
 
@@ -133,7 +133,7 @@ class GumInterface
             Button closeButton = new Button();
             closeButton.Text = "Close";
             closeButton.X = 16;
-            closeButton.Y = finalHeight + 58;
+            closeButton.Y = finalHeight + 66;
             panel.AddChild(closeButton);
             closeButton.Click += (sender, args) =>
             {
