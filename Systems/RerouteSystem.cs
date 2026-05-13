@@ -29,25 +29,25 @@ public class RerouteSystem
         float originHeuristicDistanceOne = CheckRoute(origin, destOneId); 
         float originHeuristicDistanceTwo = CheckRoute(origin, destTwoId);
         
-        float bestDistance = originHeuristicDistanceTwo;
+        float bestEstimatedTime = originHeuristicDistanceTwo;
         PathSegmentConnector targetConnector = roadMesh.PathSegmentConnectors[destTwoId];
 
         if (originHeuristicDistanceTwo > originHeuristicDistanceOne)
         {
-            bestDistance = originHeuristicDistanceOne;
+            bestEstimatedTime = originHeuristicDistanceOne;
             targetConnector = roadMesh.PathSegmentConnectors[destOneId];
         }
 
-        int rawDistance = targetConnector.DPath.Distances[origin];
+        float rawEstimatedTime = targetConnector.DPath.Distances[origin];
 
         //here we check if our bestDistance is any better than our raw distance, if not, it means there are no obstructions and we should continue to use that path
-        if (Math.Abs(bestDistance - rawDistance) < 0.01f)
+        if (Math.Abs(bestEstimatedTime - rawEstimatedTime) < 0.01f)
             return new ReroutePath();
         
         ReroutePath bestPath = new ReroutePath();
 
-        UpdateBestPath(depth, origin, new List<int>(), destOneId, ref bestDistance, ref bestPath);
-        UpdateBestPath(depth, origin, new List<int>(), destTwoId, ref bestDistance, ref bestPath);
+        UpdateBestPath(depth, origin, new List<int>(), destOneId, ref bestEstimatedTime, ref bestPath);
+        UpdateBestPath(depth, origin, new List<int>(), destTwoId, ref bestEstimatedTime, ref bestPath);
 
         return bestPath;
     }
@@ -145,9 +145,9 @@ public class RerouteSystem
                 if (((int)segment.EndConnector == origin || (int)segment.FrontConnector == origin) &&
                     ((int)segment.EndConnector == destination || (int)segment.FrontConnector == destination))
                 {
-                    if (segment.CongestionCost > segment.EstimatedTravelTime * 1.4)
+                    if (segment.CongestionCost > segment.EstimatedTravelTime * 1)
                     {
-                        routeCost += segment.CongestionCost * 1.4f;
+                        routeCost += segment.CongestionCost;
                     }
                 }
             }

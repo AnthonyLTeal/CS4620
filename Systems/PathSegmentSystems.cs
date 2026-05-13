@@ -118,13 +118,19 @@ public class PathSegmentSystems
                 
                 pathSegment.AverageSquaredTimer = 0;
 
+                //could use this to prevent iterating over every loop every frame
+                // pathSegment.RunningSquaredSum -= oldestValue; // The value you're about to Dequeue
+                // pathSegment.RunningSquaredSum += currentFrameMetric;
+                // pathSegment.SquaredTimes.Enqueue(currentFrameMetric);
+                // pathSegment.SquaredTimes.Dequeue();
+                
                 float totalSquaredTime = 0;
-                foreach (int squaredTime in pathSegment.SquaredTimes)
+                foreach (float squaredTime in pathSegment.SquaredTimes)
                 {
                     totalSquaredTime += squaredTime;
                 }
 
-                float sqrtTime = totalSquaredTime / 10 * 0.1f;
+                float sqrtTime = MathF.Sqrt(totalSquaredTime / pathSegment.SquaredTimes.Count);
                 float estimatedTime = GetEstimatedTimeToTravel(pathSegment);
                 
                 //Console.WriteLine("\nsqrtTime: " + sqrtTime);
@@ -202,13 +208,13 @@ public class PathSegmentSystems
             
             //Console.WriteLine($"Segment: {entity} | Entities On Segment: {segment.EntitiesOnSegment.Count}");
             
-            if (segment.CongestionCost >= 3 * segment.EstimatedTravelTime)
+            if (segment.CongestionCost >= 2 * segment.EstimatedTravelTime)
             {
                 if (segment.CurrentColorIndex != 3)
                     colorValue = 3;
                 else continue;
             }
-            else if (segment.CongestionCost >= 2 * segment.EstimatedTravelTime)
+            else if (segment.CongestionCost >= 1.5 * segment.EstimatedTravelTime)
             {
                 if (segment.CurrentColorIndex != 2)
                     colorValue = 2;
@@ -253,7 +259,7 @@ public class PathSegmentSystems
         List<PathSegmentConnector> pathSegmentConnectors = roadMesh.PathSegmentConnectors; //vertices
         //List<PathSegment> pathSegments = roadMesh.Segments; //edges
 
-        int[] distances = Enumerable.Repeat(-1, pathSegmentConnectors.Count).ToArray();
+        float[] distances = Enumerable.Repeat(-1.0f, pathSegmentConnectors.Count).ToArray();
         int[] prev = Enumerable.Repeat(-1, pathSegmentConnectors.Count).ToArray();
 
         distances[origin.ID] = 0;
@@ -261,7 +267,7 @@ public class PathSegmentSystems
         //int depth = 0;
         int pathSegmentCID = ComponentManager.GetComponentID<PathSegment>();
 
-        PriorityQueue<(int node, int dist), int> minHeap = new();
+        PriorityQueue<(int node, float estTime), float> minHeap = new();
 
         minHeap.Enqueue((origin.ID, 0), 0);
 
@@ -280,7 +286,7 @@ public class PathSegmentSystems
                 PathSegment edge = ComponentManager.GetComponent<PathSegment>(edgeID);
                 int nextID = PathSegmentConnectorSystems.GetNextConnector(edge, currentPoint)!.Value;
 
-                int newDist = queuedDist + edge.Weight;
+                float newDist = queuedDist + edge.EstimatedTravelTime;
 
                 if (distances[nextID] == -1 || newDist < distances[nextID])
                 {

@@ -165,11 +165,11 @@ public class PathSegmentConnector
 [MessagePackObject]
 public class DPath
 {
-    [Key(0)]public int[] Distances { get; private set; }
+    [Key(0)]public float[] Distances { get; private set; }
     [Key(1)]public int[] Prevs { get; private set; }
 
     [SerializationConstructor]
-    public DPath(int[] _distances, int[] _prevs)
+    public DPath(float[] _distances, int[] _prevs)
     {
         Distances = _distances;
         Prevs = _prevs;
